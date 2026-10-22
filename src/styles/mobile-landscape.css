@@ -44,7 +44,8 @@
   html body .hub-rail__btn.is-active { color: #3a1d08; background: linear-gradient(180deg, var(--gold-hi), var(--gold)); box-shadow: 0 2px 8px rgba(240, 194, 106, .35); }
   html body .hub-rail__btn.is-active .hub-rail__icon { color: #3a1d08; }
   html body .hub-rail__btn:active { transform: scale(.94); }
-  html body .hub-rail__btn.nav-coach { box-shadow: 0 0 0 2px var(--jade), 0 0 14px rgba(79, 207, 152, .55); }
+  /* 임무 안내가 가리키는 묶음: 테두리 대신 작은 초록 점(선택된 칸처럼 보이지 않게) */
+  html body .hub-rail__btn.nav-coach::after { content: ''; position: absolute; top: 5px; left: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--jade); box-shadow: 0 0 8px var(--jade); animation: hub-coach 1.6s ease-in-out infinite; }
   html body .hub-rail__dot { position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--lacquer-hi); box-shadow: 0 0 0 2px rgba(30, 14, 7, .97); }
 
   /* ── 내용: 띠 오른쪽, 상단바 아래 ── */
@@ -70,7 +71,7 @@
 
   /* 탭이 제목을 대신하므로 큰 제목 · 설명은 접는다(설명 버튼 · 숫자는 남긴다) */
   html body .app-shell .section-heading { margin-bottom: 8px; gap: 8px; min-height: 0; align-items: center; }
-  html body .app-shell .section-heading h1 { font-size: 17px; }
+  html body .app-shell .section-heading h1,
   html body .app-shell .section-heading .eyebrow,
   html body .app-shell .section-heading .heading-copy { display: none; }
   html body .app-shell .section-heading .mini-action,
@@ -79,6 +80,29 @@
   /* 손가락으로 누르기 쉬운 크기 */
   html body .app-shell .main-content .mini-action { min-height: 34px; }
   html body .app-shell .main-content .action-button { min-height: 42px; }
+
+  /* ── 본영 로비: 첫 화면 한 장을 대표 무장 · 다음 전투 · 바로가기로 채운다 ── */
+  html body .page-section--lobby { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 8px; max-width: none; }
+  html body .page-section--lobby > * { grid-column: 1 / -1; }
+  html body .page-section--lobby > .lobby-stage {
+    grid-column: 1; grid-row: 1; margin: 0; min-height: 0;
+    height: calc(var(--app-h, 100vh) - var(--top-h) - 20px);
+    border-radius: 14px;
+  }
+  html body .page-section--lobby .lobby-leader { width: 58%; opacity: 1; }
+  html body .page-section--lobby .lobby-info { max-width: 56%; height: 100%; justify-content: flex-end; gap: 6px; padding: 14px 16px; }
+  html body .page-section--lobby .lobby-info h2 { font-size: 22px; }
+  html body .page-section--lobby .lobby-power strong { font-size: 26px; }
+  html body .page-section--lobby .lobby-march { min-width: 170px; height: 52px; margin-top: 6px; font-size: 20px; letter-spacing: .3em; }
+  /* 바로가기: 오른쪽 세로 줄 */
+  html body .page-section--lobby > .lobby-shortcuts {
+    grid-column: 2; grid-row: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 4px;
+    height: calc(var(--app-h, 100vh) - var(--top-h) - 20px);
+  }
+  html body .page-section--lobby .lobby-shortcut { flex: 1 1 0; min-height: 0; padding: 2px 0; gap: 2px; font-size: 11.5px; background: none; border: 0; box-shadow: none; }
+  html body .page-section--lobby .lobby-shortcut__icon { width: 38px; height: 38px; }
+  html body .page-section--lobby .lobby-shortcut__icon .gi { width: 21px; height: 21px; }
+  html body .page-section--lobby .lobby-shortcut b { top: 0; right: 4px; font-size: 11px; }
 
   /* 전투 화면은 띠 · 탭 없이 전체 화면 */
   html body .app-shell--battle .hub-rail { display: none; }
@@ -99,5 +123,6 @@
   .rotate-hint strong { font-size: 20px; color: #f6d58e; }
   .rotate-hint span { font-size: 14px; color: #d2c8b3; line-height: 1.6; }
 }
+@keyframes hub-coach { 50% { opacity: .35; transform: scale(.8); } }
 @keyframes rotate-hint { 0%, 25% { transform: rotate(0); } 55%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
 @media (prefers-reduced-motion: reduce) { .rotate-hint__phone { animation: none; transform: rotate(-90deg); } }

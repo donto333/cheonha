@@ -33,7 +33,12 @@ try {
     await context.addInitScript(() => { try { localStorage.setItem('cheonharo.intro.seen', '1') } catch {} })
     const page = await context.newPage()
     page.on('pageerror', error => errors.push(`[${view.name}] ${error}`))
-    const shot = async name => { await sleep(700); await page.screenshot({ path: `${out}/${view.name}-${name}.png` }) }
+    const shot = async name => {
+      await sleep(700)
+      // 늦게 뜨는 출석 · 안내 창도 지운다
+      await page.evaluate(() => { if (document.querySelector('.app-shell')) document.querySelectorAll('.attendance-modal, .coach-layer, .notice-popup, .game-intro').forEach(el => el.remove()); document.querySelectorAll('.toast').forEach(el => { el.style.visibility = 'hidden' }) })
+      await page.screenshot({ path: `${out}/${view.name}-${name}.png` })
+    }
 
     await page.goto(url)
     await page.waitForSelector('.access-gate', { timeout: 20_000 })
@@ -54,7 +59,7 @@ try {
       // 첫 입장 튜토리얼 · 출석 · 안내 창은 캡처에서 뺀다
       const g = window.__strategy
       if (g?.state?.missions) g.state.missions.onboardDone = true
-      document.querySelectorAll('.attendance-modal, .coach-layer, .notice-popup, .game-intro, .toast').forEach(el => el.remove())
+      document.querySelectorAll('.attendance-modal, .coach-layer, .notice-popup, .game-intro').forEach(el => el.remove()); document.querySelectorAll('.toast').forEach(el => { el.style.visibility = 'hidden' })
       document.body.classList.remove('coach-open')
     })
     await clearOverlays()

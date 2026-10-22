@@ -101,6 +101,7 @@ const NAV_HUBS: NavHub[] = [
   { id: 'social', ko: '소통', en: 'Social', icon: 'guild', sections: ['guild', 'board'] },
   { id: 'more', ko: '설정', en: 'More', icon: 'account', sections: ['account', 'updates', 'admin'] },
 ]
+const HUB_TAB_NAMES: Partial<Record<Section, [string, string]>> = { roster: ['보유', 'Owned'], battle: ['시나리오', 'Scenario'] }
 const hubOf = (section: Section): NavHub => NAV_HUBS.find(hub => hub.sections.includes(section)) ?? NAV_HUBS[0]
 /** 휴대폰에서 쓰는 짧은 메뉴 이름(한·영을 직접 고른다: ‘장비’ 같은 말이 사전에서 인물 이름으로 바뀌지 않게) */
 const SHORT_NAV: Record<string, [string, string]> = {
@@ -1582,7 +1583,8 @@ export class StrategyUI {
     const hub = hubOf(state.section)
     const sections = this.hubSections(hub)
     const tabs = sections.map(section => {
-      const pair = SHORT_NAV[section]
+      // 묶음 이름과 겹치지 않게: 무장 묶음의 첫 탭은 ‘보유’, 전투 묶음의 첫 탭은 ‘시나리오’
+      const pair = HUB_TAB_NAMES[section] ?? SHORT_NAV[section]
       const label = pair ? (isEnglish() ? pair[1] : pair[0]) : section
       return `<button class="hub-tabs__tab${section === state.section ? ' is-active' : ''}" data-action="section" data-section="${section}" data-no-tr>${label}</button>`
     }).join('')
