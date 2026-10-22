@@ -105,13 +105,6 @@ const NAV_HUBS: NavHub[] = [
 /** 가로 휴대폰(모바일 게임형 화면) 조건: CSS의 mobile-landscape.css와 같다 */
 const PHONE_LANDSCAPE = '(orientation: landscape) and (max-height: 500px)'
 const isPhoneLandscape = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.(PHONE_LANDSCAPE).matches)
-/** 가로 휴대폰 본영: 화면 아래쪽 메뉴 바(12칸) */
-const LOBBY_MENU: Array<[Section, IconName, string, string]> = [
-  ['formation', 'formation', '편성', 'Lineup'], ['roster', 'roster', '무장', 'Generals'], ['equipment', 'equipment', '장비', 'Gear'], ['recruit', 'recruit', '모집', 'Recruit'],
-  ['research', 'research', '연구', 'Research'], ['territory', 'territory', '영토', 'Territory'], ['duel', 'duel', '대련', 'Duel'], ['raid', 'raid', '레이드', 'Raid'],
-  ['guild', 'guild', '연맹', 'Guild'], ['board', 'board', '게시판', 'Board'], ['codex', 'codex', '도감', 'Codex'], ['shop', 'shop', '상점', 'Shop'],
-]
-const CALENDAR_SVG = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="6" y="8" width="20" height="18" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 13.5h20M11 5.5v5M21 5.5v5M11.5 19l3 3 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 const HUB_TAB_NAMES: Partial<Record<Section, [string, string]>> = { roster: ['보유', 'Owned'], battle: ['시나리오', 'Scenario'] }
 const hubOf = (section: Section): NavHub => NAV_HUBS.find(hub => hub.sections.includes(section)) ?? NAV_HUBS[0]
 /** 휴대폰에서 쓰는 짧은 메뉴 이름(한·영을 직접 고른다: ‘장비’ 같은 말이 사전에서 인물 이름으로 바뀌지 않게) */
