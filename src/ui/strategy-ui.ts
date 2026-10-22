@@ -1806,6 +1806,9 @@ export class StrategyUI {
     document.body.appendChild(layer)
   }
 
+  /** 가로 휴대폰 연구: 고른 분야 */
+  private researchBranch: string | null = null
+
   /** 가로 휴대폰: 무장 카드 · 도감 카드를 누르면 띄우는 상세 창 */
   private generalDetail: { kind: 'roster' | 'codex'; id: string } | null = null
 
@@ -2582,6 +2585,24 @@ export class StrategyUI {
         const affordable = canPay(state, pick.cost)
         return `<div class="research-active glass-card is-idle"><div class="research-active__copy"><span class="eyebrow">연구소가 비어 있습니다 · 추천 연구</span><h3>${pick.branch} ${pick.tier}단계 · ${pick.name}</h3><p>${pick.description}</p></div><div class="research-active__timer"><strong>${formatDuration(pick.durationMs)}</strong><small class="${affordable ? '' : 'is-short'}">${researchCost(pick)}${affordable ? '' : ' · 자원 부족'}</small></div><div class="research-active__actions"><button class="mini-action mini-action--research" data-action="research" data-research="${pick.id}" ${affordable ? '' : 'disabled'}>추천 연구 시작 →</button></div></div>`
       })()
+    // 가로 휴대폰(참고 게임의 계급 화면처럼): 왼쪽 분야 목록, 가운데 고른 분야의 1~6단계를 선으로 이어 가로로
+    if (isPhoneLandscape()) {
+      const branches = researchBranchesFor(state)
+      const selected = branches.find(branch => branch.id === this.researchBranch) ?? branches[0]
+      const branchIcon = (prefix: string): IconName => prefix === 'econ' || prefix === 'loot' ? 'grain' : prefix === 'army' ? 'battle' : prefix === 'strat' ? 'research' : prefix === 'realm' || prefix === 'raid' ? 'territory' : 'roster'
+      const list = branches.map(branch => {
+        const nodes = state.research.filter(node => node.branch === branch.id)
+        const done = new Set(nodes.filter(node => node.unlocked).map(node => node.tier)).size
+        const running = active && active.branch === branch.id
+        return `<button class="mres-branch${branch.id === selected.id ? ' is-active' : ''}${running ? ' is-running' : ''}" data-action="research-branch" data-branch="${branch.id}"><span class="mres-branch__icon">${icon(branchIcon(branch.prefix))}</span><span class="mres-branch__text"><strong>${branch.id}</strong><small>${done}/6${running ? ' · 연구 중' : ''}</small></span></button>`
+      }).join('')
+      const nodes = state.research.filter(node => node.branch === selected.id)
+      const tiers = [1, 2, 3, 4, 5, 6].map(tier => {
+        const row = nodes.filter(node => node.tier === tier)
+        return `<div class="mres-tier"><span class="mres-tier__label">${tier}단계${row.length > 1 ? ' · 택1' : ''}</span>${row.map(node => this.researchCard(node, state, now)).join('')}</div>`
+      }).join('<i class="mres-link" aria-hidden="true"></i>')
+      return `<section class="page-section page-section--research page-section--mres"><nav class="mres-branches">${list}</nav><div class="mres-main">${activePanel}<p class="mres-hint">${escapeHtml(selected.hint)}</p><div class="mres-tree">${tiers}</div></div></section>`
+    }
     // 재야는 부국 · 제패 대신 재야 전용 약탈 · 유격 분야
     const columns = researchBranchesFor(state).map(branch => {
       const nodes = state.research.filter(node => node.branch === branch.id)
@@ -3397,6 +3418,7 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action === 'research-branch') { this.researchBranch = button.dataset.branch ?? null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : null; if (this.renderedState) this.render(this.renderedState); return }

@@ -326,6 +326,27 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .gdetail__body > article { margin: 0; }
   html body .gdetail__close { position: sticky; top: 0; float: right; z-index: 2; width: 36px; height: 36px; margin-bottom: -36px; border-radius: 50%; color: #fff; background: var(--lacquer); border: 1px solid var(--gold); }
 
+  /* ════════ 연구(계급 화면식): 왼쪽 분야 · 가운데 단계 트리 ════════ */
+  html body .page-section--mres { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; height: var(--frame-h); }
+  html body .mres-branches { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; padding: 2px; }
+  html body .mres-branch { position: relative; display: flex; align-items: center; gap: 10px; padding: 6px 8px; text-align: left; background: none; border: 0; color: var(--cream-soft); }
+  html body .mres-branch__icon { flex: 0 0 auto; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3b2a1c, #150b05); box-shadow: inset 0 0 0 2px #5a4330; color: #d8c9a8; }
+  html body .mres-branch__icon .gi, html body .mres-branch__icon svg { width: 26px; height: 26px; }
+  html body .mres-branch__text { display: grid; }
+  html body .mres-branch__text strong { font-size: 17px; color: #e9dcc0; }
+  html body .mres-branch__text small { font-size: 12px; }
+  html body .mres-branch.is-active .mres-branch__icon { background: radial-gradient(circle at 40% 35%, #6fe39a, #1d7a45); box-shadow: 0 0 0 3px rgba(111, 227, 154, .45), 0 0 18px rgba(79, 207, 152, .6); color: #fff; }
+  html body .mres-branch.is-active .mres-branch__text strong { color: #fff; }
+  html body .mres-branch.is-running .mres-branch__text small { color: var(--jade); }
+  html body .mres-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+  html body .mres-main .research-active { flex: 0 0 auto; padding: 8px 12px; margin: 0; }
+  html body .mres-hint { flex: 0 0 auto; margin: 0; font-size: 13px; color: var(--cream-soft); }
+  html body .mres-tree { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; gap: 0; overflow-x: auto; overflow-y: hidden; padding: 4px 2px 8px; }
+  html body .mres-tier { flex: 0 0 210px; max-height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 8px; overflow-y: auto; }
+  html body .mres-tier__label { align-self: center; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; color: #3a1d08; background: var(--gold); }
+  html body .mres-link { flex: 0 0 26px; height: 2px; background: linear-gradient(90deg, rgba(79, 207, 152, .2), #4fcf98, rgba(79, 207, 152, .2)); }
+  html body .mres-tier .research-node { margin: 0; padding: 8px; }
+
   /* 전투 화면은 탭 없이 전체 화면 */
   html body .app-shell--battle .main-content { margin-left: 0; }
 
