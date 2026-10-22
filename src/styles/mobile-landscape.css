@@ -7,6 +7,8 @@
  */
 
 .hub-tabs { display: none; }
+/* 전체 화면 · 노치 옆 빈 곳이 흰색으로 보이지 않게 */
+html, :root:fullscreen, ::backdrop { background: #231710; }
 
 @media (orientation: landscape) and (max-height: 500px) {
   html { --top-h: 44px; --safe-l: env(safe-area-inset-left, 0px); --safe-r: env(safe-area-inset-right, 0px); --safe-b: env(safe-area-inset-bottom, 0px); --mobile-top: var(--top-h); }
@@ -26,16 +28,8 @@
   html body .app-shell .topbar-resource { height: 28px; padding: 0 9px; border-radius: 14px; background: rgba(0, 0, 0, .45); border: 1px solid rgba(240, 194, 106, .25); }
   html body .app-shell .topbar-resource strong { font-size: 13px; font-variant-numeric: tabular-nums; }
   html body .app-shell .topbar-actions .auth-button { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* 본영에서는 상단바를 그림 위에 투명하게 */
-  html body .app-shell:has(.page-section--mlobby) .topbar { background: linear-gradient(180deg, rgba(10, 4, 2, .7), transparent); border-bottom: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
-
-  /* 본영에서는 계정은 내 정보 카드로 들어가므로 상단바 계정 버튼을 숨겨 자리를 낸다 */
-  html body .app-shell:has(.page-section--mlobby) .topbar-actions .auth-button,
-  html body .app-shell:has(.page-section--mlobby) .topbar .topbar-season { display: none; }
-  /* 본영: 재화 줄은 내 정보 카드 오른쪽부터(넘치면 옆으로 밀어 본다) */
-  html body .app-shell:has(.page-section--mlobby) .topbar { padding-left: calc(286px + var(--safe-l)); }
-  html body .app-shell:has(.page-section--mlobby) .topbar-center { min-width: 0; }
-  html body .app-shell:has(.page-section--mlobby) .topbar-resources { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  /* 본영에서는 상단바를 숨긴다(재화 줄 · 내 정보는 본영 화면이 직접 그린다) */
+  html body .app-shell:has(.page-section--mlobby) .topbar { display: none; }
 
   /* ── 예전 왼쪽 메뉴는 쓰지 않는다(본영 메뉴 묶음 · 위쪽 탭으로) ── */
   html body .app-shell .sidebar { display: none !important; }
@@ -85,18 +79,38 @@
   /* ════════ 본영 ════════ */
   html body .app-shell:has(.page-section--mlobby) .main-content { padding: 0; }
   html body .page-section--mlobby { position: fixed; inset: 0; max-width: none; margin: 0; padding: 0; overflow: hidden; color: var(--cream); }
+  /* 배경: 가로로 넓은 관문 풍경 */
   html body .ml-bg {
     position: absolute; inset: 0;
     background:
-      linear-gradient(90deg, rgba(14, 6, 2, .92) 0%, rgba(14, 6, 2, .55) 30%, rgba(14, 6, 2, 0) 52%, rgba(14, 6, 2, 0) 70%, rgba(14, 6, 2, .55) 100%),
-      linear-gradient(0deg, rgba(14, 6, 2, .9) 0%, rgba(14, 6, 2, 0) 42%),
-      var(--portrait) 62% 18% / cover no-repeat,
+      linear-gradient(90deg, rgba(14, 6, 2, .85) 0%, rgba(14, 6, 2, .35) 32%, rgba(14, 6, 2, .1) 60%, rgba(14, 6, 2, .45) 100%),
+      linear-gradient(0deg, rgba(14, 6, 2, .85) 0%, rgba(14, 6, 2, 0) 40%),
+      url('/assets/battlefield/huanghun-gate.webp') center 40% / cover no-repeat,
       #2a160b;
   }
+  /* 대표 무장: 세로 그림 비율 그대로 화면 높이에 맞춰 가운데 오른쪽에 세운다(가장자리는 흐리게) */
+  html body .ml-hero {
+    position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-38%);
+    height: 100%; aspect-ratio: 4 / 5;
+    background: var(--portrait) center top / cover no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 30%);
+    -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 30%); mask-composite: intersect;
+    filter: drop-shadow(0 0 24px rgba(0, 0, 0, .6));
+  }
+
+  /* 위 오른쪽: 재화 줄 */
+  html body .ml-res { position: absolute; z-index: 3; top: 6px; right: calc(8px + var(--safe-r)); display: flex; align-items: center; gap: 5px; }
+  html body .ml-res__chip {
+    height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px 0 4px; border-radius: 15px;
+    background: rgba(10, 4, 2, .72); border: 1px solid rgba(240, 194, 106, .35); color: var(--cream);
+  }
+  html body .ml-res__chip .gi, html body .ml-res__chip svg { width: 20px; height: 20px; }
+  html body .ml-res__chip strong { font-size: 13px; font-variant-numeric: tabular-nums; }
+  html body .ml-res__sound { width: 32px; height: 30px; border-radius: 6px; background: rgba(10, 4, 2, .72); border: 1px solid rgba(240, 194, 106, .35); font-size: 14px; }
 
   /* 왼쪽 위: 내 정보 카드 */
   html body .ml-profile {
-    position: absolute; z-index: 2; top: 4px; left: calc(8px + var(--safe-l)); width: 268px; height: 62px;
+    position: absolute; z-index: 3; top: 4px; left: calc(8px + var(--safe-l)); width: 260px; height: 62px;
     display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; text-align: left;
     background: linear-gradient(90deg, rgba(122, 28, 23, .92), rgba(60, 20, 10, .75) 70%, rgba(60, 20, 10, 0));
     border-radius: 6px 0 0 6px; touch-action: manipulation;
@@ -110,6 +124,7 @@
 
   /* 이벤트 아이콘 줄 */
   html body .ml-events { position: absolute; z-index: 2; top: 72px; left: calc(10px + var(--safe-l)); display: flex; gap: 10px; }
+  html body .ml-event, html body .ml-army__slot, html body .ml-march { background: none; border: 0; box-shadow: none; }
   html body .ml-event { display: grid; justify-items: center; gap: 2px; width: 50px; font-size: 12px; font-weight: 700; color: #fff4dd; text-shadow: 0 1px 2px #000, 0 0 4px #000; touch-action: manipulation; }
   html body .ml-event__icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: var(--gold-hi); background: radial-gradient(circle at 40% 35%, #6b3a1c, #2a150a); box-shadow: inset 0 0 0 2px #c9933f, 0 2px 6px rgba(0, 0, 0, .6); }
   html body .ml-event__icon svg, html body .ml-event__icon .gi { width: 22px; height: 22px; }
@@ -127,7 +142,7 @@
   html body .ml-missions.has-reward::after { content: ''; position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--lacquer-hi); box-shadow: 0 0 0 2px #2a1208; }
 
   /* 오른쪽: 출전 무장 3명 */
-  html body .ml-army { position: absolute; z-index: 2; top: 52px; right: calc(10px + var(--safe-r)); display: grid; gap: 6px; }
+  html body .ml-army { position: absolute; z-index: 2; top: 46px; right: calc(10px + var(--safe-r)); display: grid; gap: 6px; }
   html body .ml-army__slot { display: grid; justify-items: center; gap: 1px; width: 58px; touch-action: manipulation; }
   html body .ml-army__face { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--grade, var(--gold)); background: #2a160b center 15% / cover no-repeat; color: var(--gold); font-size: 22px; box-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
   html body .ml-army__slot small { max-width: 64px; font-size: 11px; font-weight: 700; color: #fff4dd; text-shadow: 0 1px 2px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
