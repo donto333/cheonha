@@ -124,6 +124,16 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--formation > :not(.squad-tabs):not(.formation-screen):not(.combo-advice):not(.formation-bench-head):not(.formation-bench):not(.formation-empty):not(.section-heading) { grid-column: 1 / -1; }
   html body .page-section--formation .formation-screen-head { margin-bottom: 4px; }
   html body .page-section--formation .formation-screen-head h3 { font-size: 15px; margin: 0; }
+
+  /* 장비: 위 무장 고르기, 아래 왼쪽 장비 3칸 · 오른쪽 보유 장비 목록(각 칸 안에서 넘긴다) */
+  html body .page-section--equipment-simple { display: flex; flex-direction: column; height: var(--frame-h); gap: 8px; }
+  html body .page-section--equipment-simple > .equip-picker { flex: 0 0 auto; padding: 8px 10px; }
+  html body .page-section--equipment-simple > .equipment-layout { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; margin: 0; }
+  html body .page-section--equipment-simple > .equipment-layout > div { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  html body .page-section--equipment-simple > .equipment-layout > div:last-child { display: flex; flex-direction: column; overflow: hidden; }
+  html body .page-section--equipment-simple > .equipment-layout > div:last-child > * { flex: 0 0 auto; }
+  html body .page-section--equipment-simple > .equipment-layout > div:last-child > :last-child { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  html body .page-section--equipment-simple .equipment-inventory-scroll { flex: 1 1 auto; max-height: none; min-height: 0; }
   html body .app-shell:not(.app-shell--battle) .main-content .glass-card { padding: 12px 14px; }
   html body .app-shell:not(.app-shell--battle) .main-content .card-header { margin-bottom: 8px; }
 
