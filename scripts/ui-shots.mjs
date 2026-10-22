@@ -7,7 +7,7 @@ import { chromium } from 'playwright'
 
 const out = process.argv[2] || 'ui-shots'
 mkdirSync(out, { recursive: true })
-const port = 4800 + Math.floor(Math.random() * 400)
+const port = 4791
 const url = `http://127.0.0.1:${port}/`
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], { stdio: 'ignore' })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
