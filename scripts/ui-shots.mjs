@@ -16,6 +16,7 @@ const SECTIONS = ['overview', 'recruit', 'roster', 'codex', 'formation', 'equipm
 // 가로 고정 게임: 일반 휴대폰 · 작은 휴대폰 가로 화면
 const VIEWS = [
   { name: 'land', viewport: { width: 844, height: 390 } },
+  { name: 'galaxy', viewport: { width: 915, height: 412 } },
   { name: 'small', viewport: { width: 740, height: 360 } },
 ]
 const errors = []
