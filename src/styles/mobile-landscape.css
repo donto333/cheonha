@@ -531,6 +531,117 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .app-shell .main-content .shop-row { grid-template-columns: 120px minmax(0, 1fr); padding: 6px 4px; gap: 8px; }
   html body .recruit-results-heading > button, html body .recruit-results-heading > .action-button { flex: 0 0 auto; width: auto; min-width: 110px; }
 
+  /* ════════ 3차(사용자 확인 반영) ════════ */
+  /* 1. 편성: 세 칸을 같은 높이 · 위쪽 맞춤(가운데 칸의 상성 안내 때문에 내용이 위로 밀리던 것) */
+  html body .page-section--formation .formation-slots { align-items: stretch; }
+  html body .page-section--formation .formation-slot { justify-content: flex-start; min-height: 0; height: 100%; }
+  html body .page-section--formation .formation-slot .formation-enemy, html body .page-section--formation .formation-slot .formation-front { margin-top: auto; }
+
+  /* 2. 장비: 보유 장비를 작은 칸(4~5개씩)으로, 칸을 누르면 상세 창 */
+  html body .page-section--equipment-simple .eqtile-grid {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); grid-auto-rows: max-content; gap: 6px; padding: 2px;
+  }
+  html body .eqtile {
+    position: relative; display: grid; justify-items: center; gap: 2px; padding: 6px 3px 4px; min-height: 0;
+    border: 2px solid color-mix(in srgb, var(--grade), #000 20%); border-radius: 4px; color: var(--cream);
+    background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--grade), transparent 72%), rgba(23, 16, 11, .95) 70%);
+    touch-action: manipulation;
+  }
+  html body .eqtile img { width: 40px; height: 40px; object-fit: contain; }
+  html body .eqtile small { max-width: 100%; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .eqtile em { max-width: 100%; font-style: normal; font-size: 10px; color: #9ff0c0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .eqtile__lv { position: absolute; top: 2px; left: 4px; font-size: 11px; font-weight: 800; color: var(--gold-hi); text-shadow: 0 1px 1px #000; }
+  html body .eqtile__qty { position: absolute; top: 2px; right: 4px; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 1px #000; }
+  html body .eqtile__lock { position: absolute; top: 18px; right: 3px; font-size: 10px; }
+  html body .eqtile.is-equipped { box-shadow: 0 0 0 2px #4fcf98; }
+  html body .eqtile:active { transform: scale(.95); }
+  html body .eqdetail .gdetail__body { width: min(460px, 100%); }
+  html body .eqdetail .equipment-card { margin: 0; }
+
+  /* 3. 상점: 한 화면(탭 한 줄 · 자원 표 촘촘하게) */
+  html body .page-section--shop { display: flex; flex-direction: column; height: var(--frame-h); gap: 6px; overflow: hidden; }
+  html body .page-section--shop > * { flex: 0 0 auto; margin: 0; }
+  html body .page-section--shop .shop-balances { display: flex; align-items: center; gap: 14px; padding: 4px 12px; font-size: 13px; }
+  html body .page-section--shop .shop-log-open { margin-left: auto; min-height: 28px; padding: 0 10px; }
+  html body .page-section--shop .shop-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin: 0; }
+  html body .page-section--shop .shop-tab { min-height: 32px; padding: 0 4px; font-size: 13px; }
+  html body .page-section--shop .shop-needs { padding: 4px 10px; }
+  html body .page-section--shop .shop-needs .card-header { display: none; }
+  html body .page-section--shop .shop-needs ul { margin: 0; }
+  html body .page-section--shop .shop-needs li { padding: 2px 0; font-size: 12px; }
+  html body .page-section--shop .shop-table { flex: 1 1 auto; min-height: 0; padding: 2px 8px; display: grid; align-content: space-evenly; }
+  html body .page-section--shop .shop-row { grid-template-columns: 110px minmax(0, 1fr); padding: 2px 0; gap: 6px; }
+  html body .page-section--shop .shop-row__head { gap: 6px; }
+  html body .page-section--shop .shop-row__head small { font-size: 10.5px; }
+  html body .page-section--shop .shop-buy { display: flex; align-items: baseline; justify-content: center; gap: 4px; flex-wrap: wrap; padding: 3px 2px; min-height: 0; }
+  html body .page-section--shop .shop-buy b { font-size: 12px; }
+  html body .page-section--shop .shop-buy span { font-size: 11px; }
+  html body .page-section--shop .shop-buy em { display: none; }
+  html body .page-section--shop .shop-buy.is-best { box-shadow: inset 0 0 0 1px var(--gold); }
+  html body .page-section--shop .shop-grid { flex: 1 1 auto; min-height: 0; overflow: hidden; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  html body .shop-log-modal .recruit-results-panel { width: min(460px, 100%); }
+
+  /* 4. 레이드: 스크롤 없이 한 화면 — 보스 · 출전 | 순위 보상 | 피해 순위 · 내 기록 */
+  html body .page-section--raid { overflow: hidden; }
+  html body .page-section--raid > .raid-layout {
+    display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .85fr) minmax(0, .85fr); grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "boss rewards ranking" "start rewards ranking" "me rewards ranking"; gap: 6px; overflow: hidden;
+  }
+  html body .page-section--raid .raid-main, html body .page-section--raid .raid-side { display: contents; }
+  html body .page-section--raid .raid-boss { grid-area: boss; padding: 6px 10px; overflow: hidden; }
+  html body .page-section--raid .raid-start { grid-area: start; padding: 6px 10px; overflow: hidden; }
+  html body .page-section--raid .raid-me { grid-area: me; align-self: start; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 6px 10px; overflow: hidden; }
+  html body .page-section--raid .raid-rewards { grid-area: rewards; padding: 6px 8px; overflow: hidden; }
+  html body .page-section--raid .raid-side > :nth-child(2) { grid-area: ranking; padding: 6px 8px; overflow: hidden; }
+  html body .page-section--raid .raid-boss__head h2 { font-size: 15px; margin: 2px 0; }
+  html body .page-section--raid .raid-boss__head p, html body .page-section--raid .raid-boss__head .pill { display: none; }
+  html body .page-section--raid .raid-boss__reset small { font-size: 10px; }
+  html body .page-section--raid .raid-boss__reset strong { font-size: 13px; }
+  html body .page-section--raid .raid-boss__units { margin: 4px 0 0; }
+  html body .page-section--raid .raid-boss__portrait, html body .page-section--raid .raid-boss__unit .general-portrait { width: 44px; height: 44px; }
+  html body .page-section--raid .raid-boss__unit { font-size: 11px; }
+  html body .page-section--raid .raid-start .eyebrow, html body .page-section--raid .raid-start .text-button, html body .page-section--raid .raid-start__cta small { display: none; }
+  html body .page-section--raid .raid-squads { margin: 0; font-size: 12px; gap: 1px; }
+  html body .page-section--raid .raid-start__cta strong { font-size: 12px; }
+  html body .page-section--raid .raid-go { min-width: 0; min-height: 36px; padding: 0 12px; }
+  html body .page-section--raid .raid-me small { font-size: 10px; }
+  html body .page-section--raid .raid-me strong { font-size: 13px; }
+  html body .page-section--raid .raid-rewards .rate-note, html body .page-section--raid .raid-side > :nth-child(2) .rate-note { display: none; }
+  html body .page-section--raid .raid-rewards table { width: 100%; font-size: 11px; border-collapse: collapse; }
+  html body .page-section--raid .raid-rewards td { padding: 2px 3px; }
+  html body .page-section--raid .raid-ranking li:nth-child(n+8) { display: none; }
+  html body .page-section--raid .raid-ranking { font-size: 11.5px; overflow: hidden; }
+
+  /* 5. 영토: 오른쪽 도시 관리는 수비(공성) · 내정 · 기록 탭으로, 한 번에 하나만 */
+  html body .city-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0 0 6px; }
+  html body .city-tabs__tab { min-height: 32px; font-size: 13px; font-weight: 800; color: var(--cream-soft); background: rgba(23, 16, 11, .7); border: 1px solid rgba(212, 175, 55, .3); border-radius: 3px; }
+  html body .city-tabs__tab.is-active { color: #17100b; background: linear-gradient(180deg, #f3d98a, #d4af37); }
+  html body .page-section--territory .city-management .city-map-context,
+  html body .page-section--territory .city-management .wall-status,
+  html body .page-section--territory .city-management .management-tip { display: none; }
+  html body .page-section--territory .city-management .city-management-head p { font-size: 11.5px; margin: 0; }
+  html body .page-section--territory .city-management .city-management-head h2 { font-size: 20px; margin: 0; }
+  html body .page-section--territory .city-management .city-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 6px 0; }
+  html body .page-section--territory .city-management .city-metrics > * { font-size: 11px; }
+  /* 탭: 수비 · 공성 */
+  html body .city-management[data-city-tab="act"] .luoyang-history,
+  html body .city-management[data-city-tab="act"] .city-damage-ranking,
+  html body .city-management[data-city-tab="act"] .city-battle-log,
+  html body .city-management[data-city-tab="act"] .city-yield,
+  html body .city-management[data-city-tab="act"] .building-list { display: none; }
+  /* 탭: 내정 */
+  html body .city-management[data-city-tab="dev"] .conquest-card,
+  html body .city-management[data-city-tab="dev"] .luoyang-history,
+  html body .city-management[data-city-tab="dev"] .city-damage-ranking,
+  html body .city-management[data-city-tab="dev"] .city-battle-log,
+  html body .city-management[data-city-tab="dev"] .city-metrics { display: none; }
+  /* 탭: 기록 */
+  html body .city-management[data-city-tab="log"] .conquest-card,
+  html body .city-management[data-city-tab="log"] .city-yield,
+  html body .city-management[data-city-tab="log"] .building-list,
+  html body .city-management[data-city-tab="log"] .city-metrics { display: none; }
+
   /* 전투 화면은 탭 없이 전체 화면 */
   html body .app-shell--battle .main-content { margin-left: 0; }
 

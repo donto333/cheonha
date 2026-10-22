@@ -521,6 +521,8 @@ export class StrategyUI {
   private equipmentSortCache: { key: string; items: Equipment[]; source: Equipment[] } | null = null
   private readonly equipmentRowHeight = 213 // 카드 204 + 간격 9(2026.10.20: 전설에도 특기 줄이 생겨 늘림)
   private shopTab: 'gold' | 'resources' | 'mythic' | 'packages' | 'passes' = 'resources'
+  /** 상점 최근 구매 창 */
+  private shopLogOpen = false
   /** 튜토리얼: 10회 모집을 무료로 보여 준다 */
   private freeRecruit = false
   private territorySyncText = '영토 정보 확인 전'
@@ -2066,7 +2068,7 @@ export class StrategyUI {
     const tabs = `<div class="equip-type-tabs setting-seg" role="group" aria-label="부위">${([['all', '전체'], ['weapon', EQUIPMENT_TYPE_META.weapon.label], ['armor', EQUIPMENT_TYPE_META.armor.label], ['accessory', EQUIPMENT_TYPE_META.accessory.label]] as Array<[string, string]>).map(([value, label]) => `<button class="setting-seg__btn ${f.type === value ? 'is-active' : ''}" data-action="equipment-type-tab" data-type="${value}">${label}</button>`).join('')}</div>`
     const filterMore = `<details class="equipment-filter-more" ${this.equipmentFilterOpen ? 'open' : ''}><summary data-action="equipment-filter-more">필터 · 일괄 분해${applied ? ` <b>${applied}개 적용</b>` : ''}</summary><div class="equipment-manage">${this.equipmentManageBar(state, false)}</div></details>`
     const inventory = `<div class="equipment-inventory"><div class="equipment-inventory-toolbar"><div class="card-header"><div><h3>보유 장비</h3></div><span class="rate-note">${formatNumber(equipmentInventoryCount(state))}개</span></div><div class="equipment-sort-controls"><label>정렬 <select data-action="equipment-sort"><option value="grade" ${this.equipmentSort === 'grade' ? 'selected' : ''}>등급</option><option value="level" ${this.equipmentSort === 'level' ? 'selected' : ''}>강화 레벨</option><option value="name" ${this.equipmentSort === 'name' ? 'selected' : ''}>이름</option></select></label><button class="sort-direction" data-action="equipment-sort-direction">${this.equipmentSortDescending ? '↓' : '↑'}</button></div></div>${tabs}${filterMore}${this.equipmentVirtualList(state, selected?.id ?? '', equipped)}</div>`
-    return `<section class="page-section page-section--equipment page-section--equipment-simple"><div class="section-heading section-heading--compact"><div><span class="eyebrow">육성</span><h1>장비 관리</h1><p class="heading-copy">무장을 고르고, 장비 칸을 채우고, 아래 목록에서 장착 · 강화합니다.</p></div><div class="section-counter"><span>보유 장비</span><strong>${equipmentInventoryCount(state)}</strong></div></div>${picker}<div class="equipment-layout"><div>${slots}${more}</div><div>${inventory}</div></div></section>`
+    return `<section class="page-section page-section--equipment page-section--equipment-simple"><div class="section-heading section-heading--compact"><div><span class="eyebrow">육성</span><h1>장비 관리</h1><p class="heading-copy">무장을 고르고, 장비 칸을 채우고, 아래 목록에서 장착 · 강화합니다.</p></div><div class="section-counter"><span>보유 장비</span><strong>${equipmentInventoryCount(state)}</strong></div></div>${picker}<div class="equipment-layout"><div>${slots}${more}</div><div>${inventory}</div></div></section>${isPhoneLandscape() ? this.equipmentDetailPanel(state, selected?.id ?? '', equipped) : ''}`
   }
 
   /** 모집 · 장비 > 장비 뽑기: 뽑기만(장착·강화·보유 목록은 ‘장비 관리’에서). 무장 모집과 같은 짜임 */
@@ -2092,9 +2094,32 @@ export class StrategyUI {
       .map((item, index) => ({ item, index })).sort((a, b) => rank(a.item) - rank(b.item) || a.index - b.index).map(entry => entry.item)
   }
 
+  /** 가로 휴대폰 장비: 눌러서 여는 상세 창의 장비 */
+  private equipmentDetailId: string | null = null
+
+  /** 가로 휴대폰: 보유 장비를 작은 칸으로(가상 목록 대신 · 칸을 누르면 상세 창) */
+  private equipmentTileGrid(items: Equipment[], equipped: Set<string>): string {
+    const tiles = items.map(item => {
+      const grade = EQUIPMENT_GRADE_META[item.grade]
+      const owner = this.equipmentOwnerNames.get(item.id)
+      const qty = (item.quantity ?? 1) > 1 ? `<span class="eqtile__qty">×${item.quantity}</span>` : ''
+      return `<button class="eqtile${equipped.has(item.id) ? ' is-equipped' : ''}${item.id === this.equipmentDetailId ? ' is-open' : ''}" style="--grade:${grade.color}" data-action="equipment-detail" data-id="${item.id}"><img src="${equipmentImage(item.type)}" alt="" loading="lazy" decoding="async" width="40" height="40"><span class="eqtile__lv">+${item.level}</span>${qty}${item.locked ? '<span class="eqtile__lock">🔒</span>' : ''}<small>${escapeHtml(item.name)}</small>${owner ? `<em>${escapeHtml(owner)}</em>` : ''}</button>`
+    }).join('')
+    return `<div class="eqtile-grid">${tiles}</div>`
+  }
+
+  /** 가로 휴대폰: 장비 상세 창(카드 그대로 · 장착 · 강화 · 잠금 · 분해) */
+  private equipmentDetailPanel(state: StrategyState, generalId: string, equipped: Set<string>): string {
+    if (!this.equipmentDetailId) return ''
+    const item = state.equipmentInventory.find(entry => entry.id === this.equipmentDetailId)
+    if (!item) { this.equipmentDetailId = null; return '' }
+    return `<div class="gdetail eqdetail" role="dialog"><div class="gdetail__backdrop" data-action="equipment-detail-close"></div><div class="gdetail__body"><button class="gdetail__close" data-action="equipment-detail-close" aria-label="닫기">✕</button>${this.equipmentCard(item, generalId, equipped.has(item.id))}</div></div>`
+  }
+
   private equipmentVirtualList(state: StrategyState, generalId: string, equipped: Set<string>): string {
     const items = this.equipmentListItems(state, equipped)
     if (!items.length) return '<div class="rank-empty equipment-empty">조건에 맞는 장비가 없습니다. 필터를 바꿔 보십시오.</div>'
+    if (isPhoneLandscape()) return this.equipmentTileGrid(items, equipped)
     const start = Math.max(0, Math.floor(this.equipmentScrollTop / this.equipmentRowHeight) - 3)
     const count = Math.ceil(720 / this.equipmentRowHeight) + 6
     const visible = items.slice(start, start + count)
@@ -2452,6 +2477,9 @@ export class StrategyUI {
     return `<span class="city-battle-log-result ${good ? 'is-win' : 'is-loss'}">${label}</span>`
   }
 
+  /** 가로 휴대폰 도시 관리 탭 */
+  private cityTab: 'act' | 'dev' | 'log' = 'act'
+
   private cityManagementCard(city: City, income: ReturnType<typeof cityIncome>, state: StrategyState): string {
     const canManage = city.owner === state.faction
     const capitalFaction = capitalFactionForCity(city.id)
@@ -2465,7 +2493,9 @@ export class StrategyUI {
     const panelClass = canManage ? 'city-management--owned' : 'city-management--frontline'
     const capitalBadge = capitalFaction ? `<span class="capital-badge">${capitalFaction} 본성 · ${isWanderer(state) ? '약탈 가능' : '점령 불가'}</span>` : ''
     const frontierNote = canManage ? '내정 핵심지 · 방어선 유지' : eligibility.allowed ? `접경 전선 · ${eligibility.reason}` : '원거리 전선 · 진군 경로 차단'
-    return `<div class="glass-card city-management ${panelClass}"><div class="city-sheet-bar"><span class="city-sheet-grip"></span><button class="city-sheet-close" data-action="city-sheet-close" aria-label="도시 정보 닫기">✕</button></div><div class="city-management-head"><div><span class="eyebrow">도시 관리 · ${city.region}</span><h2>${city.name}</h2><p>${city.region} · ${city.owner === state.faction ? '아군 직할령' : `${city.owner} 관할`}${city.guild ? ` · <span class="city-guild">연맹 <b data-no-tr>${escapeHtml(city.guild.name)}</b></span>` : ''}</p></div><div class="city-management-status"><span class="city-level">Lv.${city.level}</span>${capitalBadge}</div></div><div class="city-map-context"><span>인접 전선</span><strong>${frontierNote}</strong><small>인접 도시 ${eligibility.neighborNames.length ? eligibility.neighborNames.join(' · ') : '독립 성 · 연결 전선 없음'}</small></div><div class="city-metrics">${metrics.map(([label, value]) => `<div><span>${label}</span><i><b style="width:${Math.min(value, 100)}%"></b></i><em>${value}</em></div>`).join('')}</div><p class="wall-status">성벽 방어도 ${formatNumber(city.defense)} / ${formatNumber(wallCapacity)} · ${isWanderer(state) && city.id !== 'luoyang' ? '재야는 점령하지 않고 성벽을 깎아 약탈합니다.' : '성벽을 0으로 깨고 수비병을 모두 물리치면 점령할 수 있습니다.'}</p>${conquest}${city.id === 'luoyang' ? this.luoyangHistoryCard(state) : ''}${this.cityDamageRankingCard(city)}${this.battleLogCard(city)}<div class="city-yield"><div class="card-header"><div><span class="eyebrow">예상 수확</span><h3>도시 생산량</h3></div><span class="rate-note">${canManage ? '수확 1회 기준' : '점령 후 활성화'}</span></div><div class="yield-grid">${(['grain', 'silver', 'wood', 'iron', 'influence'] as const).map(key => `<span style="--resource-color:${RESOURCE_META[key].color}">${icon(key, 'gi--inline')} ${RESOURCE_META[key].label} +${formatNumber(income[key])}</span>`).join('')}</div></div><div class="building-list"><div class="card-header"><div><span class="eyebrow">건물</span><h3>내정 건물</h3></div><span class="rate-note">${canManage ? '건물마다 생산 특화' : '정찰 정보'}</span></div>${city.buildings.map(building => this.buildingRow(city, building, canManage)).join('')}</div>${canManage ? '<p class="management-tip">병영을 강화하면 성벽이 더 튼튼해지고 방어도 회복 한도가 오릅니다.</p>' : '<p class="management-tip management-tip--warn">성벽을 깨고 수비병을 모두 물리친 뒤, 마지막 세력전에서 이기면 점령합니다.</p>'}</div>`
+    // 가로 휴대폰: 도시 관리 칸을 행동 · 내정 · 기록 탭으로 나눠 한 번에 하나만 보인다
+    const cityTabs = isPhoneLandscape() ? `<nav class="city-tabs">${([['act', canManage ? '수비' : '공성'], ['dev', '내정'], ['log', '기록']] as const).map(([id, label]) => `<button class="city-tabs__tab${this.cityTab === id ? ' is-active' : ''}" data-action="city-tab" data-tab="${id}">${label}</button>`).join('')}</nav>` : ''
+    return `<div class="glass-card city-management ${panelClass}" data-city-tab="${this.cityTab}">${cityTabs}<div class="city-sheet-bar"><span class="city-sheet-grip"></span><button class="city-sheet-close" data-action="city-sheet-close" aria-label="도시 정보 닫기">✕</button></div><div class="city-management-head"><div><span class="eyebrow">도시 관리 · ${city.region}</span><h2>${city.name}</h2><p>${city.region} · ${city.owner === state.faction ? '아군 직할령' : `${city.owner} 관할`}${city.guild ? ` · <span class="city-guild">연맹 <b data-no-tr>${escapeHtml(city.guild.name)}</b></span>` : ''}</p></div><div class="city-management-status"><span class="city-level">Lv.${city.level}</span>${capitalBadge}</div></div><div class="city-map-context"><span>인접 전선</span><strong>${frontierNote}</strong><small>인접 도시 ${eligibility.neighborNames.length ? eligibility.neighborNames.join(' · ') : '독립 성 · 연결 전선 없음'}</small></div><div class="city-metrics">${metrics.map(([label, value]) => `<div><span>${label}</span><i><b style="width:${Math.min(value, 100)}%"></b></i><em>${value}</em></div>`).join('')}</div><p class="wall-status">성벽 방어도 ${formatNumber(city.defense)} / ${formatNumber(wallCapacity)} · ${isWanderer(state) && city.id !== 'luoyang' ? '재야는 점령하지 않고 성벽을 깎아 약탈합니다.' : '성벽을 0으로 깨고 수비병을 모두 물리치면 점령할 수 있습니다.'}</p>${conquest}${city.id === 'luoyang' ? this.luoyangHistoryCard(state) : ''}${this.cityDamageRankingCard(city)}${this.battleLogCard(city)}<div class="city-yield"><div class="card-header"><div><span class="eyebrow">예상 수확</span><h3>도시 생산량</h3></div><span class="rate-note">${canManage ? '수확 1회 기준' : '점령 후 활성화'}</span></div><div class="yield-grid">${(['grain', 'silver', 'wood', 'iron', 'influence'] as const).map(key => `<span style="--resource-color:${RESOURCE_META[key].color}">${icon(key, 'gi--inline')} ${RESOURCE_META[key].label} +${formatNumber(income[key])}</span>`).join('')}</div></div><div class="building-list"><div class="card-header"><div><span class="eyebrow">건물</span><h3>내정 건물</h3></div><span class="rate-note">${canManage ? '건물마다 생산 특화' : '정찰 정보'}</span></div>${city.buildings.map(building => this.buildingRow(city, building, canManage)).join('')}</div>${canManage ? '<p class="management-tip">병영을 강화하면 성벽이 더 튼튼해지고 방어도 회복 한도가 오릅니다.</p>' : '<p class="management-tip management-tip--warn">성벽을 깨고 수비병을 모두 물리친 뒤, 마지막 세력전에서 이기면 점령합니다.</p>'}</div>`
   }
 
   private cityDamageRankingCard(city: City): string {
@@ -3195,8 +3225,8 @@ export class StrategyUI {
       const idAttr = item.kind === 'honor' ? `data-package-id="${item.id}"` : `data-product-id="${item.id}"`
       return `<button class="shop-buy ${bonus >= 0.4 ? 'is-best' : ''}" data-action="${action}" ${idAttr} data-cost="${item.goldCost}" data-label="${escapeHtml(`${nameOf(item.resource)} +${formatNumber(item.amount)}`)}" ${short > 0 ? 'disabled' : ''}><b>${label}</b><span>+${formatNumber(item.amount)}</span>${bonus >= 0.05 ? `<em>+${Math.round(bonus * 100)}% 이득</em>` : '<em class="is-plain">기본</em>'}${short > 0 ? `<small>금화 ${short}개 부족</small>` : ''}</button>`
     }
-    const balances = `<div class="shop-balances shop-balances--strip glass-card"><span>${icon('gold', 'gi--inline')} 금화 <b>${formatNumber(state.gold)}</b></span><span>${icon('honor', 'gi--inline')} 옥패 <b>${formatNumber(state.honor)}</b></span><span>${icon('mythic', 'gi--inline')} 신화 조각 <b>${state.mythicFragments}</b></span><span>낙양 강화석 <b>${state.mythicStones}</b></span></div>`
-    const tabs = `<div class="shop-tabs shop-tabs--row" role="tablist"><button class="shop-tab ${this.shopTab === 'packages' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="packages">패키지${STARTER_PACKS.some(pack => !starterPackBought(state, pack.id)) ? '<i class="shop-tab__dot"></i>' : ''}</button><button class="shop-tab ${this.shopTab === 'passes' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="passes">정액권</button><button class="shop-tab ${this.shopTab === 'resources' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="resources">자원·옥패</button><button class="shop-tab ${this.shopTab === 'mythic' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="mythic">신화 장비</button><button class="shop-tab ${this.shopTab === 'gold' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="gold">금화 충전</button></div>`
+    const balances = `<div class="shop-balances shop-balances--strip glass-card"><span>${icon('gold', 'gi--inline')} 금화 <b>${formatNumber(state.gold)}</b></span><span>${icon('honor', 'gi--inline')} 옥패 <b>${formatNumber(state.honor)}</b></span><span>${icon('mythic', 'gi--inline')} 신화 조각 <b>${state.mythicFragments}</b></span><span>낙양 강화석 <b>${state.mythicStones}</b></span>${readPurchaseLog().length ? '<button class="shop-log-open mini-action" data-action="shop-log">최근 구매</button>' : ''}</div>`
+    const tabs = `<div class="shop-tabs shop-tabs--row" role="tablist"><button class="shop-tab ${this.shopTab === 'gold' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="gold">금화 충전</button><button class="shop-tab ${this.shopTab === 'packages' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="packages">패키지${STARTER_PACKS.some(pack => !starterPackBought(state, pack.id)) ? '<i class="shop-tab__dot"></i>' : ''}</button><button class="shop-tab ${this.shopTab === 'passes' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="passes">정액권</button><button class="shop-tab ${this.shopTab === 'resources' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="resources">자원·옥패</button><button class="shop-tab ${this.shopTab === 'mythic' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="mythic">신화 장비</button></div>`
     let body = ''
     if (this.shopTab === 'packages') body = this.starterPackSection(state)
     else if (this.shopTab === 'passes') body = this.passSection(state)
@@ -3211,7 +3241,7 @@ export class StrategyUI {
       const needCard = needs.length ? `<div class="glass-card shop-needs"><div class="card-header"><div><span class="eyebrow">지금 필요한 것</span><h3>모자란 자원 추천</h3></div></div><ul>${needs.map(need => `<li><div><strong>${escapeHtml(need.reason)}</strong><small>${nameOf(need.resource)} ${formatNumber(need.short)} 부족 · 보유 ${formatNumber(holdingOf(need.resource))}</small></div>${need.item ? buyButton(need.item) : '<small class="shop-needs__none">묶음 하나로는 부족합니다</small>'}</li>`).join('')}</ul></div>` : '<div class="glass-card shop-needs shop-needs--ok"><span class="eyebrow">지금 필요한 것</span><p>다음 무장 레벨업·연구·건물 강화·10회 모집에 필요한 재화가 모두 충분합니다.</p></div>'
       const resources: ShopResource[] = ['honor', 'manuals', 'silver', 'iron', 'grain', 'wood', 'influence']
       const rows = resources.map(resource => `<div class="shop-row"><div class="shop-row__head">${iconOf(resource)}<div><strong>${nameOf(resource)}</strong><small>보유 ${formatNumber(holdingOf(resource))}</small></div></div><div class="shop-row__buys">${all.filter(item => item.resource === resource).map(item => buyButton(item)).join('')}</div></div>`).join('')
-      body = `${needCard}<div class="shop-notice glass-card"><strong>교환 안내</strong><span>금화로 병서(무장 레벨업)·옥패(무장 모집)·자원을 삽니다. 큰 묶음일수록 이득이고, 20금화 이상은 한 번 더 묻습니다.</span></div><div class="glass-card shop-table">${rows}</div>${this.purchaseLogCard()}`
+      body = `${needCard}<div class="shop-notice glass-card"><strong>교환 안내</strong><span>금화로 병서(무장 레벨업)·옥패(무장 모집)·자원을 삽니다. 큰 묶음일수록 이득이고, 20금화 이상은 한 번 더 묻습니다.</span></div><div class="glass-card shop-table">${rows}</div>`
     } else {
       const fragments = state.mythicFragments
       const progress = Math.min(1, fragments / MYTHIC_FRAGMENT_COST)
@@ -3231,7 +3261,8 @@ export class StrategyUI {
       body = `<div class="glass-card shop-mythic-guide"><div class="shop-mythic-guide__bar"><span>신화 조각 <b>${fragments}</b> / ${MYTHIC_FRAGMENT_COST}</span><i><b style="width:${progress * 100}%"></b></i></div><p>유저 대련 승리 = 조각 쉬움 1 · 보통 2 · 어려움 3개 · 하루 5회 · 오늘 남은 대련 <b>${duelsLeft}회</b></p><p class="shop-mythic-guide__stone">신화장비는 낙양 강화석으로만 강화합니다(낙양 점령 1회당 1개 · 보유 ${state.mythicStones}개).</p><button class="action-button action-button--outline" data-action="section" data-section="duel">유저 대련 하러 가기 →</button></div><div class="shop-grid">${cards}</div>${this.purchaseLogCard()}`
     }
     const description = this.shopTab === 'packages' ? '계정마다 한 번만 살 수 있는 신규유저 패키지입니다.' : this.shopTab === 'gold' ? '금화 충전 안내' : this.shopTab === 'resources' ? '금화로 자원과 옥패를 바꿉니다. 지금 모자란 것을 먼저 추천합니다.' : '유저 대련에서 모은 신화 조각으로 신화장비를 교환합니다.'
-    return `<section class="page-section page-section--shop"><div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>상점</h1><p class="heading-copy">${description}</p></div></div>${balances}${tabs}${body}</section>`
+    const logModal = this.shopLogOpen ? `<div class="recruit-results is-visible shop-log-modal"><div class="recruit-results-backdrop" data-action="shop-log"></div><div class="recruit-results-panel"><div class="recruit-results-heading"><div><span class="eyebrow">상점</span><h2>최근 구매</h2></div><button class="mini-action" data-action="shop-log">닫기</button></div>${this.purchaseLogCard() || '<p class="rank-empty">아직 구매 기록이 없습니다.</p>'}</div></div>` : ''
+    return `<section class="page-section page-section--shop"><div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>상점</h1><p class="heading-copy">${description}</p></div></div>${balances}${tabs}${body}</section>${logModal}`
   }
 
   /** 상점 > 패키지: 신규유저 패키지 4종(계정당 1회). 정식 출시 전에는 무료 */
@@ -3494,6 +3525,10 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action === 'shop-log') { this.shopLogOpen = !this.shopLogOpen; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'equipment-detail') { this.equipmentDetailId = button.dataset.id ?? null; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'equipment-detail-close') { this.equipmentDetailId = null; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'city-tab') { const tab = button.dataset.tab; this.cityTab = tab === 'dev' || tab === 'log' ? tab : 'act'; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'summon-rates') { this.summonRatesOpen = !this.summonRatesOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'research-branch') { this.researchBranch = button.dataset.branch ?? null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
@@ -3509,7 +3544,7 @@ export class StrategyUI {
     }
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
-    if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null; this.lobbyPanel = null }
+    if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null; this.lobbyPanel = null; this.equipmentDetailId = null; this.shopLogOpen = false }
     if (action === 'section') { if (button.dataset.scenarioId) { this.scenarioSelectedId = button.dataset.scenarioId; this.scenarioPicked = true; this.scenarioDifficulty = 'normal' } this.callbacks.onSection((button.dataset.section ?? 'overview') as Section) }
     else if (action === 'summon-tab') {
       this.summonTab = button.dataset.summonTab === 'equipment' ? 'equipment' : 'generals'

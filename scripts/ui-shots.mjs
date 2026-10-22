@@ -132,6 +132,11 @@ try {
     await shot('95-recruit-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
     await page.evaluate(() => { const g = window.__strategy; g.ui.showEquipmentResults(g.debug.drawEquipment(10)) })
     await shot('96-gear-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
+    // 장비 상세 창 · 영토 내정 탭 · 상점 최근 구매
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'equipment'; g.ui.render(g.state) })
+    if (await page.locator('.eqtile').count()) { await page.locator('.eqtile').first().evaluate(b => b.click()); await shot('97-equipment-detail'); await page.locator('[data-action="equipment-detail-close"]').first().evaluate(b => b.click()) }
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'territory'; g.ui.render(g.state) })
+    if (await page.locator('[data-action="city-tab"][data-tab="dev"]').count()) { await page.locator('[data-action="city-tab"][data-tab="dev"]').first().evaluate(b => b.click()); await shot('98-territory-dev'); await page.locator('[data-action="city-tab"][data-tab="act"]').first().evaluate(b => b.click()) }
     // 무장 상세 창
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })
     if (await page.locator('.gtile').count()) { await page.locator('.gtile').first().evaluate(b => b.click()); await shot('94-roster-detail'); await page.locator('[data-action="general-detail-close"]').first().evaluate(b => b.click()) }
