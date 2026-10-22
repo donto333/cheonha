@@ -2,7 +2,7 @@
 //  node scripts/ui-shots.mjs [출력 폴더]   (먼저 pnpm build)
 // 가로 화면 두 크기로, 로컬 게스트(서버 없음) 상태에서 찍는다.
 import { spawn } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 
 const out = process.argv[2] || 'ui-shots'
@@ -20,6 +20,7 @@ const VIEWS = [
   { name: 'small', viewport: { width: 740, height: 360 } },
 ]
 const errors = []
+const metrics = []
 
 try {
   for (let i = 0; i < 60; i++) {
@@ -76,9 +77,27 @@ try {
         await clearOverlays()
         await page.evaluate(() => window.scrollTo(0, 0))
         await shot(`${String(10 + index).padStart(2, '0')}-${section}`)
-        // 긴 화면은 아래쪽도 한 장
-        const tall = await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight * 1.6)
-        if (tall) { await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2)); await shot(`${String(10 + index).padStart(2, '0')}-${section}-b`) }
+        // 화면 길이 재기: 실제로 스크롤되는 칸(문서 또는 내용 칸)의 높이 ÷ 화면 높이
+        const metric = await page.evaluate(() => {
+          const candidates = [document.scrollingElement, document.querySelector('.main-content'), ...document.querySelectorAll('.main-content *')]
+          let best = { h: 0, v: window.innerHeight, el: null }
+          for (const el of candidates) {
+            if (!el) continue
+            const style = el === document.scrollingElement ? null : getComputedStyle(el)
+            const scrolls = el === document.scrollingElement || /(auto|scroll)/.test(style.overflowY)
+            if (scrolls && el.scrollHeight > el.clientHeight + 4 && el.scrollHeight > best.h) best = { h: el.scrollHeight, v: el.clientHeight, el }
+          }
+          if (best.el) best.el.setAttribute('data-shot-scroller', '1')
+          return best.el ? { ratio: +(best.h / best.v).toFixed(2), scroller: best.el === document.scrollingElement ? 'document' : (best.el.className || best.el.tagName).toString().slice(0, 40) } : { ratio: 1, scroller: '-' }
+        })
+        metrics.push(`${view.name}\t${section}\t${metric.ratio}\t${metric.scroller}`)
+        // 긴 화면은 아래로 넘겨 가며 두 장 더
+        for (const [step, label] of [[1, 'b'], [2, 'c']]) {
+          if (metric.ratio <= step) break
+          await page.evaluate(n => { const el = document.querySelector('[data-shot-scroller]'); if (el) el.scrollTop = el.clientHeight * n; else window.scrollTo(0, window.innerHeight * n) }, step)
+          await shot(`${String(10 + index).padStart(2, '0')}-${section}-${label}`)
+        }
+        await page.evaluate(() => { const el = document.querySelector('[data-shot-scroller]'); if (el) { el.scrollTop = 0; el.removeAttribute('data-shot-scroller') } })
       } catch (error) { errors.push(`[${view.name}] ${section}: ${error}`) }
     }
     // 더보기 메뉴
@@ -112,4 +131,5 @@ try {
 } finally {
   server.kill('SIGTERM')
 }
+writeFileSync(`${out}/lengths.tsv`, `화면\t메뉴\t화면 대비 길이\t스크롤 칸\n${metrics.join('\n')}\n`)
 console.log(errors.length ? `오류 ${errors.length}개:\n${errors.join('\n')}` : '오류 없음')
