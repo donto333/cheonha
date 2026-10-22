@@ -92,7 +92,10 @@
   html body .app-shell .hub-tabs--home { display: none; }
 
   /* 탭이 제목을 대신하므로 큰 제목 · 설명은 접는다(설명 버튼 · 숫자는 남긴다) */
-  html body .app-shell .section-heading { margin-bottom: 8px; gap: 8px; min-height: 0; align-items: center; }
+  html body .app-shell .section-heading { margin-bottom: 8px; gap: 8px; min-height: 0; display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+  /* 제목줄 버튼 묶음은 세로로 쌓지 않고 한 줄로 */
+  html body .app-shell .section-heading > div:not(:first-child) { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; width: auto; }
+  html body .app-shell .section-heading > div:first-child:empty { display: none; }
   html body .app-shell .summon-menu-head > div:first-child,
   html body .app-shell .section-heading h1,
   html body .app-shell .section-heading .eyebrow,
