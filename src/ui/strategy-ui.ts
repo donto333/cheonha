@@ -1585,7 +1585,7 @@ export class StrategyUI {
     const heading = section.querySelector<HTMLElement>(':scope > .section-heading, :scope > .summon-menu-head')
     if (!heading) return
     heading.classList.add('is-in-tabs')
-    tabs.appendChild(heading)
+    tabs.insertBefore(heading, tabs.querySelector('.hub-tabs__res'))
   }
 
   /** 가로 휴대폰: 묶음 안 화면을 고르는 위쪽 탭(화면 제목을 겸한다) */
@@ -1600,8 +1600,12 @@ export class StrategyUI {
       return `<button class="hub-tabs__tab${section === state.section ? ' is-active' : ''}" data-action="section" data-section="${section}" data-no-tr>${label}</button>`
     }).join('')
     const balance = hub.id === 'more' && this.canOpenBalance() ? `<a class="hub-tabs__tab" href="./balance.html" data-no-tr>${isEnglish() ? 'Balance' : '밸런스'}</a>` : ''
-    const back = `<button class="hub-tabs__back" data-action="section" data-section="overview" aria-label="본영으로">‹ <span data-no-tr>${isEnglish() ? 'Base' : '본영'}</span></button>`
-    return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${back}${tabs}${balance}</div>`
+    // 참고 게임처럼: 왼쪽 붉은 제목판 · 탭, 오른쪽 재화 · 종료(본영으로)
+    const en = isEnglish()
+    const title = `<div class="hub-tabs__title" data-no-tr>${en ? hub.en : hub.ko}</div>`
+    const res = `<div class="hub-tabs__res"><button type="button" class="hub-tabs__chip" data-action="gold-log">${icon('gold')}<b>${formatNumber(state.gold)}</b></button><span class="hub-tabs__chip">${icon('honor')}<b>${compactNumber(state.honor)}</b></span><span class="hub-tabs__chip">${icon('silver')}<b>${compactNumber(state.silver)}</b></span></div>`
+    const exit = `<button class="hub-tabs__exit" data-action="section" data-section="overview" aria-label="본영으로">↩ <span data-no-tr>${en ? 'Exit' : '종료'}</span></button>`
+    return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${title}<div class="hub-tabs__tabs">${tabs}${balance}</div>${res}${exit}</div>`
   }
 
   /** 휴대폰 하단 탭의 ‘더보기’: 주요 5개 밖의 메뉴를 펼친다 */
@@ -1802,7 +1806,71 @@ export class StrategyUI {
     document.body.appendChild(layer)
   }
 
+  /** 가로 휴대폰: 무장 카드 · 도감 카드를 누르면 띄우는 상세 창 */
+  private generalDetail: { kind: 'roster' | 'codex'; id: string } | null = null
+
+  /** 가로 휴대폰 무장 타일(참고 게임의 무장 목록 카드): 초상화 · 등급 · 병과 · 레벨 · 성급 · 이름 */
+  private generalTile(general: General, kind: 'roster' | 'codex', options: { locked?: boolean; badge?: string } = {}): string {
+    const meta = GRADE_META[general.grade]
+    const role = ({ 기병: '騎', 보병: '步', 궁병: '弓', 책사: '策' } as Record<string, string>)[general.role] ?? ''
+    const stars = options.locked ? '' : `<span class="gtile__stars">${'★'.repeat(general.stars)}<i>${'★'.repeat(Math.max(0, 5 - general.stars))}</i></span>`
+    return `<button class="gtile${options.locked ? ' is-locked' : ''}" data-action="general-detail" data-kind="${kind}" data-id="${general.id}" style="--grade:${meta?.color ?? '#a9b1b8'}"><span class="gtile__art" style="background-image:url('${this.portraitAsset(general)}')"></span><span class="gtile__grade" data-no-tr>${general.grade}</span><span class="gtile__role" data-no-tr title="${general.role}">${role}</span>${options.badge ? `<span class="gtile__badge">${escapeHtml(options.badge)}</span>` : ''}<span class="gtile__foot"><span class="gtile__line"><b>${options.locked ? (isEnglish() ? 'Not owned' : '미영입') : `Lv.${general.level}`}</b>${stars}</span><strong>${escapeHtml(general.name)}</strong></span></button>`
+  }
+
+  /** 상세 창(무장 카드 · 도감 카드를 크게) */
+  private generalDetailPanel(state: StrategyState): string {
+    const detail = this.generalDetail
+    if (!detail) return ''
+    let body = ''
+    if (detail.kind === 'roster') {
+      const general = state.generals.find(item => item.id === detail.id)
+      if (!general) return ''
+      const scale = Math.max(this.level60Scale(), ...state.generals.flatMap(g => [g.leadership, g.martial, g.stratagem, g.speed]))
+      body = this.generalCard(state, general, scale)
+    } else {
+      const owned = state.generals.find(item => item.id === detail.id)
+      const general = owned ?? allGenerals().find(item => item.id === detail.id)
+      if (!general) return ''
+      body = this.codexCard(general, Boolean(owned))
+    }
+    return `<div class="gdetail" role="dialog"><div class="gdetail__backdrop" data-action="general-detail-close"></div><div class="gdetail__body"><button class="gdetail__close" data-action="general-detail-close" aria-label="닫기">✕</button>${body}</div></div>`
+  }
+
+  /** 가로 휴대폰 보유 무장: 타일 6장씩 · 아래 버튼 줄 */
+  private mobileRoster(state: StrategyState): string {
+    const sortOptions: Array<[RosterSort, string]> = [['power', '전투력'], ['level', '레벨'], ['grade', '등급'], ['name', '이름'], ['role', '병과']]
+    const match = (general: General) => this.rosterFilter === 'all' ? true : this.rosterFilter === '5' ? general.grade === 5 : this.rosterFilter === '4' ? general.grade === 4 : general.role === this.rosterFilter
+    const squadOf = new Map<string, string>()
+    ;[0, 1, 2].forEach(squad => (squad === 0 ? state.formation : squadIds(state, squad)).forEach(id => { if (id) squadOf.set(id, SQUAD_LABELS[squad]) }))
+    const deployedFirst = [...state.formation, ...squadIds(state, 1), ...squadIds(state, 2)].map(id => state.generals.find(general => general.id === id)).filter((general): general is General => Boolean(general))
+    const rest = this.sortedOwnedGenerals(state).filter(general => !squadOf.has(general.id))
+    const list = [...deployedFirst, ...rest].filter(match)
+    const filters: Array<[typeof this.rosterFilter, string, number]> = [
+      ['all', '전체', state.generals.length], ['5', '천명', state.generals.filter(g => g.grade === 5).length], ['4', '명장', state.generals.filter(g => g.grade === 4).length],
+      ...(['기병', '보병', '궁병', '책사'] as Role[]).map(role => [role, role, state.generals.filter(g => g.role === role).length] as [Role, string, number]),
+    ]
+    const toolbar = `<div class="mroster-bar"><div class="filter-tabs">${filters.map(([id, label, count]) => `<button class="filter-tab ${this.rosterFilter === id ? 'is-active' : ''}" data-action="roster-filter" data-filter="${id}">${label} <b>${count}</b></button>`).join('')}</div><label class="mroster-sort">정렬 <select data-action="roster-sort">${sortOptions.map(([value, label]) => `<option value="${value}" ${this.rosterSort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label><button class="sort-direction" data-action="roster-sort-direction" title="정렬 방향">${this.rosterSortDescending ? '↓' : '↑'}</button></div>`
+    const grid = list.length ? `<div class="gtile-grid">${list.map(general => this.generalTile(general, 'roster', { badge: squadOf.get(general.id) })).join('')}</div>` : '<div class="roster-empty">이 조건에 맞는 무장이 없습니다.</div>'
+    const foot = `<div class="mscreen-foot"><span>출전 전투력 <b>${formatNumber(totalPower(state))}</b> · 은전 ${formatNumber(state.silver)} · 병서 ${formatNumber(state.manuals)}</span><button class="mscreen-foot__btn" data-action="section" data-section="formation">편성</button><button class="mscreen-foot__btn" data-action="section" data-section="equipment">장비</button><button class="mscreen-foot__btn" data-action="section" data-section="codex">도감 <b>${state.generals.length}/${allGenerals().length}</b></button></div>`
+    return `<section class="page-section page-section--roster page-section--mroster">${toolbar}${grid}${foot}</section>${this.generalDetailPanel(state)}`
+  }
+
+  /** 가로 휴대폰 도감: 전체 무장을 타일로(미영입은 흐리게) */
+  private mobileCodex(state: StrategyState): string {
+    const catalog = allGenerals()
+    const owned = new Map(state.generals.map(general => [general.id, general]))
+    const ownedCount = catalog.filter(general => owned.has(general.id)).length
+    const f = this.codexFilter
+    const visible = codexOrder(catalog).filter(general => (f === 'all' ? true : f === 'owned' ? owned.has(general.id) : f === 'missing' ? !owned.has(general.id) : f === '5' ? general.grade === 5 : f === '4' ? general.grade === 4 : general.role === f))
+    const filters: Array<[typeof f, string, number]> = [['all', '전체', catalog.length], ['owned', '영입', ownedCount], ['missing', '미영입', catalog.length - ownedCount], ['5', '천명', catalog.filter(g => g.grade === 5).length], ['4', '명장', catalog.filter(g => g.grade === 4).length], ...(['기병', '보병', '궁병', '책사'] as Role[]).map(role => [role, role, catalog.filter(g => g.role === role).length] as [Role, string, number])]
+    const toolbar = `<div class="mroster-bar"><div class="filter-tabs">${filters.map(([id, label, count]) => `<button class="filter-tab ${f === id ? 'is-active' : ''}" data-action="codex-filter" data-filter="${id}">${label} <b>${count}</b></button>`).join('')}</div></div>`
+    const grid = `<div class="gtile-grid">${visible.map(general => { const mine = owned.get(general.id); return this.generalTile(mine ?? general, 'codex', { locked: !mine }) }).join('')}</div>`
+    const foot = `<div class="mscreen-foot"><span>수집 현황 <b>${ownedCount} / ${catalog.length}</b></span><button class="mscreen-foot__btn" data-action="section" data-section="recruit">모집</button><button class="mscreen-foot__btn" data-action="section" data-section="roster">보유 무장</button></div>`
+    return `<section class="page-section page-section--codex page-section--mroster">${toolbar}${grid}${foot}</section>${this.generalDetailPanel(state)}`
+  }
+
   private rosterSection(state: StrategyState): string {
+    if (isPhoneLandscape()) return this.mobileRoster(state)
     const sortOptions: Array<[RosterSort, string]> = [['power', '전투력'], ['level', '레벨'], ['grade', '등급'], ['name', '이름'], ['role', '병과']]
     const match = (general: General) => this.rosterFilter === 'all' ? true : this.rosterFilter === '5' ? general.grade === 5 : this.rosterFilter === '4' ? general.grade === 4 : general.role === this.rosterFilter
     // 출전 무장은 좌·중·우 순서로 맨 앞에 고정, 나머지는 고른 정렬
@@ -1845,6 +1913,7 @@ export class StrategyUI {
   }
 
   private codexSection(state: StrategyState): string {
+    if (isPhoneLandscape()) return this.mobileCodex(state)
     const catalog = allGenerals()
     const owned = new Map(state.generals.map(general => [general.id, general]))
     const ownedCount = catalog.filter(general => owned.has(general.id)).length
@@ -3328,6 +3397,8 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel-close') { this.lobbyPanel = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'scroll-missions') {
@@ -3339,7 +3410,7 @@ export class StrategyUI {
     }
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
-    if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open') }
+    if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null }
     if (action === 'section') { if (button.dataset.scenarioId) { this.scenarioSelectedId = button.dataset.scenarioId; this.scenarioPicked = true; this.scenarioDifficulty = 'normal' } this.callbacks.onSection((button.dataset.section ?? 'overview') as Section) }
     else if (action === 'summon-tab') {
       this.summonTab = button.dataset.summonTab === 'equipment' ? 'equipment' : 'generals'

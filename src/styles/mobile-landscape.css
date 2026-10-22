@@ -28,8 +28,9 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .app-shell .topbar-resource { height: 28px; padding: 0 9px; border-radius: 14px; background: rgba(0, 0, 0, .45); border: 1px solid rgba(240, 194, 106, .25); }
   html body .app-shell .topbar-resource strong { font-size: 13px; font-variant-numeric: tabular-nums; }
   html body .app-shell .topbar-actions .auth-button { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* 본영에서는 상단바를 숨긴다(재화 줄 · 내 정보는 본영 화면이 직접 그린다) */
-  html body .app-shell:has(.page-section--mlobby) .topbar { display: none; }
+  /* 상단바는 쓰지 않는다: 본영은 본영 화면이, 메뉴 화면은 위쪽 제목 줄(.hub-tabs)이 재화를 보여 준다 */
+  html body .app-shell:not(.app-shell--battle) .topbar { display: none; }
+  html body .app-shell:not(.app-shell--battle) .main-content { padding-top: 0; }
 
   /* ── 예전 왼쪽 메뉴는 쓰지 않는다(본영 메뉴 묶음 · 위쪽 탭으로) ── */
   html body .app-shell .sidebar { display: none !important; }
@@ -75,7 +76,7 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .hub-tabs .is-in-tabs .section-counter strong, html body .hub-tabs .is-in-tabs [class*="counter"] strong, html body .hub-tabs .is-in-tabs strong { font-size: 16px; line-height: 1; }
   html body .hub-tabs .is-in-tabs::before, html body .hub-tabs .is-in-tabs::after { display: none; }
   /* 내용 전체를 촘촘하게(글자 · 여백을 함께 줄여 한 화면에 더 많이) */
-  html { --z: .8; /* 메뉴 화면 한 장의 높이(줌 안쪽 단위): 화면 − 상단바 − 탭 줄 − 여백 */ --frame-h: calc((var(--app-h, 100vh) - var(--top-h) - 62px) / var(--z)); }
+  html { --z: .8; /* 메뉴 화면 한 장의 높이(줌 안쪽 단위): 화면 − 제목 줄 − 여백 */ --frame-h: calc((var(--app-h, 100vh) - 66px) / var(--z)); }
   html body .app-shell:not(.app-shell--battle) .main-content > .page-section:not(.page-section--mlobby) { zoom: var(--z); }
   /* 긴 설명 문단은 숨긴다(같은 내용은 각 화면의 ‘설명’ 버튼에 있다) */
   html body .app-shell .main-content .card-header p,
@@ -261,6 +262,69 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
     html body .ml-army__face { width: 42px; height: 42px; }
     html body .ml-march__go { height: 46px; font-size: 21px; }
   }
+
+  /* ════════ 메뉴 화면 위쪽 제목 줄(참고 게임식): 붉은 제목판 · 탭 · 재화 · 종료 ════════ */
+  html body .app-shell .hub-tabs {
+    position: sticky; top: 0; z-index: 8; margin: 0 calc(-12px - var(--safe-r)) 6px calc(-12px - var(--safe-l)); height: 44px;
+    padding: 0 calc(8px + var(--safe-r)) 0 0; gap: 6px; border: 0; border-radius: 0; overflow: visible;
+    background: linear-gradient(180deg, #3a2414, #24150b); border-bottom: 2px solid #8a5a2a; box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+  }
+  html body .hub-tabs__title {
+    flex: 0 0 auto; height: 100%; display: flex; align-items: center; padding: 0 30px 0 calc(16px + var(--safe-l));
+    font-size: 21px; font-weight: 900; letter-spacing: .1em; color: #fbe6c2; text-shadow: 0 2px 2px rgba(0, 0, 0, .6);
+    background: linear-gradient(90deg, #8f2a20 0%, #7a1c17 70%, rgba(122, 28, 23, 0) 100%);
+  }
+  html body .hub-tabs__tabs { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  html body .hub-tabs__tabs::-webkit-scrollbar { display: none; }
+  html body .hub-tabs__tab { height: 32px; min-width: 56px; padding: 0 12px; font-size: 14px; }
+  html body .hub-tabs__res { flex: 0 0 auto; margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  html body .hub-tabs .is-in-tabs + .hub-tabs__res { margin-left: 6px; }
+  html body .hub-tabs__chip { height: 28px; display: inline-flex; align-items: center; gap: 4px; padding: 0 9px 0 3px; border-radius: 14px; background: rgba(0, 0, 0, .45); border: 1px solid rgba(240, 194, 106, .3); color: var(--cream); }
+  html body .hub-tabs__chip .gi, html body .hub-tabs__chip svg { width: 18px; height: 18px; }
+  html body .hub-tabs__chip b { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  html body .hub-tabs__exit { flex: 0 0 auto; height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: #fbe6c2; background: none; border: 0; }
+  html body .hub-tabs__back { display: none; }
+  @media (max-width: 800px) { html body .hub-tabs__chip:nth-child(n+2) { display: none; } html body .hub-tabs__title { padding-right: 18px; font-size: 18px; } }
+
+  /* ════════ 무장 · 도감: 초상화 카드 목록 ════════ */
+  html body .page-section--mroster { display: flex; flex-direction: column; height: var(--frame-h); gap: 6px; }
+  html body .mroster-bar { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
+  html body .mroster-bar .filter-tabs { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0; }
+  html body .mroster-sort { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--cream-soft); white-space: nowrap; }
+  html body .gtile-grid {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); grid-auto-rows: max-content; gap: 10px; padding: 2px;
+  }
+  html body .gtile {
+    position: relative; aspect-ratio: 3 / 4.3; display: block; padding: 0; overflow: hidden; text-align: center;
+    border: 2px solid color-mix(in srgb, var(--grade), #c9933f 50%); border-radius: 4px; background: #2a160b;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 230, 180, .25); touch-action: manipulation;
+  }
+  html body .gtile:active { transform: scale(.97); }
+  html body .gtile__art { position: absolute; inset: 0; background: #2a160b center 12% / cover no-repeat; }
+  html body .gtile.is-locked .gtile__art { filter: grayscale(.85) brightness(.55); }
+  html body .gtile__grade { position: absolute; top: 0; left: 0; min-width: 26px; height: 28px; display: grid; place-items: center; padding: 0 6px; font-size: 16px; font-weight: 900; color: #fff; background: color-mix(in srgb, var(--grade), #000 25%); border-bottom-right-radius: 6px; text-shadow: 0 1px 1px #000; }
+  html body .gtile__role { position: absolute; top: 32px; left: 4px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; font-size: 13px; font-weight: 800; color: #ffe3a3; background: rgba(20, 10, 4, .8); box-shadow: 0 0 0 1.5px #c9933f; }
+  html body .gtile__badge { position: absolute; top: 4px; right: 4px; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 800; color: #fff; background: var(--lacquer); box-shadow: 0 0 0 1px #f0c26a; }
+  html body .gtile__foot { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 0; padding: 14px 4px 4px; background: linear-gradient(180deg, transparent, rgba(16, 8, 3, .85) 35%, #2a170a); }
+  html body .gtile__line { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; color: #f0e2c4; }
+  html body .gtile__line b { font-weight: 800; }
+  html body .gtile__stars { color: #ffcc4d; letter-spacing: -1px; font-size: 11px; }
+  html body .gtile__stars i { font-style: normal; color: rgba(255, 255, 255, .25); }
+  html body .gtile__foot strong { font-size: 15px; font-weight: 900; color: #fff4dd; text-shadow: 0 1px 2px #000; border-top: 1px solid rgba(240, 194, 106, .45); padding-top: 2px; }
+
+  /* 아래 버튼 줄 */
+  html body .mscreen-foot { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 4px 0; border-top: 1px solid rgba(240, 194, 106, .2); font-size: 13px; color: var(--cream-soft); }
+  html body .mscreen-foot > span { margin-right: auto; }
+  html body .mscreen-foot b { color: var(--gold-hi); }
+  html body .mscreen-foot__btn { height: 34px; padding: 0 16px; font-size: 14px; font-weight: 800; color: #fbe6c2; background: linear-gradient(180deg, #5a3a20, #3a2414); border: 1px solid #8a5a2a; border-radius: 3px; }
+
+  /* 상세 창 */
+  html body .gdetail { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 10px; }
+  html body .gdetail__backdrop { position: absolute; inset: 0; background: rgba(10, 4, 2, .75); }
+  html body .gdetail__body { position: relative; width: min(720px, 100%); max-height: 100%; overflow: auto; }
+  html body .gdetail__body > article { margin: 0; }
+  html body .gdetail__close { position: sticky; top: 0; float: right; z-index: 2; width: 36px; height: 36px; margin-bottom: -36px; border-radius: 50%; color: #fff; background: var(--lacquer); border: 1px solid var(--gold); }
 
   /* 전투 화면은 탭 없이 전체 화면 */
   html body .app-shell--battle .main-content { margin-left: 0; }

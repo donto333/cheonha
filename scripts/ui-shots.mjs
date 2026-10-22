@@ -112,6 +112,9 @@ try {
       await page.locator('[data-action="lobby-panel"]').first().evaluate(b => b.click()); await shot('92-lobby-missions')
       await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click())
     }
+    // 무장 상세 창
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })
+    if (await page.locator('.gtile').count()) { await page.locator('.gtile').first().evaluate(b => b.click()); await shot('94-roster-detail'); await page.locator('[data-action="general-detail-close"]').first().evaluate(b => b.click()) }
     // 채팅 창
     const chat = page.locator('[data-social="toggle"]')
     if (await chat.count()) { await tab.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
