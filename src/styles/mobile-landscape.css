@@ -516,7 +516,8 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
 
   /* 2차: 랭킹 세 칸을 한 줄에, 편성 대기 무장 · 상점 묶음 촘촘하게, 결과 창 닫기 버튼 작게 */
   html body .page-section--rank > *, html body .page-section--rank > .rank-layout > * { grid-column: auto; grid-row: 1; }
-  html body .page-section--formation .formation-bench-card { padding: 4px 8px; gap: 8px; min-height: 0; }
+  html body .app-shell .main-content .page-section--formation > .formation-bench { grid-auto-rows: max-content; }
+  html body .page-section--formation .formation-bench-card { padding: 4px 8px; gap: 8px; flex-shrink: 0; }
   html body .page-section--formation .formation-bench-portrait { width: 40px; height: 48px; }
   html body .page-section--formation .formation-bench-card .mini-action { min-height: 30px; padding: 0 10px; font-size: 12px; }
   html body .page-section--formation .formation-bench-card .formation-tags { transform: scale(.9); transform-origin: left center; }
