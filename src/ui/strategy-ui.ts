@@ -104,7 +104,7 @@ const NAV_HUBS: NavHub[] = [
 /** 가로 휴대폰(모바일 게임형 화면) 조건: CSS의 mobile-landscape.css와 같다 */
 const PHONE_LANDSCAPE = '(orientation: landscape) and (max-height: 500px)'
 const isPhoneLandscape = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.(PHONE_LANDSCAPE).matches)
-/** 가로 휴대폰 본영: 오른쪽 아래 붉은 메뉴 묶음(4칸 × 3줄) */
+/** 가로 휴대폰 본영: 화면 아래쪽 메뉴 바(12칸) */
 const LOBBY_MENU: Array<[Section, IconName, string, string]> = [
   ['formation', 'formation', '편성', 'Lineup'], ['roster', 'roster', '무장', 'Generals'], ['equipment', 'equipment', '장비', 'Gear'], ['recruit', 'recruit', '모집', 'Recruit'],
   ['research', 'research', '연구', 'Research'], ['territory', 'territory', '영토', 'Territory'], ['duel', 'duel', '대련', 'Duel'], ['raid', 'raid', '레이드', 'Raid'],
@@ -1652,8 +1652,7 @@ export class StrategyUI {
     return `${Math.floor(minutes / 60)}시간 전`
   }
 
-  /** 가로 휴대폰 본영: 메뉴 묶음 펼침 · 임무 창 */
-  private lobbyMenuOpen = true
+  /** 가로 휴대폰 본영: 임무 창 */
   private lobbyPanel: 'missions' | null = null
 
   /**
@@ -1683,7 +1682,8 @@ export class StrategyUI {
     const events = `<div class="ml-events"><button class="ml-event" data-action="attendance-open"><span class="ml-event__icon">${CALENDAR_SVG}</span><span>${en ? 'Check-in' : '출석'}</span></button><button class="ml-event" data-action="section" data-section="updates"><span class="ml-event__icon">${icon('updates')}</span><span>${en ? 'News' : '소식'}</span></button><button class="ml-event" data-action="section" data-section="rank"><span class="ml-event__icon">${icon('rank')}</span><span>${en ? 'Ranks' : '랭킹'}</span></button></div>`
     const missions = `<button class="ml-missions${claimable ? ' has-reward' : ''}" data-action="lobby-panel" data-panel="missions"><span class="ml-missions__head"><b>${en ? 'Daily missions' : '일일 임무'}</b><span>(${doneCount}/${daily.length})</span></span><span class="ml-missions__line">${doneCount >= daily.length ? (en ? '✓ All done today' : '✓ 오늘 임무 완료') : escapeHtml(nextMission?.label ?? '')}</span></button>`
     const army = `<div class="ml-army">${[0, 1, 2].map(index => { const general = deployed[index]; return general ? `<button class="ml-army__slot" data-action="section" data-section="formation" style="--grade:${gradeColor(general)}"><span class="ml-army__face" style="background-image:url('${this.portraitAsset(general)}')"></span><small>${escapeHtml(general.name)}</small></button>` : `<button class="ml-army__slot is-empty" data-action="section" data-section="formation"><span class="ml-army__face">＋</span><small>${en ? 'Empty' : '빈 자리'}</small></button>` }).join('')}</div>`
-    const menu = `<nav class="ml-menu${this.lobbyMenuOpen ? '' : ' is-collapsed'}" aria-label="메뉴"><div class="ml-menu__grid">${LOBBY_MENU.map(([section, iconName, ko, enLabel]) => { const badge = section === 'formation' ? (deployed.length < 3 ? '!' : '') : section === 'duel' ? `${duelAttemptsRemaining(state)}` : section === 'recruit' && state.lastRecruit ? '●' : ''; return `<button class="ml-menu__btn${this.coachSection === section ? ' is-coach' : ''}" data-action="section" data-section="${section}"><span class="ml-menu__icon">${icon(iconName)}</span><span class="ml-menu__label" data-no-tr>${en ? enLabel : ko}</span>${badge ? `<b>${badge}</b>` : ''}</button>` }).join('')}</div><button class="ml-menu__toggle" data-action="lobby-menu-toggle" aria-label="${this.lobbyMenuOpen ? '메뉴 접기' : '메뉴 펼치기'}">${this.lobbyMenuOpen ? '▾' : '▴'}</button></nav>`
+    // 화면 아래쪽을 가로로 꽉 채우는 메뉴 바(12칸)
+    const menu = `<nav class="ml-dock" aria-label="메뉴">${LOBBY_MENU.map(([section, iconName, ko, enLabel]) => { const badge = section === 'formation' ? (deployed.length < 3 ? '!' : '') : section === 'duel' ? `${duelAttemptsRemaining(state)}` : section === 'recruit' && state.lastRecruit ? '●' : ''; return `<button class="ml-dock__btn${this.coachSection === section ? ' is-coach' : ''}" data-action="section" data-section="${section}"><span class="ml-dock__icon">${icon(iconName)}</span><span class="ml-dock__label" data-no-tr>${en ? enLabel : ko}</span>${badge ? `<b>${badge}</b>` : ''}</button>` }).join('')}</nav>`
     const march = next ? `<button class="ml-march" data-action="section" data-section="battle" data-scenario-id="${next.id}"><span class="ml-march__info"><small>${allCleared ? (en ? 'Replay' : '다시 도전') : `${next.year}${en ? '' : '년'}`} · ${en ? 'Enemy' : '적'} Lv.${scenarioEnemyLevel(next)} <i>${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</i></small><strong>${escapeHtml(next.title)}</strong></span><span class="ml-march__go">${en ? 'March' : '출전'}</span></button>` : ''
     const tools = `<div class="ml-tools"><button class="ml-tool" data-action="section" data-section="account" aria-label="설정">${icon('account')}</button>${this.isAdmin() ? `<button class="ml-tool" data-action="section" data-section="admin" aria-label="관리자">${icon('admin')}</button>` : ''}</div>`
     const panel = this.lobbyPanel === 'missions' ? `<div class="ml-panel" role="dialog" aria-label="임무"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="ml-panel__body"><button class="ml-panel__close" data-action="lobby-panel-close" aria-label="닫기">✕</button>${this.tutorialCard(state)}${this.missionCard(state)}</div></div>` : ''
@@ -3312,7 +3312,6 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
-    if (action === 'lobby-menu-toggle') { this.lobbyMenuOpen = !this.lobbyMenuOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel-close') { this.lobbyPanel = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'scroll-missions') {

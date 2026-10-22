@@ -87,12 +87,20 @@ try {
       await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
       await page.locator('[data-action="lobby-panel"]').first().evaluate(b => b.click()); await shot('92-lobby-missions')
       await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click())
-      await page.locator('[data-action="lobby-menu-toggle"]').first().evaluate(b => b.click()); await shot('93-lobby-collapsed')
-      await page.locator('[data-action="lobby-menu-toggle"]').first().evaluate(b => b.click())
     }
     // 채팅 창
     const chat = page.locator('[data-social="toggle"]')
     if (await chat.count()) { await page.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
+    await context.close()
+  }
+  // 세로로 든 휴대폰: 게임이 90도 돌아간 가로 화면으로 떠야 한다
+  {
+    const context = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR', screen: { width: 412, height: 915 } })
+    await context.addInitScript(() => { try { localStorage.setItem('cheonharo.intro.seen', '1') } catch {} })
+    const page = await context.newPage()
+    await page.goto(url)
+    await sleep(5000)
+    await page.screenshot({ path: `${out}/portrait-shell.png` })
     await context.close()
   }
   await browser.close()

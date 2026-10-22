@@ -141,50 +141,56 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .ml-missions__line { font-size: 13px; color: var(--cream-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   html body .ml-missions.has-reward::after { content: ''; position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--lacquer-hi); box-shadow: 0 0 0 2px #2a1208; }
 
-  /* 오른쪽: 출전 무장 3명 */
-  html body .ml-army { position: absolute; z-index: 2; top: 46px; right: calc(10px + var(--safe-r)); display: grid; gap: 6px; }
+  /* 위 오른쪽 재화 줄 아래: 출전 무장 3명(가로 한 줄) */
+  html body .ml-army { position: absolute; z-index: 2; top: 44px; right: calc(10px + var(--safe-r)); display: flex; gap: 8px; }
   html body .ml-army__slot { display: grid; justify-items: center; gap: 1px; width: 58px; touch-action: manipulation; }
-  html body .ml-army__face { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--grade, var(--gold)); background: #2a160b center 15% / cover no-repeat; color: var(--gold); font-size: 22px; box-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
+  html body .ml-army__face { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--grade, var(--gold)); background: #2a160b center 15% / cover no-repeat; color: var(--gold); font-size: 22px; box-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
   html body .ml-army__slot small { max-width: 64px; font-size: 11px; font-weight: 700; color: #fff4dd; text-shadow: 0 1px 2px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   html body .ml-army__slot.is-empty .ml-army__face { border-style: dashed; background: rgba(0, 0, 0, .45); }
 
-  /* 오른쪽 아래: 붉은 칠기 메뉴 묶음 */
-  html body .ml-menu { position: absolute; z-index: 2; right: calc(176px + var(--safe-r)); bottom: calc(10px + var(--safe-b)); display: flex; align-items: flex-end; gap: 6px; }
-  html body .ml-menu__grid { display: grid; grid-template-columns: repeat(4, 88px); gap: 5px; }
-  html body .ml-menu.is-collapsed .ml-menu__grid { display: none; }
-  html body .ml-menu__btn {
-    position: relative; height: 36px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px;
-    color: #fff3dc; font-size: 15px; font-weight: 800; letter-spacing: .04em; text-shadow: 0 1px 1px rgba(0, 0, 0, .7);
-    background: linear-gradient(180deg, #c8413a 0%, #9c2620 55%, #7a1a15 100%);
-    border: 1px solid #e3a85c; border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255, 210, 160, .45), 0 2px 4px rgba(0, 0, 0, .55);
+  /* 아래: 화면 너비를 꽉 채우는 붉은 칠기 메뉴 바(12칸) */
+  html { --dock-h: 58px; }
+  html body .ml-dock {
+    position: absolute; z-index: 3; left: 0; right: 0; bottom: 0;
+    height: calc(var(--dock-h) + var(--safe-b)); padding: 0 var(--safe-r) var(--safe-b) var(--safe-l);
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+    background: linear-gradient(180deg, #a3302a 0%, #7a1c17 60%, #5c140f 100%);
+    border-top: 2px solid #e3a85c; box-shadow: 0 -4px 14px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 210, 160, .35);
+  }
+  html body .ml-dock__btn {
+    position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    color: #fff3dc; background: none; border: 0; border-right: 1px solid rgba(0, 0, 0, .25); box-shadow: inset -1px 0 0 rgba(255, 210, 160, .12);
     touch-action: manipulation;
   }
-  html body .ml-menu__btn:active { transform: translateY(1px); filter: brightness(.92); }
-  html body .ml-menu__icon, html body .ml-menu__icon .gi, html body .ml-menu__icon svg { width: 18px; height: 18px; color: #ffd98a; }
-  html body .ml-menu__btn b { position: absolute; top: -6px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; display: grid; place-items: center; border-radius: 8px; background: #ff5a3c; color: #fff; font-size: 10px; box-shadow: 0 0 0 1.5px #2a1208; }
-  html body .ml-menu__btn.is-coach::after { content: ''; position: absolute; inset: -3px; border: 2px solid var(--jade); border-radius: 5px; animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
-  html body .ml-menu__toggle { width: 28px; height: 36px; border-radius: 3px; color: var(--gold-hi); font-size: 18px; background: rgba(30, 14, 7, .85); border: 1px solid rgba(240, 194, 106, .5); }
+  html body .ml-dock__btn:last-child { border-right: 0; box-shadow: none; }
+  html body .ml-dock__btn:active { background: rgba(0, 0, 0, .22); }
+  html body .ml-dock__icon, html body .ml-dock__icon .gi, html body .ml-dock__icon svg { width: 22px; height: 22px; color: #ffd98a; }
+  html body .ml-dock__label { max-width: 100%; font-size: 12.5px; font-weight: 800; letter-spacing: .02em; text-shadow: 0 1px 1px rgba(0, 0, 0, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .ml-dock__btn b { position: absolute; top: 4px; right: calc(50% - 22px); min-width: 16px; height: 16px; padding: 0 4px; display: grid; place-items: center; border-radius: 8px; background: #ff5a3c; color: #fff; font-size: 10px; box-shadow: 0 0 0 1.5px #2a1208; }
+  html body .ml-dock__btn.is-coach::after { content: ''; position: absolute; inset: 3px; border: 2px solid var(--jade); border-radius: 6px; animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
 
-  /* 오른쪽 아래 끝: 출전 */
+  /* 메뉴 바 위 오른쪽: 출전 */
   html body .ml-march {
-    position: absolute; z-index: 2; right: calc(10px + var(--safe-r)); bottom: calc(10px + var(--safe-b)); width: 158px;
+    position: absolute; z-index: 2; right: calc(10px + var(--safe-r)); bottom: calc(var(--dock-h) + var(--safe-b) + 8px); width: 168px;
     display: grid; justify-items: center; gap: 3px; padding: 0; text-align: center; touch-action: manipulation;
   }
-  html body .ml-march__info { display: grid; justify-items: center; gap: 1px; max-width: 158px; text-shadow: 0 1px 2px #000, 0 0 6px #000; }
+  html body .ml-march__info { display: grid; justify-items: center; gap: 1px; max-width: 168px; text-shadow: 0 1px 2px #000, 0 0 6px #000; }
   html body .ml-march__info small { font-size: 11px; color: var(--cream-soft); white-space: nowrap; }
   html body .ml-march__info small i { font-style: normal; color: var(--gold); }
-  html body .ml-march__info strong { max-width: 158px; font-size: 13px; color: #fff4dd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .ml-march__info strong { max-width: 168px; font-size: 13px; color: #fff4dd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   html body .ml-march__go {
-    width: 158px; height: 54px; display: grid; place-items: center; font-size: 24px; font-weight: 900; letter-spacing: .35em; text-indent: .35em; color: #3a1d08;
+    width: 168px; height: 52px; display: grid; place-items: center; font-size: 24px; font-weight: 900; letter-spacing: .35em; text-indent: .35em; color: #3a1d08;
     background: linear-gradient(180deg, #ffe7a8 0%, #f0c26a 45%, #c9933f 100%); border: 2px solid #7a4a1c; border-radius: 4px;
     box-shadow: inset 0 1px 0 #fff6d8, 0 3px 10px rgba(0, 0, 0, .6);
   }
   html body .ml-march:active .ml-march__go { transform: translateY(2px); }
 
-  /* 왼쪽 아래: 설정(채팅 위) */
-  html body .ml-tools { position: absolute; z-index: 2; left: calc(10px + var(--safe-l)); bottom: calc(54px + var(--safe-b)); display: flex; gap: 6px; }
-  html body .ml-tool { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 4px; color: var(--gold-hi); background: rgba(30, 14, 7, .85); border: 1px solid rgba(240, 194, 106, .45); }
+  /* 메뉴 바 위 왼쪽: 설정(채팅 옆) */
+  html body .ml-tools { position: absolute; z-index: 2; left: calc(10px + var(--safe-l)); bottom: calc(var(--dock-h) + var(--safe-b) + 8px); display: flex; gap: 6px; }
+  html body .ml-tool { width: 40px; height: 38px; display: grid; place-items: center; border-radius: 4px; color: var(--gold-hi); background: rgba(30, 14, 7, .85); border: 1px solid rgba(240, 194, 106, .45); }
   html body .ml-tool .gi, html body .ml-tool svg { width: 20px; height: 20px; }
+  /* 본영에서는 채팅을 설정 버튼 오른쪽, 메뉴 바 위에 */
+  html body:has(.page-section--mlobby) .social-fab { left: calc(58px + var(--safe-l)); bottom: calc(var(--dock-h) + var(--safe-b) + 8px); }
 
   /* 임무 창 */
   html body .ml-panel { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: calc(var(--top-h) + 4px) 12px 8px; }
@@ -195,16 +201,12 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
 
   /* 높이가 아주 낮은 화면(360px 안팎): 조금씩 줄인다 */
   @media (max-height: 380px) {
-    html body .ml-menu__grid { grid-template-columns: repeat(4, 80px); gap: 4px; }
-    html body .ml-menu__btn { height: 33px; font-size: 14px; }
+    html { --dock-h: 52px; }
+    html body .ml-dock__icon, html body .ml-dock__icon .gi, html body .ml-dock__icon svg { width: 19px; height: 19px; }
+    html body .ml-dock__label { font-size: 11.5px; }
     html body .ml-missions { top: 136px; }
-    html body .ml-army__face { width: 44px; height: 44px; }
-  }
-  /* 폭이 좁은 가로 화면: 메뉴 버튼 글자만 */
-  @media (max-width: 760px) {
-    html body .ml-menu__icon { display: none; }
-    html body .ml-menu { right: calc(170px + var(--safe-r)); }
-    html body .ml-menu__grid { grid-template-columns: repeat(4, 72px); }
+    html body .ml-army__face { width: 42px; height: 42px; }
+    html body .ml-march__go { height: 46px; font-size: 21px; }
   }
 
   /* 전투 화면은 탭 없이 전체 화면 */

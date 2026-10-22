@@ -6,12 +6,19 @@ type LockableOrientation = ScreenOrientation & { lock?: (orientation: 'landscape
 
 const isTouchPhone = () => window.matchMedia?.('(pointer: coarse)').matches && Math.min(window.screen.width, window.screen.height) <= 600
 
+/** 가로 틀(src/boot.ts) 안에서 돌고 있으면 바깥 페이지를 전체 화면으로 만든다(같은 주소라 접근할 수 있다) */
+function topWindow(): Window {
+  try { return window.top && window.top.document ? window.top : window } catch { return window }
+}
+
 async function lockLandscape(): Promise<void> {
-  const orientation = screen.orientation as LockableOrientation | undefined
+  const top = topWindow()
+  const orientation = top.screen.orientation as LockableOrientation | undefined
   if (!orientation?.lock) return
   try {
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      await document.documentElement.requestFullscreen({ navigationUI: 'hide' })
+    const doc = top.document
+    if (!doc.fullscreenElement && doc.documentElement.requestFullscreen) {
+      await doc.documentElement.requestFullscreen({ navigationUI: 'hide' })
     }
     await orientation.lock('landscape')
   } catch {
@@ -26,7 +33,8 @@ export function enableLandscapeLock(): void {
   const onFirstTouch = () => { void lockLandscape() }
   window.addEventListener('pointerup', onFirstTouch, { once: true, capture: true })
   // 전체 화면에서 빠져나왔다가 다시 누르면 다시 가로로
-  document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) window.addEventListener('pointerup', onFirstTouch, { once: true, capture: true })
+  const top = topWindow()
+  top.document.addEventListener('fullscreenchange', () => {
+    if (!top.document.fullscreenElement) window.addEventListener('pointerup', onFirstTouch, { once: true, capture: true })
   })
 }
