@@ -1,0 +1,968 @@
+{
+ "cao-cao": {
+  "chain": {
+   "ids": [
+    "simayi",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.885
+  },
+  "sustain": {
+   "ids": [
+    "cao-cao",
+    "dian-wei",
+    "guan-yu"
+   ],
+   "winRate": 0.8
+  },
+  "early": {
+   "ids": [
+    "guan-yu",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.695
+  },
+  "debuff": {
+   "ids": [
+    "simayi",
+    "cao-cao",
+    "lu-xun"
+   ],
+   "winRate": 0.91
+  },
+  "utility": {
+   "ids": [
+    "xu-chu",
+    "cao-cao",
+    "xun-yu"
+   ],
+   "winRate": 0.958
+  }
+ },
+ "hua-tuo": {
+  "chain": {
+   "ids": [
+    "guan-yu",
+    "hua-tuo",
+    "guo-jia"
+   ],
+   "winRate": 0.82
+  },
+  "sustain": {
+   "ids": [
+    "hua-tuo",
+    "dong-zhuo",
+    "guan-yu"
+   ],
+   "winRate": 0.86
+  },
+  "early": {
+   "ids": [
+    "guan-yu",
+    "hua-tuo",
+    "xiahou-dun"
+   ],
+   "winRate": 0.618
+  },
+  "debuff": {
+   "ids": [
+    "guan-yu",
+    "hua-tuo",
+    "zhou-yu"
+   ],
+   "winRate": 0.857
+  },
+  "utility": {
+   "ids": [
+    "guan-yu",
+    "hua-tuo",
+    "xun-yu"
+   ],
+   "winRate": 0.91
+  }
+ },
+ "nanhua": {
+  "chain": {
+   "ids": [
+    "guan-yu",
+    "nanhua",
+    "zhang-bo"
+   ],
+   "winRate": 0.685
+  },
+  "sustain": {
+   "ids": [
+    "nanhua",
+    "dong-zhuo",
+    "gao-shun"
+   ],
+   "winRate": 0.635
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "nanhua",
+    "yue-jin"
+   ],
+   "winRate": 0.56
+  },
+  "debuff": {
+   "ids": [
+    "nanhua",
+    "dong-zhuo",
+    "zhou-yu"
+   ],
+   "winRate": 0.838
+  },
+  "utility": {
+   "ids": [
+    "nanhua",
+    "dong-zhuo",
+    "lu-bu"
+   ],
+   "winRate": 0.903
+  }
+ },
+ "sun-quan": {
+  "chain": {
+   "ids": [
+    "lu-xun",
+    "sun-quan",
+    "sun-shangxiang"
+   ],
+   "winRate": 0.86
+  },
+  "sustain": {
+   "ids": [
+    "cao-cao",
+    "sun-quan",
+    "xu-chu"
+   ],
+   "winRate": 0.693
+  },
+  "early": {
+   "ids": [
+    "xiahou-dun",
+    "sun-quan",
+    "sun-ce"
+   ],
+   "winRate": 0.568
+  },
+  "debuff": {
+   "ids": [
+    "zhou-yu",
+    "sun-quan",
+    "lu-xun"
+   ],
+   "winRate": 0.895
+  },
+  "utility": {
+   "ids": [
+    "sun-ce",
+    "sun-quan",
+    "yuan-shao"
+   ],
+   "winRate": 0.898
+  }
+ },
+ "yuan-shao": {
+  "chain": {
+   "ids": [
+    "yuan-shao",
+    "dian-wei",
+    "xu-chu"
+   ],
+   "winRate": 0.883
+  },
+  "sustain": {
+   "ids": [
+    "yuan-shao",
+    "dong-zhuo",
+    "lu-bu"
+   ],
+   "winRate": 0.78
+  },
+  "early": {
+   "ids": [
+    "yuan-shao",
+    "zhang-liao",
+    "yue-jin"
+   ],
+   "winRate": 0.52
+  },
+  "debuff": {
+   "ids": [
+    "yuan-shao",
+    "dong-zhuo",
+    "zhou-yu"
+   ],
+   "winRate": 0.928
+  },
+  "utility": {
+   "ids": [
+    "yuan-shao",
+    "cao-cao",
+    "xu-chu"
+   ],
+   "winRate": 0.87
+  }
+ },
+ "zhou-yu": {
+  "chain": {
+   "ids": [
+    "zhou-yu",
+    "huang-gai",
+    "xiahou-dun"
+   ],
+   "winRate": 0.855
+  },
+  "sustain": {
+   "ids": [
+    "zhou-yu",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.867
+  },
+  "early": {
+   "ids": [
+    "zhou-yu",
+    "huang-gai",
+    "zhang-liao"
+   ],
+   "winRate": 0.823
+  },
+  "debuff": {
+   "ids": [
+    "zhou-yu",
+    "huang-gai",
+    "lu-xun"
+   ],
+   "winRate": 0.943
+  },
+  "utility": {
+   "ids": [
+    "zhou-yu",
+    "cao-cao",
+    "lu-su"
+   ],
+   "winRate": 0.84
+  }
+ },
+ "dong-zhuo": {
+  "chain": {
+   "ids": [
+    "lu-bu",
+    "dong-zhuo",
+    "chen-gong"
+   ],
+   "winRate": 0.85
+  },
+  "sustain": {
+   "ids": [
+    "cao-cao",
+    "dong-zhuo",
+    "xu-chu"
+   ],
+   "winRate": 0.81
+  },
+  "early": {
+   "ids": [
+    "lu-bu",
+    "dong-zhuo",
+    "zhang-liao"
+   ],
+   "winRate": 0.648
+  },
+  "debuff": {
+   "ids": [
+    "zhou-yu",
+    "dong-zhuo",
+    "zhang-liao"
+   ],
+   "winRate": 0.795
+  },
+  "utility": {
+   "ids": [
+    "sun-ce",
+    "dong-zhuo",
+    "yuan-shao"
+   ],
+   "winRate": 0.933
+  }
+ },
+ "liu-bei": {
+  "chain": {
+   "ids": [
+    "liu-bei",
+    "huang-gai",
+    "pang-tong"
+   ],
+   "winRate": 0.74
+  },
+  "sustain": {
+   "ids": [
+    "liu-bei",
+    "zhang-fei",
+    "guan-yu"
+   ],
+   "winRate": 0.673
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "liu-bei",
+    "yue-jin"
+   ],
+   "winRate": 0.427
+  },
+  "debuff": {
+   "ids": [
+    "zhou-yu",
+    "liu-bei",
+    "lu-xun"
+   ],
+   "winRate": 0.793
+  },
+  "utility": {
+   "ids": [
+    "liu-bei",
+    "cao-cao",
+    "guo-jia"
+   ],
+   "winRate": 0.778
+  }
+ },
+ "sima-hui": {
+  "chain": {
+   "ids": [
+    "sima-hui",
+    "huang-gai",
+    "pang-tong"
+   ],
+   "winRate": 0.785
+  },
+  "sustain": {
+   "ids": [
+    "sima-hui",
+    "dong-zhuo",
+    "pang-tong"
+   ],
+   "winRate": 0.785
+  },
+  "early": {
+   "ids": [
+    "pang-tong",
+    "sima-hui",
+    "zhang-liao"
+   ],
+   "winRate": 0.598
+  },
+  "debuff": {
+   "ids": [
+    "sima-hui",
+    "dong-zhuo",
+    "lu-xun"
+   ],
+   "winRate": 0.868
+  },
+  "utility": {
+   "ids": [
+    "sima-hui",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.815
+  }
+ },
+ "xiahou-dun": {
+  "chain": {
+   "ids": [
+    "xiahou-dun",
+    "cao-cao",
+    "guo-jia"
+   ],
+   "winRate": 0.813
+  },
+  "sustain": {
+   "ids": [
+    "xiahou-dun",
+    "cao-cao",
+    "cai-wenji"
+   ],
+   "winRate": 0.605
+  },
+  "early": {
+   "ids": [
+    "xiahou-dun",
+    "cao-cao",
+    "zhang-liao"
+   ],
+   "winRate": 0.617
+  },
+  "debuff": {
+   "ids": [
+    "xiahou-dun",
+    "cao-cao",
+    "xiao-qiao"
+   ],
+   "winRate": 0.803
+  },
+  "utility": {
+   "ids": [
+    "xiahou-dun",
+    "cao-cao",
+    "yuan-shao"
+   ],
+   "winRate": 0.897
+  }
+ },
+ "zhang-jiao": {
+  "chain": {
+   "ids": [
+    "zhang-jiao",
+    "dian-wei",
+    "xu-chu"
+   ],
+   "winRate": 0.775
+  },
+  "sustain": {
+   "ids": [
+    "zhang-jiao",
+    "dong-zhuo",
+    "liu-bei"
+   ],
+   "winRate": 0.493
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "zhang-jiao",
+    "yue-jin"
+   ],
+   "winRate": 0.37
+  },
+  "debuff": {
+   "ids": [
+    "zhang-jiao",
+    "huang-gai",
+    "pang-tong"
+   ],
+   "winRate": 0.707
+  },
+  "utility": {
+   "ids": [
+    "zhang-jiao",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.82
+  }
+ },
+ "zhuge-liang": {
+  "chain": {
+   "ids": [
+    "zhuge-liang",
+    "dong-zhuo",
+    "xu-shu"
+   ],
+   "winRate": 0.86
+  },
+  "sustain": {
+   "ids": [
+    "zhuge-liang",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.81
+  },
+  "early": {
+   "ids": [
+    "zhuge-liang",
+    "huang-gai",
+    "zhang-liao"
+   ],
+   "winRate": 0.65
+  },
+  "debuff": {
+   "ids": [
+    "zhuge-liang",
+    "huang-gai",
+    "lu-xun"
+   ],
+   "winRate": 0.875
+  },
+  "utility": {
+   "ids": [
+    "zhuge-liang",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.875
+  }
+ },
+ "gao-shun": {
+  "chain": {
+   "ids": [
+    "gao-shun",
+    "sun-quan",
+    "sun-shangxiang"
+   ],
+   "winRate": 0.78
+  },
+  "sustain": {
+   "ids": [
+    "gao-shun",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.783
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "gao-shun",
+    "yue-jin"
+   ],
+   "winRate": 0.483
+  },
+  "debuff": {
+   "ids": [
+    "gao-shun",
+    "huang-gai",
+    "zhou-yu"
+   ],
+   "winRate": 0.773
+  },
+  "utility": {
+   "ids": [
+    "gao-shun",
+    "sun-quan",
+    "yuan-shao"
+   ],
+   "winRate": 0.868
+  }
+ },
+ "lu-bu": {
+  "chain": {
+   "ids": [
+    "lu-bu",
+    "cao-cao",
+    "diao-chan"
+   ],
+   "winRate": 0.86
+  },
+  "sustain": {
+   "ids": [
+    "lu-bu",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.78
+  },
+  "early": {
+   "ids": [
+    "lu-bu",
+    "dong-zhuo",
+    "zhang-liao"
+   ],
+   "winRate": 0.648
+  },
+  "debuff": {
+   "ids": [
+    "lu-bu",
+    "dong-zhuo",
+    "lu-xun"
+   ],
+   "winRate": 0.832
+  },
+  "utility": {
+   "ids": [
+    "lu-bu",
+    "dong-zhuo",
+    "xun-yu"
+   ],
+   "winRate": 0.868
+  }
+ },
+ "simayi": {
+  "chain": {
+   "ids": [
+    "simayi",
+    "cao-cao",
+    "guan-yu"
+   ],
+   "winRate": 0.913
+  },
+  "sustain": {
+   "ids": [
+    "simayi",
+    "dong-zhuo",
+    "cao-cao"
+   ],
+   "winRate": 0.773
+  },
+  "early": {
+   "ids": [
+    "simayi",
+    "zhang-liao",
+    "yue-jin"
+   ],
+   "winRate": 0.52
+  },
+  "debuff": {
+   "ids": [
+    "simayi",
+    "cao-cao",
+    "guo-jia"
+   ],
+   "winRate": 0.895
+  },
+  "utility": {
+   "ids": [
+    "simayi",
+    "cao-cao",
+    "yuan-shao"
+   ],
+   "winRate": 0.948
+  }
+ },
+ "xiao-qiao": {
+  "chain": {
+   "ids": [
+    "da-qiao",
+    "xiao-qiao",
+    "sun-shangxiang"
+   ],
+   "winRate": 0.83
+  },
+  "sustain": {
+   "ids": [
+    "xiao-qiao",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.843
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "xiao-qiao",
+    "yue-jin"
+   ],
+   "winRate": 0.458
+  },
+  "debuff": {
+   "ids": [
+    "xiao-qiao",
+    "huang-gai",
+    "zhou-yu"
+   ],
+   "winRate": 0.93
+  },
+  "utility": {
+   "ids": [
+    "xiao-qiao",
+    "cheng-yu",
+    "xun-you"
+   ],
+   "winRate": 0.828
+  }
+ },
+ "zhang-liao": {
+  "chain": {
+   "ids": [
+    "zhang-liao",
+    "cao-cao",
+    "simayi"
+   ],
+   "winRate": 0.883
+  },
+  "sustain": {
+   "ids": [
+    "zhang-liao",
+    "cao-cao",
+    "cai-wenji"
+   ],
+   "winRate": 0.64
+  },
+  "early": {
+   "ids": [
+    "xiahou-dun",
+    "zhang-liao",
+    "yue-jin"
+   ],
+   "winRate": 0.425
+  },
+  "debuff": {
+   "ids": [
+    "zhang-liao",
+    "dong-zhuo",
+    "diao-chan"
+   ],
+   "winRate": 0.77
+  },
+  "utility": {
+   "ids": [
+    "zhang-liao",
+    "cao-cao",
+    "yuan-shao"
+   ],
+   "winRate": 0.78
+  }
+ },
+ "zuo-ci": {
+  "chain": {
+   "ids": [
+    "zuo-ci",
+    "dong-zhuo",
+    "lu-bu"
+   ],
+   "winRate": 0.835
+  },
+  "sustain": {
+   "ids": [
+    "zuo-ci",
+    "cao-ren",
+    "cao-hong"
+   ],
+   "winRate": 0.558
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "zuo-ci",
+    "yue-jin"
+   ],
+   "winRate": 0.47
+  },
+  "debuff": {
+   "ids": [
+    "zuo-ci",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.805
+  },
+  "utility": {
+   "ids": [
+    "zuo-ci",
+    "cao-cao",
+    "xun-you"
+   ],
+   "winRate": 0.813
+  }
+ },
+ "guan-yu": {
+  "chain": {
+   "ids": [
+    "guan-yu",
+    "sun-quan",
+    "guan-yinping"
+   ],
+   "winRate": 0.705
+  },
+  "sustain": {
+   "ids": [
+    "guan-yu",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.838
+  },
+  "early": {
+   "ids": [
+    "guan-yu",
+    "zhang-liao",
+    "yue-jin"
+   ],
+   "winRate": 0.423
+  },
+  "debuff": {
+   "ids": [
+    "guan-yu",
+    "dong-zhuo",
+    "guan-yinping"
+   ],
+   "winRate": 0.72
+  },
+  "utility": {
+   "ids": [
+    "guan-yu",
+    "cao-cao",
+    "yuan-shao"
+   ],
+   "winRate": 0.855
+  }
+ },
+ "lu-xun": {
+  "chain": {
+   "ids": [
+    "lu-xun",
+    "meng-huo",
+    "zhu-rong"
+   ],
+   "winRate": 0.807
+  },
+  "sustain": {
+   "ids": [
+    "lu-xun",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.848
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "lu-xun",
+    "yue-jin"
+   ],
+   "winRate": 0.463
+  },
+  "debuff": {
+   "ids": [
+    "lu-xun",
+    "huang-gai",
+    "zhou-yu"
+   ],
+   "winRate": 0.945
+  },
+  "utility": {
+   "ids": [
+    "lu-xun",
+    "sun-quan",
+    "yuan-shao"
+   ],
+   "winRate": 0.925
+  }
+ },
+ "sun-ce": {
+  "chain": {
+   "ids": [
+    "sun-ce",
+    "sun-quan",
+    "guo-jia"
+   ],
+   "winRate": 0.83
+  },
+  "sustain": {
+   "ids": [
+    "sun-ce",
+    "dian-wei",
+    "cao-cao"
+   ],
+   "winRate": 0.758
+  },
+  "early": {
+   "ids": [
+    "sun-ce",
+    "sun-quan",
+    "zhang-liao"
+   ],
+   "winRate": 0.553
+  },
+  "debuff": {
+   "ids": [
+    "sun-ce",
+    "sun-quan",
+    "lu-xun"
+   ],
+   "winRate": 0.838
+  },
+  "utility": {
+   "ids": [
+    "sun-ce",
+    "sun-quan",
+    "yuan-shao"
+   ],
+   "winRate": 0.898
+  }
+ },
+ "yu-ji": {
+  "chain": {
+   "ids": [
+    "yu-ji",
+    "huang-gai",
+    "pang-tong"
+   ],
+   "winRate": 0.778
+  },
+  "sustain": {
+   "ids": [
+    "yu-ji",
+    "dong-zhuo",
+    "lu-bu"
+   ],
+   "winRate": 0.747
+  },
+  "early": {
+   "ids": [
+    "zhang-liao",
+    "yu-ji",
+    "yue-jin"
+   ],
+   "winRate": 0.44
+  },
+  "debuff": {
+   "ids": [
+    "yu-ji",
+    "huang-gai",
+    "zhou-yu"
+   ],
+   "winRate": 0.863
+  },
+  "utility": {
+   "ids": [
+    "yu-ji",
+    "gao-shun",
+    "yuan-shao"
+   ],
+   "winRate": 0.893
+  }
+ },
+ "zhao-yun": {
+  "chain": {
+   "ids": [
+    "zhao-yun",
+    "huang-gai",
+    "zhou-yu"
+   ],
+   "winRate": 0.893
+  },
+  "sustain": {
+   "ids": [
+    "zhao-yun",
+    "dian-wei",
+    "xu-chu"
+   ],
+   "winRate": 0.783
+  },
+  "early": {
+   "ids": [
+    "zhao-yun",
+    "zhang-liao",
+    "yue-jin"
+   ],
+   "winRate": 0.635
+  },
+  "debuff": {
+   "ids": [
+    "zhao-yun",
+    "dong-zhuo",
+    "lu-xun"
+   ],
+   "winRate": 0.88
+  },
+  "utility": {
+   "ids": [
+    "zhao-yun",
+    "cao-cao",
+    "xiahou-dun"
+   ],
+   "winRate": 0.905
+  }
+ }
+}
