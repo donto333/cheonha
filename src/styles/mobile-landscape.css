@@ -585,7 +585,10 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--shop .shop-needs .card-header { display: none; }
   html body .page-section--shop .shop-needs ul { margin: 0; }
   html body .page-section--shop .shop-needs li { padding: 2px 0; font-size: 12px; }
-  html body .page-section--shop .shop-table { flex: 1 1 auto; min-height: 0; padding: 2px 8px; display: grid; align-content: space-evenly; }
+  html body .page-section--shop .shop-table { flex: 1 1 auto; min-height: 0; padding: 2px 8px; display: grid; grid-auto-rows: minmax(0, 1fr); align-content: stretch; overflow: hidden; }
+  html body .page-section--shop .shop-row { min-height: 0; border-bottom-width: 1px; align-items: center; }
+  html body .page-section--shop .shop-row__head .gi, html body .page-section--shop .shop-row__head svg { width: 18px; height: 18px; }
+  html body .page-section--shop .shop-row__head strong { font-size: 13px; }
   html body .page-section--shop .shop-row { grid-template-columns: 110px minmax(0, 1fr); padding: 2px 0; gap: 6px; }
   html body .page-section--shop .shop-row__head { gap: 6px; }
   html body .page-section--shop .shop-row__head small { font-size: 10.5px; }
