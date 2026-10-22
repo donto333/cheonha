@@ -2975,7 +2975,7 @@ const social = new SocialPanel({
   notify: (message, tone = 'jade') => ui.notify(message, tone),
   openGuild: () => openSection('guild'),
 })
-;(window as unknown as { __strategy: { state: StrategyState; arena: Arena; ui: StrategyUI; social: SocialPanel; catalog: { generals: () => ReturnType<typeof allGenerals>; scenarios: string[] } } }).__strategy = { state, arena, ui, social, catalog: { generals: allGenerals, scenarios: SCENARIOS.map(s => s.id) } } // 점검 · 자동 테스트용(scripts/qa-100x.mjs)
+;(window as unknown as { __strategy: { state: StrategyState; arena: Arena; ui: StrategyUI; social: SocialPanel; catalog: { generals: () => ReturnType<typeof allGenerals>; scenarios: string[] }; debug: { drawEquipment: (count: number) => ReturnType<typeof drawEquipment>['rewards'] } } }).__strategy = { state, arena, ui, social, catalog: { generals: allGenerals, scenarios: SCENARIOS.map(s => s.id) }, debug: { drawEquipment: (count: number) => drawEquipment(state, count).rewards } } // 점검 · 자동 테스트용(scripts/qa-100x.mjs)
 
 // 위쪽 막대의 천하 시즌 남은 시간: 30초마다 글자만 갱신하고, 시즌이 넘어가면(매월 1일 0시) 시즌 정보를 다시 받는다
 let seasonClockKey = ''

@@ -22,12 +22,15 @@ function mountLandscapeShell(): void {
     const w = window.innerWidth, h = window.innerHeight
     if (h > w) {
       // 세로로 든 휴대폰: 가로 크기로 만들어 시계 방향 90도로 돌린다(휴대폰을 왼쪽으로 눕히면 바로 보인다)
+      frame.style.left = '0'
       frame.style.width = `${h}px`
       frame.style.height = `${w}px`
       frame.style.transform = `translateX(${w}px) rotate(90deg)`
     } else {
-      frame.style.width = `${w}px`
-      frame.style.height = `${h}px`
+      // 가로로 든 휴대폰: 노치 · 카메라 구멍 쪽은 비워 둔다(틀 안에서는 안전 영역 값을 알 수 없다)
+      frame.style.width = 'calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))'
+      frame.style.height = '100%'
+      frame.style.left = 'env(safe-area-inset-left, 0px)'
       frame.style.transform = 'none'
     }
   }

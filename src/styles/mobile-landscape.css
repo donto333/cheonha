@@ -432,6 +432,88 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .msum-rates__card li b { margin-left: auto; color: var(--gold-hi); }
   html body .msum-rates__card small { color: var(--cream-soft); }
 
+  /* ════════ 비율 재검토(실제 휴대폰 화면 기준) ════════ */
+  /* 카드 제목 · 설명 글자 크기를 한 단계 낮춘다 */
+  html body .app-shell .main-content .card-header h3, html body .app-shell .main-content .glass-card h3 { font-size: 15px; }
+  html body .app-shell .main-content .glass-card h2 { font-size: 19px; }
+  html body .app-shell .main-content .eyebrow { font-size: 11px; }
+
+  /* 랭킹: 내 기록 · 상위 지휘관 · 연맹 순위 세 칸, 각 칸 안에서 넘긴다 */
+  html body .page-section--rank { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) minmax(0, 1.1fr); gap: 8px; height: var(--frame-h); }
+  html body .page-section--rank > .rank-layout { display: contents; }
+  html body .page-section--rank > * , html body .page-section--rank > .rank-layout > * { min-height: 0; margin: 0; overflow-y: auto; overscroll-behavior: contain; }
+  html body .page-section--rank .rank-hero-bg { display: none; }
+  html body .page-section--rank .rank-hero p { display: none; }
+  html body .page-section--rank .my-record { margin-top: 10px; padding-top: 8px; }
+  html body .page-section--rank .auth-status { position: static; margin-top: 8px; }
+
+  /* 레이드: 왼쪽 보스 · 출전, 오른쪽 보상 · 순위 */
+  html body .page-section--raid { display: flex; flex-direction: column; height: var(--frame-h); gap: 6px; }
+  html body .page-section--raid > .raid-message { flex: 0 0 auto; margin: 0; padding: 4px 10px; font-size: 12px; }
+  html body .page-section--raid > .raid-claim { flex: 0 0 auto; margin: 0; padding: 6px 12px; }
+  html body .page-section--raid > .raid-layout { flex: 1 1 auto; min-height: 0; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 8px; }
+  html body .page-section--raid .raid-main, html body .page-section--raid .raid-side { min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 8px; align-content: start; }
+  html body .page-section--raid .raid-boss { padding: 8px 12px; }
+  html body .page-section--raid .raid-boss__units { margin: 6px 0 0; gap: 6px; }
+  html body .page-section--raid .raid-boss__unit { padding: 4px; gap: 1px; }
+  html body .page-section--raid .raid-boss__portrait, html body .page-section--raid .raid-boss__unit .general-portrait { width: 58px; height: 58px; }
+  html body .page-section--raid .raid-boss__note { display: none; }
+  html body .page-section--raid .raid-start { flex-direction: row; align-items: center; padding: 8px 12px; }
+  html body .page-section--raid .raid-start__cta { justify-items: end; text-align: right; }
+  html body .page-section--raid .raid-me { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 8px 12px; }
+  html body .page-section--raid .raid-ranking { max-height: none; }
+
+  /* 대련: 위 안내는 한 줄로, 상대 목록은 두 줄씩 */
+  html body .page-section--duel { display: flex; flex-direction: column; height: var(--frame-h); gap: 6px; }
+  html body .page-section--duel .duel-hero { flex: 0 0 auto; flex-direction: row; align-items: center; margin: 0; padding: 8px 12px; gap: 10px; }
+  html body .page-section--duel .duel-hero h2 { font-size: 17px; margin: 2px 0; }
+  html body .page-section--duel .duel-hero p, html body .page-section--duel .duel-hero-mark, html body .page-section--duel .duel-hero .pill { display: none; }
+  html body .page-section--duel .duel-daily-limit { flex-direction: row; align-items: center; margin: 0; padding: 4px 10px; gap: 8px; font-size: 12px; }
+  html body .page-section--duel .duel-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; align-content: start; }
+  html body .page-section--duel .duel-opponent { grid-template-columns: 28px 34px minmax(0, 1fr) auto; gap: 8px; padding: 6px 10px; }
+  html body .page-section--duel .duel-opponent .action-button { min-height: 34px; padding: 0 12px; }
+  html body .page-section--duel .duel-reward { font-size: 11px; }
+
+  /* 영토: 지도가 왼쪽 칸 높이를 꽉 채우고, 버튼은 작게 */
+  html body .page-section--territory .territory-map { position: static; display: flex; flex-direction: column; }
+  html body .page-section--territory .territory-map:not(.is-fullscreen) .map-viewport { flex: 1 1 auto; min-height: 160px; aspect-ratio: auto; max-width: none; margin: 6px 0 0; }
+  html body .page-section--territory .map-legend { display: none; }
+  html body .map-controls { gap: 4px; }
+  html body .map-controls button { width: 34px; height: 34px; font-size: 16px; }
+  html body .page-section--territory .conquest-overview { display: flex; align-items: center; gap: 12px; }
+  html body .page-section--territory .territory-layout { height: calc(var(--frame-h) - 84px); }
+
+  /* 장비: 무장 고르기 칸을 얇게 */
+  html body .page-section--equipment-simple .equip-picker { gap: 6px; }
+  html body .page-section--equipment-simple .equip-chip { padding: 4px 8px; min-height: 0; }
+  html body .page-section--equipment-simple .equip-chip__face { width: 34px; height: 34px; }
+  html body .page-section--equipment-simple .equip-picker__others { height: 32px; padding: 0 10px; font-size: 13px; }
+  html body .page-section--equipment-simple .equip-set-line { display: none; }
+
+  /* 편성: 초상화를 줄여 세 자리 · 상성이 한 화면에, 장비 줄은 장비 화면에서 */
+  html body .page-section--formation .formation-portrait { width: 54px; height: 76px; margin-bottom: 4px; }
+  html body .page-section--formation .formation-slot { padding: 6px; gap: 2px; }
+  html body .page-section--formation .formation-equipment { display: none; }
+  html body .page-section--formation .formation-bench-head h3 { white-space: nowrap; }
+  html body .page-section--formation .formation-bench-head label { white-space: nowrap; }
+  html body .page-section--formation .formation-bench-head .codex-search > span:first-child { display: none; }
+  html body .page-section--formation .formation-slots { margin-top: 4px; }
+
+  /* 모집 · 장비 결과 창: 10장이 한 화면에(5장 × 2줄) */
+  html body .recruit-results { padding: 6px; }
+  html body .recruit-results-panel { width: 100%; max-height: 100%; padding: 10px 14px; }
+  html body .recruit-results-heading { display: flex; align-items: center; gap: 10px; padding-bottom: 6px; }
+  html body .recruit-results-heading h2 { margin: 2px 0; font-size: 18px; }
+  html body .recruit-results-heading p { display: none; }
+  html body .recruit-results-heading .mini-action, html body .recruit-results-heading .action-button { position: static; width: auto; min-width: 120px; min-height: 36px; margin-left: auto; }
+  html body .recruit-results-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 6px 0; }
+  html body .recruit-result-card { min-height: 0; padding: 6px 4px; gap: 3px; }
+  html body .recruit-result-card .ritual-portrait, html body .recruit-result-card .general-portrait, html body .recruit-result-card img { width: 52px; height: 52px; margin-top: 0; }
+  html body .recruit-result-card b { font-size: 13px; }
+  html body .recruit-result-card small { font-size: 11px; }
+  html body .recruit-results-actions { padding-top: 6px; }
+  html body .recruit-results-actions .action-button { min-height: 36px; min-width: 0; }
+
   /* 전투 화면은 탭 없이 전체 화면 */
   html body .app-shell--battle .main-content { margin-left: 0; }
 

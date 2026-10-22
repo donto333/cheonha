@@ -70,6 +70,20 @@ try {
       document.body.classList.remove('coach-open')
     })
     await clearOverlays()
+    // 실제 플레이와 비슷하게: 무장 30명(1~3군 편성) · 장비 40여 개 · 넉넉한 재화
+    await page.evaluate(() => {
+      const g = window.__strategy
+      const all = g.catalog.generals()
+      const pick = all.slice(0, 30).map((general, index) => ({ ...general, level: 1 + (index * 7) % 40, stars: 1 + index % 5 }))
+      g.state.generals = pick
+      g.state.formation = pick.slice(0, 3).map(general => general.id)
+      g.state.reserveSquads = [pick.slice(3, 6).map(general => general.id), pick.slice(6, 9).map(general => general.id)]
+      g.state.honor = 999999; g.state.gold = 683; g.state.silver = 62920
+      for (let i = 0; i < 4; i += 1) g.debug.drawEquipment(10)
+      g.state.honor = 11480
+      g.ui.render(g.state)
+    })
+    await clearOverlays()
 
     for (const [index, section] of SECTIONS.entries()) {
       try {
@@ -112,6 +126,11 @@ try {
       await page.locator('[data-action="lobby-panel"]').first().evaluate(b => b.click()); await shot('92-lobby-missions')
       await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click())
     }
+    // 모집 결과 · 장비 결과 창
+    await page.evaluate(() => { const g = window.__strategy; g.ui.showRecruitResults(g.catalog.generals().slice(10, 20)) })
+    await shot('95-recruit-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
+    await page.evaluate(() => { const g = window.__strategy; g.ui.showEquipmentResults(g.debug.drawEquipment(10)) })
+    await shot('96-gear-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
     // 무장 상세 창
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })
     if (await page.locator('.gtile').count()) { await page.locator('.gtile').first().evaluate(b => b.click()); await shot('94-roster-detail'); await page.locator('[data-action="general-detail-close"]').first().evaluate(b => b.click()) }
