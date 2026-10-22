@@ -34,7 +34,7 @@
     border-right: 1px solid rgba(240, 194, 106, .22);
   }
   html body .hub-rail__btn {
-    position: relative; flex: 1 1 0; max-height: 52px; min-height: 40px;
+    position: relative; flex: 1 1 0; max-height: 52px; min-height: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     border-radius: 10px; background: transparent; color: var(--cream-soft);
     -webkit-tap-highlight-color: transparent; touch-action: manipulation;
@@ -60,6 +60,13 @@
   html body .social-fab__label { font-size: 11px; line-height: 1; }
   html body .social-fab__badge { top: -2px; right: 2px; }
   html body:has(.app-shell--battle) .social-fab { display: none; }
+  /* 낮은 화면(높이 380px 이하): 띠 칸 글자를 줄여 7칸 + 채팅이 다 들어가게 */
+  @media (max-height: 380px) {
+    html body .hub-rail__icon, html body .hub-rail__icon .gi, html body .hub-rail__icon svg { width: 19px; height: 19px; }
+    html body .hub-rail__label { font-size: 10.5px; }
+    html body .app-shell .hub-rail { bottom: calc(44px + env(safe-area-inset-bottom, 0px)); gap: 0; padding-top: 2px; }
+    html body .social-fab { height: 38px; }
+  }
   /* 채팅 창: 띠 오른쪽에 낮은 화면 높이로 */
   html body .social-panel { left: calc(var(--rail-w) + 8px); right: auto; bottom: 8px; top: calc(var(--top-h) + 6px); max-height: none; height: auto; width: min(420px, calc(100vw - var(--rail-w) - 16px)); }
 
@@ -86,6 +93,7 @@
 
   /* 탭이 제목을 대신하므로 큰 제목 · 설명은 접는다(설명 버튼 · 숫자는 남긴다) */
   html body .app-shell .section-heading { margin-bottom: 8px; gap: 8px; min-height: 0; align-items: center; }
+  html body .app-shell .summon-menu-head > div:first-child,
   html body .app-shell .section-heading h1,
   html body .app-shell .section-heading .eyebrow,
   html body .app-shell .section-heading .heading-copy { display: none; }
