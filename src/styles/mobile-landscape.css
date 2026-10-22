@@ -121,7 +121,7 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--formation > .formation-bench-head { grid-area: bhead; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
   html body .page-section--formation > .formation-bench-head .eyebrow { display: none; }
   html body .page-section--formation > .formation-bench-head h3 { margin: 0; font-size: 15px; }
-  html body .page-section--formation > .formation-bench, html body .page-section--formation > .formation-empty { grid-area: bench; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; grid-template-columns: minmax(0, 1fr); }
+  html body .app-shell .main-content .page-section--formation > .formation-bench, html body .app-shell .main-content .page-section--formation > .formation-empty { grid-area: bench; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; grid-template-columns: minmax(0, 1fr); }
   html body .page-section--formation > :not(.squad-tabs):not(.formation-screen):not(.combo-advice):not(.formation-bench-head):not(.formation-bench):not(.formation-empty):not(.section-heading) { grid-column: 1 / -1; }
   html body .page-section--formation .formation-screen-head { margin-bottom: 4px; }
   html body .page-section--formation .formation-screen-head h3 { font-size: 15px; margin: 0; }
@@ -313,6 +313,8 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .hub-tabs__chip .gi, html body .hub-tabs__chip svg { width: 18px; height: 18px; }
   html body .hub-tabs__chip b { font-size: 12.5px; font-variant-numeric: tabular-nums; }
   html body .hub-tabs .is-in-tabs::-webkit-scrollbar { display: none; }
+  html body .app-shell .hub-tabs .is-in-tabs .auto-actions { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0; }
+  html body .app-shell .hub-tabs .is-in-tabs .section-counter { flex-direction: row; white-space: nowrap; }
   html body .hub-tabs:has(.is-in-tabs) .hub-tabs__chip:nth-child(n+2) { display: none; }
   html body .hub-tabs__exit { flex: 0 0 auto; height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: #fbe6c2; background: none; border: 0; }
   html body .hub-tabs__back { display: none; }
