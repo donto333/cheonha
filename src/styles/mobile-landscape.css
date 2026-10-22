@@ -322,6 +322,8 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .hub-tabs__chip .gi, html body .hub-tabs__chip svg { width: 18px; height: 18px; }
   html body .hub-tabs__chip b { font-size: 12.5px; font-variant-numeric: tabular-nums; }
   html body .hub-tabs .is-in-tabs::-webkit-scrollbar { display: none; }
+  /* 화면 제목줄 규칙(줄바꿈)보다 우선: 탭 줄 안에서는 늘 한 줄 */
+  html body .app-shell .hub-tabs .section-heading.is-in-tabs, html body .app-shell .hub-tabs .is-in-tabs > div { flex-wrap: nowrap; flex-direction: row; align-items: center; height: auto; }
   html body .app-shell .hub-tabs .is-in-tabs .auto-actions { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0; }
   html body .app-shell .hub-tabs .is-in-tabs .section-counter { flex-direction: row; white-space: nowrap; }
   html body .hub-tabs:has(.is-in-tabs) .hub-tabs__chip:nth-child(n+2) { display: none; }
