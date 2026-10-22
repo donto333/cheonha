@@ -88,15 +88,17 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .app-shell .main-content .roster-summary { display: none; }
 
   /* 연구: 갈래 칸을 한 줄로 나란히, 각 칸 안에서만 넘긴다 */
-  html body .page-section--research .research-active { padding: 8px 12px; margin-bottom: 8px; }
-  html body .page-section--research .research-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 8px; overflow-x: auto; }
-  html body .page-section--research .research-branch { max-height: calc(var(--frame-h) - 92px); overflow-y: auto; overscroll-behavior: contain; padding: 10px; }
+  html body .page-section--research { display: flex; flex-direction: column; height: var(--frame-h); }
+  html body .page-section--research .research-active { flex: 0 0 auto; padding: 8px 12px; margin-bottom: 8px; }
+  html body .page-section--research .research-grid { flex: 1 1 auto; min-height: 0; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 8px; overflow-x: auto; }
+  html body .page-section--research .research-branch { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px; }
   html body .page-section--research .research-summary { display: none; }
 
   /* 영토: 왼쪽 지도 · 오른쪽 도시 관리, 각 칸 안에서 넘긴다 */
   html body .page-section--territory .conquest-overview { padding: 8px 12px; margin-bottom: 8px; }
   html body .page-section--territory .territory-layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 8px; }
-  html body .page-section--territory .territory-layout > * { max-height: calc(var(--frame-h) - 110px); overflow-y: auto; overscroll-behavior: contain; }
+  html body .page-section--territory .territory-layout { height: calc(var(--frame-h) - 140px); }
+  html body .page-section--territory .territory-layout > * { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
   /* 무장 · 편성: 한 줄에 3장 */
   html body .app-shell .main-content .roster-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
