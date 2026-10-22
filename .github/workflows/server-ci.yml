@@ -36,7 +36,16 @@ jobs:
         run: npm ci --omit=dev
       - name: 서버 모듈 불러오기
         working-directory: server
-        run: node --input-type=module -e "for (const m of ['./app.mjs','./routers.mjs','./account-auth.mjs','./static-client.mjs','./db-url.mjs']) await import(m); console.log('ok')"
+        continue-on-error: true
+        run: |
+          cat > /tmp/import-check.mjs <<'JS'
+          import { pathToFileURL } from 'node:url'
+          for (const m of ['db-url.mjs', 'account-auth.mjs', 'static-client.mjs', 'webdev-adapter.mjs', 'routers.mjs', 'leaderboard.mjs', 'app.mjs']) {
+            try { await import(pathToFileURL(`${process.cwd()}/${m}`).href); console.log('ok', m) }
+            catch (error) { console.log(`::error title=import ${m}::${String(error?.stack ?? error).replace(/\r?\n/g, '%0A')}`); process.exitCode = 1 }
+          }
+          JS
+          node /tmp/import-check.mjs
       - name: 서버 실제 실행(MySQL)
         working-directory: server
         env:
@@ -46,6 +55,7 @@ jobs:
           ADMIN_NAMES: 천하대장
           PORT: 3100
         run: |
+          trap 'code=$?; if [ $code -ne 0 ]; then echo "::error title=server run failed ($code)::$(tail -c 3000 server.log 2>/dev/null | sed ':a;N;$!ba;s/\n/%0A/g')"; fi' EXIT
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE cheonha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
           node db-migrate.mjs
