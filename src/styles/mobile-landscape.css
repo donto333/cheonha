@@ -557,6 +557,19 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .eqtile.is-equipped { box-shadow: 0 0 0 2px #4fcf98; }
   html body .eqtile:active { transform: scale(.95); }
   html body .eqdetail .gdetail__body { width: min(460px, 100%); }
+  /* 장비 화면: 위 무장 고르기를 한 줄로, 보유 장비 머리를 한 줄로 → 장비 칸이 더 많이 보이게 */
+  html body .page-section--equipment-simple .equip-picker { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 4px 8px; }
+  html body .page-section--equipment-simple .equip-picker__head h3, html body .page-section--equipment-simple .equip-picker__head .mythic-stone-note { display: none; }
+  html body .page-section--equipment-simple .equip-picker__head { flex: 0 0 auto; order: 3; }
+  html body .page-section--equipment-simple .equip-picker__chips { flex: 1 1 auto; min-width: 0; }
+  html body .page-section--equipment-simple .equip-picker__others { flex: 0 0 150px; width: 150px; order: 2; }
+  html body .page-section--equipment-simple .equipment-inventory-toolbar { flex-direction: row; align-items: center; gap: 6px; margin-bottom: 4px; }
+  html body .page-section--equipment-simple .equipment-inventory-toolbar .card-header { flex: 0 0 auto; margin: 0; gap: 4px; }
+  html body .page-section--equipment-simple .equipment-inventory-toolbar h3 { font-size: 13px; margin: 0; }
+  html body .page-section--equipment-simple .equip-type-tabs { margin: 0 0 4px; }
+  html body .page-section--equipment-simple .equip-type-tabs .setting-seg__btn { min-height: 28px; padding: 0 6px; font-size: 12px; }
+  html body .page-section--equipment-simple .equipment-filter-more { margin: 0 0 4px; }
+  html body .page-section--equipment-simple .equipment-filter-more > summary { padding: 4px 8px; font-size: 12px; }
   html body .eqdetail .equipment-card { margin: 0; }
 
   /* 3. 상점: 한 화면(탭 한 줄 · 자원 표 촘촘하게) */
@@ -564,7 +577,9 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--shop > * { flex: 0 0 auto; margin: 0; }
   html body .page-section--shop .shop-balances { display: flex; align-items: center; gap: 14px; padding: 4px 12px; font-size: 13px; }
   html body .page-section--shop .shop-log-open { margin-left: auto; min-height: 28px; padding: 0 10px; }
-  html body .page-section--shop .shop-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin: 0; }
+  html body .page-section--shop .shop-tabs, html body .page-section--shop .shop-tabs--row { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 4px; margin: 0; padding: 3px; }
+  html body .page-section--shop .shop-tabs--row .shop-tab { padding: 0 4px; }
+  html body .page-section--shop .shop-needs--ok, html body .page-section--shop .shop-needs:has(.shop-needs__none) { display: none; }
   html body .page-section--shop .shop-tab { min-height: 32px; padding: 0 4px; font-size: 13px; }
   html body .page-section--shop .shop-needs { padding: 4px 10px; }
   html body .page-section--shop .shop-needs .card-header { display: none; }
