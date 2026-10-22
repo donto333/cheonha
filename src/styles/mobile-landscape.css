@@ -347,6 +347,46 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .mres-link { flex: 0 0 26px; height: 2px; background: linear-gradient(90deg, rgba(79, 207, 152, .2), #4fcf98, rgba(79, 207, 152, .2)); }
   html body .mres-tier .research-node { margin: 0; padding: 8px; }
 
+  /* ════════ 모집(참고 게임 모집 화면식): 왼쪽 배너 · 가운데 큰 그림 · 아래 버튼 · 오른쪽 아이콘 ════════ */
+  html body .page-section--msum { position: relative; height: var(--frame-h); overflow: hidden; border-radius: 6px; background: radial-gradient(ellipse at 55% 30%, #3a2a2a, #120a06 75%); }
+  html body .msum-art { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-46%); aspect-ratio: 4 / 5; height: 100%; background: center top / cover no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent), linear-gradient(0deg, transparent, #000 28%); -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent), linear-gradient(0deg, transparent, #000 28%); mask-composite: intersect; }
+  html body .msum-banners { position: absolute; z-index: 2; top: 10px; left: 10px; display: grid; gap: 10px; width: 230px; }
+  html body .msum-banner {
+    position: relative; height: 86px; display: grid; align-content: end; justify-items: end; gap: 0; padding: 8px 12px; text-align: right;
+    background: #2a160b right 30% / cover no-repeat; border: 2px solid #5a4330; border-radius: 3px; box-shadow: 0 3px 8px rgba(0, 0, 0, .6); overflow: hidden;
+  }
+  html body .msum-banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0, 0, 0, .1), rgba(0, 0, 0, .65)); }
+  html body .msum-banner strong, html body .msum-banner small { position: relative; text-shadow: 0 2px 3px #000; }
+  html body .msum-banner strong { font-size: 22px; font-weight: 900; color: #fff4dd; }
+  html body .msum-banner small { font-size: 13px; color: #9ff0c0; }
+  html body .msum-banner.is-active { border-color: #f0c26a; box-shadow: 0 0 0 2px rgba(240, 194, 106, .5), 0 3px 12px rgba(0, 0, 0, .6); }
+  html body .msum-center { position: absolute; z-index: 2; left: 250px; right: 120px; bottom: 12px; display: grid; justify-items: center; gap: 4px; text-align: center; }
+  html body .msum-center h2 { margin: 0; font-size: 46px; font-weight: 900; letter-spacing: .08em; color: #fff; text-shadow: 0 3px 0 rgba(0, 0, 0, .6), 0 0 18px rgba(0, 0, 0, .8); }
+  html body .msum-center p { margin: 0 0 6px; font-size: 14px; color: #f2e4c6; text-shadow: 0 1px 3px #000; }
+  html body .msum-actions { display: flex; gap: 26px; }
+  html body .msum-btn {
+    min-width: 200px; height: 62px; display: grid; place-content: center; gap: 2px; padding: 0 18px;
+    color: #3a1d08; background: linear-gradient(180deg, #f6e2b8, #d9b779); border: 2px solid #8a5a2a; border-radius: 3px; box-shadow: inset 0 1px 0 #fff6d8, 0 3px 10px rgba(0, 0, 0, .6);
+  }
+  html body .msum-btn span { font-size: 21px; font-weight: 900; letter-spacing: .06em; }
+  html body .msum-btn b { font-size: 13px; font-weight: 700; }
+  html body .msum-btn--gold { background: linear-gradient(180deg, #ffe7a8, #f0c26a 50%, #c9933f); }
+  html body .msum-btn:active { transform: translateY(2px); }
+  html body .msum-free { margin: 2px 0 0; font-size: 13px; color: #fff4dd; text-shadow: 0 1px 2px #000; }
+  html body .msum-side { position: absolute; z-index: 2; top: 10px; right: 12px; display: grid; gap: 8px; }
+  html body .msum-icon { display: grid; justify-items: center; gap: 2px; background: none; border: 0; color: #fff4dd; }
+  html body .msum-icon span { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; font-size: 22px; font-weight: 900; color: #f6e2b8; background: radial-gradient(circle at 40% 35%, #6b5a46, #2a1d12); box-shadow: inset 0 0 0 2px #b08a55, 0 2px 6px rgba(0, 0, 0, .6); }
+  html body .msum-icon small { font-size: 13px; font-weight: 800; text-shadow: 0 1px 2px #000; }
+  html body .msum-rates { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; }
+  html body .msum-rates__backdrop { position: absolute; inset: 0; background: rgba(10, 4, 2, .7); }
+  html body .msum-rates__card { position: relative; min-width: 300px; display: grid; gap: 8px; padding: 16px 20px; border: 1px solid #8a5a2a; border-radius: 4px; background: #2a170b; color: var(--cream); }
+  html body .msum-rates__card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  html body .msum-rates__card li { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  html body .msum-rates__card li b { margin-left: auto; color: var(--gold-hi); }
+  html body .msum-rates__card small { color: var(--cream-soft); }
+
   /* 전투 화면은 탭 없이 전체 화면 */
   html body .app-shell--battle .main-content { margin-left: 0; }
 

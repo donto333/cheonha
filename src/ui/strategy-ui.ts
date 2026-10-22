@@ -1773,7 +1773,37 @@ export class StrategyUI {
     return `<div class="glass-card mission-card"><div class="card-header"><div><span class="eyebrow">일일 · 주간 임무</span><h3>오늘의 임무</h3></div><span class="rate-note">일일은 매일 0시, 주간은 월요일 0시(한국 시간)에 새로 시작</span></div><div class="mission-cols"><div><h4>일일</h4><ul>${daily.map(row).join('')}</ul>${bonus}</div><div><h4>주간</h4><ul>${weekly.map(row).join('')}</ul></div></div></div>`
   }
 
+  /** 가로 휴대폰 모집: 확률 창 */
+  private summonRatesOpen = false
+
+  /**
+   * 가로 휴대폰 모집(참고 게임의 모집 화면처럼): 왼쪽 모집 종류 배너, 가운데 큰 그림과 제목,
+   * 아래 가운데 1회 · 10회 버튼, 오른쪽 위 확률 · 기록 · 도감 아이콘.
+   */
+  private mobileSummon(state: StrategyState): string {
+    const active = this.summonTab
+    const gear = active === 'equipment'
+    const en = isEnglish()
+    const freeRecruits = state.missions?.freeRecruits ?? 0
+    const freeDraws = state.missions?.freeDraws ?? 0
+    const banner = (tab: 'generals' | 'equipment', art: string, title: string, sub: string) => `<button class="msum-banner${active === tab ? ' is-active' : ''}" data-action="summon-tab" data-summon-tab="${tab}" style="background-image:url('${assetUrl(art)}')"><strong>${title}</strong><small>${sub}</small></button>`
+    const banners = `<nav class="msum-banners">${banner('generals', '/assets/ui/recruit-montage.webp', en ? 'Generals' : '무장 모집', `${state.generals.length} / ${allGenerals().length}`)}${banner('equipment', '/assets/ui/forge-montage.webp', en ? 'Gear' : '장비 뽑기', `${en ? 'Owned' : '보유'} ${equipmentInventoryCount(state)}`)}</nav>`
+    const title = gear ? (en ? 'Master Arms' : '명장의 병기') : (en ? 'Call of the Jade' : '옥패의 부름')
+    const sub = gear ? '무기 · 갑옷 · 장신구를 뽑습니다. 장착 · 강화는 장비 관리에서.' : '중복 무장은 성급으로 바뀝니다 · 현금 결제 없음'
+    const buttons = gear
+      ? `<button class="msum-btn" data-action="equipment-draw" data-count="1"><span>1회 뽑기</span><b>${freeDraws >= 1 ? '무료권' : this.honorCost(equipmentDrawCost(1))}</b></button><button class="msum-btn msum-btn--gold" data-action="equipment-draw" data-count="10"><span>10회 뽑기</span><b>${freeDraws >= 10 ? '무료권' : this.honorCost(equipmentDrawCost(10))}</b></button>`
+      : `<button class="msum-btn" data-action="recruit" data-count="1"><span>1회 모집</span><b>${freeRecruits >= 1 ? '무료권' : this.honorCost(recruitCost(state, 1))}</b></button><button class="msum-btn msum-btn--gold" data-action="recruit" data-count="10"><span>${this.freeRecruit ? '무료 10회' : '10회 모집'}</span><b>${this.freeRecruit ? '5등급 1명 확정' : freeRecruits >= 10 ? '무료권' : this.honorCost(recruitCost(state, 10))}</b></button>`
+    const free = gear ? freeDraws : freeRecruits
+    const note = free > 0 ? `<p class="msum-free">무료 ${gear ? '뽑기' : '모집'}권 <b>${free}회</b> 남음</p>` : ''
+    const side = `<div class="msum-side"><button class="msum-icon" data-action="summon-rates"><span>?</span><small>확률</small></button><button class="msum-icon" data-action="draw-log" data-kind="${gear ? 'equip' : 'recruit'}"><span>≡</span><small>기록</small></button><button class="msum-icon" data-action="section" data-section="${gear ? 'equipment' : 'codex'}"><span>${gear ? '⚔' : '册'}</span><small>${gear ? '장비' : '도감'}</small></button></div>`
+    const recruitRates = ([5, 4, 3, 2, 1] as const).map(grade => `<li><span class="grade-dot" style="--grade:${GRADE_META[grade].color}"></span>${grade}등급 ${GRADE_META[grade].label}<b>${GRADE_META[grade].rate}</b></li>`).join('')
+    const gearRates = ([['legendary', '5%'], ['unique', '12%'], ['rare', '28%'], ['normal', '55%']] as Array<[EquipmentGrade, string]>).map(([grade, rate]) => `<li><span class="grade-dot" style="--grade:${EQUIPMENT_GRADE_META[grade].color}"></span>${EQUIPMENT_GRADE_META[grade].label}<b>${rate}</b></li>`).join('')
+    const rates = this.summonRatesOpen ? `<div class="msum-rates" role="dialog"><div class="msum-rates__backdrop" data-action="summon-rates"></div><div class="msum-rates__card"><strong>${gear ? '뽑기' : '모집'} 확률 · 1회 기준</strong><ul>${gear ? gearRates : recruitRates}</ul><small>모든 유저가 같은 확률입니다.</small></div></div>` : ''
+    return `<section class="page-section page-section--summoning page-section--msum"><div class="msum-art" style="background-image:url('${assetUrl(gear ? '/assets/ui/forge-montage.webp' : '/assets/ui/recruit-montage.webp')}')" aria-hidden="true"></div>${banners}<div class="msum-center"><h2>${title}</h2><p>${sub}</p><div class="msum-actions">${buttons}</div>${note}</div>${side}${rates}</section>`
+  }
+
   private summoningSection(state: StrategyState): string {
+    if (isPhoneLandscape()) return this.mobileSummon(state)
     const active = this.summonTab
     return `<section class="page-section page-section--summoning"><div class="summon-menu-head"><div><span class="eyebrow">육성</span><h1>모집 · 장비</h1><p class="heading-copy">무장과 병장기를 한 곳에서 모집하고, 결과를 확인한 뒤 바로 성장시키십시오.</p></div><div class="summon-tabs"><button class="summon-tab ${active === 'generals' ? 'is-active' : ''}" data-action="summon-tab" data-summon-tab="generals">✦ 무장 모집</button><button class="summon-tab ${active === 'equipment' ? 'is-active' : ''}" data-action="summon-tab" data-summon-tab="equipment">⚒ 장비 뽑기</button></div></div>${active === 'equipment' ? this.equipmentDrawSection(state) : this.recruitSection(state)}</section>`
   }
@@ -3418,6 +3448,7 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action === 'summon-rates') { this.summonRatesOpen = !this.summonRatesOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'research-branch') { this.researchBranch = button.dataset.branch ?? null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
