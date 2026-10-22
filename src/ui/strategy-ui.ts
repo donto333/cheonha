@@ -87,6 +87,21 @@ const MAP_REGION_LABELS: ReadonlyArray<{ id: string; name: string; hanja: string
 
 /** 휴대폰 하단 탭에 늘 보이는 메뉴(나머지는 ‘더보기’) */
 const MOBILE_TABS: Section[] = ['overview', 'roster', 'formation', 'recruit', 'battle']
+/**
+ * 가로 휴대폰(모바일 게임형) 메뉴: 왼쪽 띠에는 묶음(허브) 7개만, 묶음 안의 화면은 위쪽 탭으로 고른다.
+ * 첫 화면은 묶음을 처음 열 때 보이는 화면이다.
+ */
+interface NavHub { id: string; ko: string; en: string; icon: IconName; sections: Section[] }
+const NAV_HUBS: NavHub[] = [
+  { id: 'home', ko: '본영', en: 'Base', icon: 'overview', sections: ['overview'] },
+  { id: 'generals', ko: '무장', en: 'Generals', icon: 'roster', sections: ['roster', 'formation', 'equipment', 'codex'] },
+  { id: 'recruit', ko: '모집', en: 'Recruit', icon: 'recruit', sections: ['recruit', 'shop'] },
+  { id: 'land', ko: '영토', en: 'Territory', icon: 'territory', sections: ['territory', 'research'] },
+  { id: 'war', ko: '전투', en: 'Battle', icon: 'battle', sections: ['battle', 'duel', 'raid', 'rank'] },
+  { id: 'social', ko: '소통', en: 'Social', icon: 'guild', sections: ['guild', 'board'] },
+  { id: 'more', ko: '설정', en: 'More', icon: 'account', sections: ['account', 'updates', 'admin'] },
+]
+const hubOf = (section: Section): NavHub => NAV_HUBS.find(hub => hub.sections.includes(section)) ?? NAV_HUBS[0]
 /** 휴대폰에서 쓰는 짧은 메뉴 이름(한·영을 직접 고른다: ‘장비’ 같은 말이 사전에서 인물 이름으로 바뀌지 않게) */
 const SHORT_NAV: Record<string, [string, string]> = {
   overview: ['본영', 'Base'], roster: ['무장', 'Generals'], codex: ['도감', 'Codex'], formation: ['편성', 'Lineup'], recruit: ['모집', 'Recruit'], equipment: ['장비', 'Gear'], research: ['연구', 'Research'], territory: ['영토', 'Territory'],
@@ -1522,7 +1537,9 @@ export class StrategyUI {
           <div class="sidebar-spacer"></div>
           <div class="sidebar-profile"><div class="profile-orb">${state.faction.slice(0, 1)}</div><div><strong>${state.faction} 진영</strong><small>무장 ${state.generals.length}명 · 영토 ${state.cities.filter(city => city.owner === state.faction).length}성</small></div></div>
         </aside>
+        ${this.hubRail(state)}
         <main class="main-content">
+          ${this.hubTabs(state)}
           ${this.renderSection(state)}
         </main>
         <div class="ambient-vignette"></div>
@@ -1536,6 +1553,41 @@ export class StrategyUI {
     const coach = this.coachSection === section && current !== section ? 'nav-coach' : ''
     const primary = MOBILE_TABS.includes(section) ? 'nav-button--primary' : ''
     return `<button class="nav-button ${primary} ${current === section ? 'is-active' : ''} ${coach}" data-action="section" data-section="${section}" data-nav><span class="nav-icon">${icon}</span><span class="nav-label">${label}</span>${shortNavLabel(section)}${mark}</button>`
+  }
+
+  /** 묶음마다 마지막으로 본 화면(묶음을 다시 누르면 그 화면으로) */
+  private hubLast = new Map<string, Section>()
+
+  /** 묶음 안에서 지금 보여 줄 수 있는 화면(관리자 화면은 관리자만) */
+  private hubSections(hub: NavHub): Section[] {
+    return hub.sections.filter(section => section !== 'admin' || this.isAdmin())
+  }
+
+  /** 가로 휴대폰: 왼쪽 묶음 띠(CSS가 가로 휴대폰에서만 보여 준다) */
+  private hubRail(state: StrategyState): string {
+    const current = hubOf(state.section)
+    this.hubLast.set(current.id, state.section)
+    const buttons = NAV_HUBS.map(hub => {
+      const target = this.hubLast.get(hub.id) ?? hub.sections[0]
+      const coach = this.coachSection && hub.sections.includes(this.coachSection as Section) && hub.id !== current.id ? ' nav-coach' : ''
+      const fresh = (hub.id === 'recruit' && state.lastRecruit) || (hub.id === 'social' && this.guildUi.me?.requests?.length) ? '<i class="hub-rail__dot" aria-hidden="true"></i>' : ''
+      return `<button class="hub-rail__btn${hub.id === current.id ? ' is-active' : ''}${coach}" data-action="section" data-section="${target}" data-hub="${hub.id}" data-nav aria-label="${isEnglish() ? hub.en : hub.ko}"><span class="hub-rail__icon">${icon(hub.icon)}</span><span class="hub-rail__label" data-no-tr>${isEnglish() ? hub.en : hub.ko}</span>${fresh}</button>`
+    }).join('')
+    return `<nav class="hub-rail" aria-label="메뉴">${buttons}</nav>`
+  }
+
+  /** 가로 휴대폰: 묶음 안 화면을 고르는 위쪽 탭(화면 제목을 겸한다) */
+  private hubTabs(state: StrategyState): string {
+    if (state.section === 'battle' && this.battleViewActive) return ''
+    const hub = hubOf(state.section)
+    const sections = this.hubSections(hub)
+    const tabs = sections.map(section => {
+      const pair = SHORT_NAV[section]
+      const label = pair ? (isEnglish() ? pair[1] : pair[0]) : section
+      return `<button class="hub-tabs__tab${section === state.section ? ' is-active' : ''}" data-action="section" data-section="${section}" data-no-tr>${label}</button>`
+    }).join('')
+    const balance = hub.id === 'more' && this.canOpenBalance() ? `<a class="hub-tabs__tab" href="./balance.html" data-no-tr>${isEnglish() ? 'Balance' : '밸런스'}</a>` : ''
+    return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${tabs}${balance}</div>`
   }
 
   /** 휴대폰 하단 탭의 ‘더보기’: 주요 5개 밖의 메뉴를 펼친다 */

@@ -50,6 +50,9 @@ jobs:
             rm -f "$d/ic_launcher_foreground.png"
           done
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          # 가로 화면 전용 게임: 앱을 가로로 고정(양쪽 가로는 돌려 쓸 수 있게)
+          sed -i 's/<activity /<activity android:screenOrientation="sensorLandscape" /' android/app/src/main/AndroidManifest.xml
+          grep -q 'screenOrientation="sensorLandscape"' android/app/src/main/AndroidManifest.xml
       - name: APK 빌드
         working-directory: mobile/android
         run: ./gradlew assembleDebug --no-daemon

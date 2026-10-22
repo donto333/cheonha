@@ -50,7 +50,13 @@ try {
     }
     await page.waitForSelector('.app-shell', { timeout: 15_000 }).catch(async error => { await shot('99-stuck'); throw error })
     // 코치 말풍선 · 출석 같은 덮개는 닫는다
-    const clearOverlays = () => page.evaluate(() => document.querySelectorAll('.attendance-modal, .coach-tip, .coach-spot, .notice-popup, .game-intro').forEach(el => el.remove()))
+    const clearOverlays = () => page.evaluate(() => {
+      // 첫 입장 튜토리얼 · 출석 · 안내 창은 캡처에서 뺀다
+      const g = window.__strategy
+      if (g?.state?.missions) g.state.missions.onboardDone = true
+      document.querySelectorAll('.attendance-modal, .coach-layer, .notice-popup, .game-intro, .toast').forEach(el => el.remove())
+      document.body.classList.remove('coach-open')
+    })
     await clearOverlays()
 
     for (const [index, section] of SECTIONS.entries()) {
@@ -69,6 +75,15 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
+    await context.close()
+  }
+  // 세로로 든 휴대폰: 가로로 돌려 달라는 안내
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR' })
+    const page = await context.newPage()
+    await page.goto(url)
+    await sleep(1500)
+    await page.screenshot({ path: `${out}/portrait-rotate-hint.png` })
     await context.close()
   }
   await browser.close()
