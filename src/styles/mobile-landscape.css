@@ -105,6 +105,25 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .app-shell .main-content .roster-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   html body .app-shell .main-content .formation-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
   html body .app-shell .main-content .formation-bench { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+
+  /* 편성: 왼쪽 군 탭 · 진형(3자리) · 추천 덱, 오른쪽 대기 무장 — 화면 한 장, 각 칸 안에서 넘긴다 */
+  html body .page-section--formation {
+    display: grid; height: var(--frame-h); gap: 8px 10px;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, auto) minmax(0, 1fr);
+    grid-template-areas: "tabs bhead" "screen bench" "advice bench";
+  }
+  html body .page-section--formation > * { margin: 0; min-width: 0; }
+  html body .page-section--formation > .squad-tabs { grid-area: tabs; }
+  html body .page-section--formation > .formation-screen { grid-area: screen; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: 8px 10px; }
+  html body .page-section--formation > .combo-advice { grid-area: advice; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  html body .page-section--formation > .formation-bench-head { grid-area: bhead; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  html body .page-section--formation > .formation-bench-head .eyebrow { display: none; }
+  html body .page-section--formation > .formation-bench-head h3 { margin: 0; font-size: 15px; }
+  html body .page-section--formation > .formation-bench, html body .page-section--formation > .formation-empty { grid-area: bench; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body .page-section--formation > :not(.squad-tabs):not(.formation-screen):not(.combo-advice):not(.formation-bench-head):not(.formation-bench):not(.formation-empty):not(.section-heading) { grid-column: 1 / -1; }
+  html body .page-section--formation .formation-screen-head { margin-bottom: 4px; }
+  html body .page-section--formation .formation-screen-head h3 { font-size: 15px; margin: 0; }
   html body .app-shell:not(.app-shell--battle) .main-content .glass-card { padding: 12px 14px; }
   html body .app-shell:not(.app-shell--battle) .main-content .card-header { margin-bottom: 8px; }
 
@@ -314,7 +333,7 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .gtile__foot strong { font-size: 15px; font-weight: 900; color: #fff4dd; text-shadow: 0 1px 2px #000; border-top: 1px solid rgba(240, 194, 106, .45); padding-top: 2px; }
 
   /* 아래 버튼 줄 */
-  html body .mscreen-foot { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 4px 0; border-top: 1px solid rgba(240, 194, 106, .2); font-size: 13px; color: var(--cream-soft); }
+  html body .mscreen-foot { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 4px 0 52px; border-top: 1px solid rgba(240, 194, 106, .2); font-size: 13px; color: var(--cream-soft); }
   html body .mscreen-foot > span { margin-right: auto; }
   html body .mscreen-foot b { color: var(--gold-hi); }
   html body .mscreen-foot__btn { height: 34px; padding: 0 16px; font-size: 14px; font-weight: 800; color: #fbe6c2; background: linear-gradient(180deg, #5a3a20, #3a2414); border: 1px solid #8a5a2a; border-radius: 3px; }
