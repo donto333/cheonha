@@ -66,7 +66,8 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .hub-tabs__back, html body .hub-tabs__tab { height: 30px; font-size: 13.5px; }
   html body .hub-tabs__tab { min-width: 60px; padding: 0 12px; }
   /* 탭 줄 오른쪽으로 옮긴 제목줄(설명 · 새로고침 버튼, 숫자) */
-  html body .hub-tabs .is-in-tabs { flex: 0 0 auto; margin: 0 0 0 auto; padding: 0 0 0 8px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; min-height: 0; border: 0; background: none; }
+  /* 옮겨 온 제목줄은 남는 폭만 쓰고, 넘치면 옆으로 밀어 본다(탭 · 종료가 밀려나지 않게) */
+  html body .hub-tabs .is-in-tabs { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; margin: 0 0 0 auto; padding: 0 0 0 8px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; min-height: 0; border: 0; background: none; }
   html body .hub-tabs .is-in-tabs > div { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; width: auto; margin: 0; }
   html body .hub-tabs .is-in-tabs .action-button, html body .hub-tabs .is-in-tabs .mini-action, html body .hub-tabs .is-in-tabs button {
     min-height: 0; height: 30px; padding: 0 10px; font-size: 12.5px; white-space: nowrap;
@@ -120,7 +121,7 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--formation > .formation-bench-head { grid-area: bhead; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
   html body .page-section--formation > .formation-bench-head .eyebrow { display: none; }
   html body .page-section--formation > .formation-bench-head h3 { margin: 0; font-size: 15px; }
-  html body .page-section--formation > .formation-bench, html body .page-section--formation > .formation-empty { grid-area: bench; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body .page-section--formation > .formation-bench, html body .page-section--formation > .formation-empty { grid-area: bench; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; grid-template-columns: minmax(0, 1fr); }
   html body .page-section--formation > :not(.squad-tabs):not(.formation-screen):not(.combo-advice):not(.formation-bench-head):not(.formation-bench):not(.formation-empty):not(.section-heading) { grid-column: 1 / -1; }
   html body .page-section--formation .formation-screen-head { margin-bottom: 4px; }
   html body .page-section--formation .formation-screen-head h3 { font-size: 15px; margin: 0; }
@@ -303,7 +304,7 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
     font-size: 21px; font-weight: 900; letter-spacing: .1em; color: #fbe6c2; text-shadow: 0 2px 2px rgba(0, 0, 0, .6);
     background: linear-gradient(90deg, #8f2a20 0%, #7a1c17 70%, rgba(122, 28, 23, 0) 100%);
   }
-  html body .hub-tabs__tabs { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  html body .hub-tabs__tabs { flex: 0 0 auto; min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
   html body .hub-tabs__tabs::-webkit-scrollbar { display: none; }
   html body .hub-tabs__tab { height: 32px; min-width: 56px; padding: 0 12px; font-size: 14px; }
   html body .hub-tabs__res { flex: 0 0 auto; margin-left: auto; display: flex; align-items: center; gap: 4px; }
@@ -311,6 +312,8 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .hub-tabs__chip { height: 28px; display: inline-flex; align-items: center; gap: 4px; padding: 0 9px 0 3px; border-radius: 14px; background: rgba(0, 0, 0, .45); border: 1px solid rgba(240, 194, 106, .3); color: var(--cream); }
   html body .hub-tabs__chip .gi, html body .hub-tabs__chip svg { width: 18px; height: 18px; }
   html body .hub-tabs__chip b { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  html body .hub-tabs .is-in-tabs::-webkit-scrollbar { display: none; }
+  html body .hub-tabs:has(.is-in-tabs) .hub-tabs__chip:nth-child(n+2) { display: none; }
   html body .hub-tabs__exit { flex: 0 0 auto; height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: #fbe6c2; background: none; border: 0; }
   html body .hub-tabs__back { display: none; }
   @media (max-width: 800px) { html body .hub-tabs__chip:nth-child(n+2) { display: none; } html body .hub-tabs__title { padding-right: 18px; font-size: 18px; } }
