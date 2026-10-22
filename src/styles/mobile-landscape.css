@@ -518,6 +518,11 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--rank > *, html body .page-section--rank > .rank-layout > * { grid-column: auto; grid-row: 1; }
   html body .app-shell .main-content .page-section--formation > .formation-bench { grid-auto-rows: max-content; }
   html body .page-section--formation .formation-bench-card { padding: 4px 8px; gap: 8px; flex-shrink: 0; }
+  html body .page-section--formation .formation-bench-card > div { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; min-width: 0; flex: 1 1 auto; }
+  html body .page-section--formation .formation-bench-card > div > small { display: none; }
+  html body .page-section--formation .squad-tabs__note { display: none; }
+  html body .page-section--formation .formation-bench-head { flex-wrap: nowrap; }
+  html body .page-section--formation .formation-bench-head .codex-search input { min-width: 0; width: 120px; }
   html body .page-section--formation .formation-bench-portrait { width: 40px; height: 48px; }
   html body .page-section--formation .formation-bench-card .mini-action { min-height: 30px; padding: 0 10px; font-size: 12px; }
   html body .page-section--formation .formation-bench-card .formation-tags { transform: scale(.9); transform-origin: left center; }
