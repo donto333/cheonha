@@ -1,0 +1,77 @@
+// 휴대폰 크기로 게임 화면을 메뉴마다 캡처한다(모바일 UI 점검용).
+//  node scripts/ui-shots.mjs [출력 폴더]   (먼저 pnpm build)
+// 세로(390×844)와 가로(844×390) 두 가지로, 로컬 게스트(서버 없음) 상태에서 찍는다.
+import { spawn } from 'node:child_process'
+import { mkdirSync } from 'node:fs'
+import { chromium } from 'playwright'
+
+const out = process.argv[2] || 'ui-shots'
+mkdirSync(out, { recursive: true })
+const port = 4800 + Math.floor(Math.random() * 400)
+const url = `http://127.0.0.1:${port}/`
+const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], { stdio: 'ignore' })
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+const SECTIONS = ['overview', 'recruit', 'roster', 'codex', 'formation', 'equipment', 'territory', 'research', 'battle', 'duel', 'raid', 'shop', 'rank', 'board', 'guild', 'updates', 'account']
+const VIEWS = [
+  { name: 'portrait', viewport: { width: 390, height: 844 } },
+  { name: 'landscape', viewport: { width: 844, height: 390 } },
+]
+const errors = []
+
+try {
+  for (let i = 0; i < 60; i++) {
+    try { if ((await fetch(url)).ok) break } catch {}
+    await sleep(250)
+  }
+  const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] })
+  for (const view of VIEWS) {
+    const context = await browser.newContext({ viewport: view.viewport, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR',
+      userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' })
+    // 처음 안내(인트로)는 이미 본 것으로
+    await context.addInitScript(() => { try { localStorage.setItem('cheonharo.intro.seen', '1') } catch {} })
+    const page = await context.newPage()
+    page.on('pageerror', error => errors.push(`[${view.name}] ${error}`))
+    const shot = async name => { await sleep(700); await page.screenshot({ path: `${out}/${view.name}-${name}.png` }) }
+
+    await page.goto(url)
+    await page.waitForSelector('.access-gate', { timeout: 20_000 })
+    await shot('00-access-gate')
+    await page.locator('[data-action="login"]').evaluate(b => b.click()).catch(() => {})
+    await sleep(500)
+    if (await page.locator('.account-login').count()) await shot('01-account-login')
+    await page.evaluate(() => document.querySelector('.account-login')?.remove())
+    await page.locator('[data-action="guest-login"]').evaluate(b => b.click())
+    await page.waitForSelector('.faction-selection, .app-shell', { timeout: 15_000 })
+    if (await page.locator('.faction-selection').count()) {
+      await shot('02-faction-select')
+      await page.locator('[data-action="faction-select"][data-faction="촉한"]').evaluate(b => b.click())
+    }
+    await page.waitForSelector('.app-shell', { timeout: 15_000 })
+    // 코치 말풍선 · 출석 같은 덮개는 닫는다
+    const clearOverlays = () => page.evaluate(() => document.querySelectorAll('.attendance-modal, .coach-tip, .coach-spot, .notice-popup, .game-intro').forEach(el => el.remove()))
+    await clearOverlays()
+
+    for (const [index, section] of SECTIONS.entries()) {
+      try {
+        await page.evaluate(s => { const g = window.__strategy; g.state.section = s; g.ui.render(g.state) }, section)
+        await clearOverlays()
+        await page.evaluate(() => window.scrollTo(0, 0))
+        await shot(`${String(10 + index).padStart(2, '0')}-${section}`)
+        // 긴 화면은 아래쪽도 한 장
+        const tall = await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight * 1.6)
+        if (tall) { await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2)); await shot(`${String(10 + index).padStart(2, '0')}-${section}-b`) }
+      } catch (error) { errors.push(`[${view.name}] ${section}: ${error}`) }
+    }
+    // 더보기 메뉴
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
+    await clearOverlays()
+    const more = page.locator('[data-action="nav-more"]')
+    if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
+    await context.close()
+  }
+  await browser.close()
+} finally {
+  server.kill('SIGTERM')
+}
+console.log(errors.length ? `오류 ${errors.length}개:\n${errors.join('\n')}` : '오류 없음')

@@ -1,0 +1,40 @@
+name: 모바일 화면 캡처
+
+# 화면 코드를 main에 올릴 때마다 휴대폰 세로 · 가로 크기로 모든 메뉴를 찍어 ui-shots 브랜치에 올린다.
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'index.html', 'scripts/ui-shots.mjs', '.github/workflows/ui-shots.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ui-shots
+  cancel-in-progress: true
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - name: 캡처
+        run: mkdir -p /tmp/shots && node scripts/ui-shots.mjs /tmp/shots 2>&1 | tee /tmp/shots/log.txt
+      - name: ui-shots 브랜치에 올리기
+        run: |
+          cd /tmp/shots
+          echo "${GITHUB_SHA}" > commit.txt
+          git init -q -b ui-shots
+          git config user.name "ui-shots-bot"; git config user.email "ui-shots-bot@users.noreply.github.com"
+          git add -A
+          git commit -qm "모바일 화면 캡처 ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ui-shots
