@@ -4,6 +4,8 @@
 // 데스크톱 · 태블릿 · 안드로이드 앱(이미 가로 고정)은 그대로 게임을 띄운다.
 
 const isTouchPhone = () => Boolean(window.matchMedia?.('(pointer: coarse)').matches) && Math.min(window.screen.width, window.screen.height) <= 600
+/** 터치가 아니어도 세로로 좁은 창(컴퓨터 개발자 도구의 휴대폰 화면 등)은 휴대폰처럼 가로로 돌려 보여 준다 */
+const isNarrowPortrait = () => window.innerWidth <= 600 && window.innerHeight > window.innerWidth
 const inFrame = (() => { try { return window.self !== window.top } catch { return true } })()
 const inApp = Boolean((window as { Capacitor?: unknown }).Capacitor)
 
@@ -42,5 +44,5 @@ function mountLandscapeShell(): void {
   frame.addEventListener('load', () => { try { document.title = frame.contentDocument?.title || document.title } catch { /* 무시 */ } })
 }
 
-if (isTouchPhone() && !inFrame && !inApp) mountLandscapeShell()
+if ((isTouchPhone() || isNarrowPortrait()) && !inFrame && !inApp) mountLandscapeShell()
 else void import('./main')
