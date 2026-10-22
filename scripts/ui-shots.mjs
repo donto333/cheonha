@@ -32,16 +32,21 @@ try {
       userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' })
     // 처음 안내(인트로)는 이미 본 것으로
     await context.addInitScript(() => { try { localStorage.setItem('cheonharo.intro.seen', '1') } catch {} })
-    const page = await context.newPage()
-    page.on('pageerror', error => errors.push(`[${view.name}] ${error}`))
+    // 휴대폰에서는 게임이 가로 틀(iframe) 안에서 뜬다(src/boot.ts): 찍기는 탭, 조작은 게임 틀에서
+    const tab = await context.newPage()
+    tab.on('pageerror', error => errors.push(`[${view.name}] ${error}`))
+    let page = tab.mainFrame()
     const shot = async name => {
       await sleep(700)
       // 늦게 뜨는 출석 · 안내 창도 지운다
       await page.evaluate(() => { if (document.querySelector('.app-shell')) document.querySelectorAll('.attendance-modal, .coach-layer, .notice-popup, .game-intro').forEach(el => el.remove()); document.querySelectorAll('.toast').forEach(el => { el.style.visibility = 'hidden' }) })
-      await page.screenshot({ path: `${out}/${view.name}-${name}.png` })
+      await tab.screenshot({ path: `${out}/${view.name}-${name}.png` })
     }
 
-    await page.goto(url)
+    await tab.goto(url)
+    await sleep(800)
+    const shell = await tab.$('iframe.landscape-shell__frame')
+    if (shell) page = (await shell.contentFrame()) ?? page
     await page.waitForSelector('.access-gate', { timeout: 20_000 })
     await shot('00-access-gate')
     await page.locator('[data-action="login"]').evaluate(b => b.click()).catch(() => {})
@@ -90,7 +95,7 @@ try {
     }
     // 채팅 창
     const chat = page.locator('[data-social="toggle"]')
-    if (await chat.count()) { await page.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
+    if (await chat.count()) { await tab.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
     await context.close()
   }
   // 세로로 든 휴대폰: 게임이 90도 돌아간 가로 화면으로 떠야 한다
