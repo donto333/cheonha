@@ -29,11 +29,17 @@ var root = window;
 var pathname = new URL(root.location.href).pathname;
 var marker = pathname.indexOf("/__manus__/game-preview/");
 var prefix = marker < 0 ? "" : pathname.slice(0, marker);
+// 자체 서버 로그인 토큰(아이디 · 비밀번호 로그인이 받아 이 기기에 보관). 쿠키가 막힌 앱 화면에서도 Bearer로 보낸다.
+var SESSION_TOKEN_KEY = "cheonharo.sessionToken.v1";
+var readToken = () => { try { return root.localStorage.getItem(SESSION_TOKEN_KEY); } catch { return null; } };
+var clearToken = () => { try { root.localStorage.removeItem(SESSION_TOKEN_KEY); } catch { } };
 var client = createTRPCUntypedClient({ links: [httpLink({
   url: prefix + "/api/trpc",
   transformer: superjson,
   async fetch(url, options) {
-    const response = await root.fetch(url, { ...options, credentials: "same-origin", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(35e3) });
+    const token = readToken();
+    const headers = token ? { ...(options?.headers ?? {}), Authorization: `Bearer ${token}` } : options?.headers;
+    const response = await root.fetch(url, { ...options, headers, credentials: "same-origin", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(35e3) });
     if (response.status === 503 && (await response.clone().json().catch(() => null))?.error === "online_preview_requires_checkpoint") {
       throw new Error("online_preview_requires_checkpoint");
     }
@@ -57,13 +63,18 @@ function standaloneUrl(login2 = false) {
 }
 async function login() {
   requireOnline();
+  const response = await root.fetch(prefix + "/api/auth/config", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(35e3) });
+  if (!response.ok) throw new Error("auth_unavailable");
+  root.__MANUS_CONFIG__ = await response.json();
+  // Manus 설정이 없는 자체 서버: 게임 화면의 아이디 · 비밀번호 로그인 창을 연다
+  if (!root.__MANUS_CONFIG__?.oauthPortalUrl) {
+    root.dispatchEvent(new root.CustomEvent("cheonha-login-request"));
+    return;
+  }
   if (root.self !== root.top) {
     root.open(standaloneUrl(true), "_blank", "noopener");
     return;
   }
-  const response = await root.fetch(prefix + "/api/auth/config", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(35e3) });
-  if (!response.ok) throw new Error("auth_unavailable");
-  root.__MANUS_CONFIG__ = await response.json();
   startLogin();
 }
 async function call(kind, procedure, input) {
@@ -109,7 +120,11 @@ var ManusAuth = Object.freeze({
     ManusAuth[operation]().then(() => done(""), (error) => done(error.message));
   },
   async logout() {
-    await call("mutation", "webdev.auth.logout");
+    try {
+      await call("mutation", "webdev.auth.logout");
+    } finally {
+      clearToken();
+    }
     return publish(null);
   },
   get_session: () => current,

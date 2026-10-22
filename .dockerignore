@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+shots
+exports
+tests
+desktop/build
+**/*.log

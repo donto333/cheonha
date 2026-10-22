@@ -2021,7 +2021,8 @@ const ui = new StrategyUI(root, {
     ui.notify(state.factionConfirmed ? '게스트 모드로 입장했습니다. 진행 데이터는 이 기기에 저장됩니다.' : '게스트 모드로 입장했습니다. 먼저 진영을 선택하십시오.')
   },
   onLogin: () => {
-    void ManusAuth.login().catch(() => ui.notify('로그인은 저장된 체크포인트의 온라인 화면에서 사용할 수 있습니다.', 'ember'))
+    if (authView.status === 'offline') { ui.notify('서버에 연결할 수 없습니다. 인터넷 연결을 확인하거나 게스트로 시작하십시오.', 'ember'); return }
+    startAccountLogin()
   },
   onLogout: () => {
     void ManusAuth.logout().then(session => {
@@ -2562,6 +2563,20 @@ function startGuestSignup(cancelable: boolean): void {
     return null
   }, cancelable ? () => ui.showAccessGate() : undefined)
 }
+/** 아이디 · 비밀번호 로그인 창(성공하면 토큰을 보관하고 새로고침해 회원으로 들어간다) */
+const SESSION_TOKEN_KEY = 'cheonharo.sessionToken.v1'
+function startAccountLogin(): void {
+  ui.showAccountLogin(async (mode, name, password) => {
+    const result = await guestApi(mode === 'signup' ? '/api/account/signup' : '/api/account/login', { name, password })
+    if (!result.ok || !result.token) return result.reason ?? (mode === 'signup' ? '계정을 만들지 못했습니다.' : '로그인하지 못했습니다.')
+    writeStore(SESSION_TOKEN_KEY, result.token)
+    writeStore(GUEST_ACCESS_KEY, null)
+    window.location.reload()
+    return null
+  }, () => ui.showAccessGate())
+}
+// Manus 설정이 없는 서버에서 ManusAuth.login()을 부르면 이 창을 연다
+window.addEventListener('cheonha-login-request', () => startAccountLogin())
 let enteringGuest = false
 async function enterGuest(): Promise<void> {
   if (authView.status === 'offline') { ui.enterLocalGuest(); return }

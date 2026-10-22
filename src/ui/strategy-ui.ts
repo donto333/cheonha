@@ -832,6 +832,47 @@ export class StrategyUI {
     })
   }
 
+  /** 아이디 · 비밀번호 로그인 / 회원가입 창(자체 서버). onSubmit이 오류 문장을 돌려주면 창에 보여 준다. */
+  showAccountLogin(onSubmit: (mode: 'login' | 'signup', name: string, password: string) => Promise<string | null>, onCancel?: () => void): void {
+    document.querySelector('.guest-signup')?.remove()
+    let mode: 'login' | 'signup' = 'login'
+    const layer = document.createElement('div')
+    layer.className = 'guest-signup account-login'
+    layer.innerHTML = `<form class="guest-signup__panel glass-card"><span class="eyebrow">회원 로그인</span><h2 data-account-title>아이디로 로그인</h2><p data-account-lead>아이디와 비밀번호를 입력하십시오. 진행 · 전적 · 랭킹이 서버에 저장되어 다른 기기에서도 이어 할 수 있습니다.</p><label><span>아이디</span><input name="name" maxlength="12" autocomplete="username" autocapitalize="off" spellcheck="false" required placeholder="한글 · 영문 · 숫자 · _ 2~12자"></label><label><span>비밀번호</span><input name="password" type="password" minlength="6" maxlength="64" autocomplete="current-password" required placeholder="6자 이상"></label><label data-account-confirm hidden><span>비밀번호 확인</span><input name="confirm" type="password" maxlength="64" autocomplete="new-password" placeholder="한 번 더 입력"></label><small class="guest-signup__error" role="alert"></small><div class="guest-signup__actions">${onCancel ? '<button type="button" class="ghost-button" data-guest-cancel>뒤로</button>' : ''}<button type="submit" class="action-button action-button--primary"><b data-account-submit>로그인</b> <span>→</span></button></div><button type="button" class="ghost-button account-login__switch" data-account-switch>처음이신가요? 회원가입</button><small class="guest-signup__note">비밀번호는 암호화해 저장하며, 운영자도 볼 수 없습니다. 잊으면 되찾을 수 없으니 꼭 기억하십시오.</small></form>`
+    document.body.appendChild(layer)
+    const form = layer.querySelector('form')!
+    const name = form.querySelector<HTMLInputElement>('input[name="name"]')!
+    const password = form.querySelector<HTMLInputElement>('input[name="password"]')!
+    const confirm = form.querySelector<HTMLInputElement>('input[name="confirm"]')!
+    const confirmRow = form.querySelector<HTMLElement>('[data-account-confirm]')!
+    const error = form.querySelector<HTMLElement>('.guest-signup__error')!
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!
+    const setMode = (next: 'login' | 'signup') => {
+      mode = next
+      const signup = mode === 'signup'
+      form.querySelector('[data-account-title]')!.textContent = signup ? '새 계정 만들기' : '아이디로 로그인'
+      form.querySelector('[data-account-submit]')!.textContent = signup ? '가입하고 시작' : '로그인'
+      form.querySelector('[data-account-switch]')!.textContent = signup ? '이미 계정이 있습니다 · 로그인' : '처음이신가요? 회원가입'
+      confirmRow.hidden = !signup
+      confirm.required = signup
+      password.autocomplete = signup ? 'new-password' : 'current-password'
+      error.textContent = ''
+    }
+    window.setTimeout(() => name.focus(), 50)
+    layer.querySelector('[data-guest-cancel]')?.addEventListener('click', () => { layer.remove(); onCancel?.() })
+    layer.querySelector('[data-account-switch]')!.addEventListener('click', () => setMode(mode === 'login' ? 'signup' : 'login'))
+    form.addEventListener('submit', event => {
+      event.preventDefault()
+      if (mode === 'signup' && password.value !== confirm.value) { error.textContent = '비밀번호 확인이 맞지 않습니다.'; return }
+      submit.disabled = true
+      error.textContent = ''
+      void onSubmit(mode, name.value.trim(), password.value).then(message => {
+        if (message) { error.textContent = message; submit.disabled = false; return }
+        layer.remove()
+      })
+    })
+  }
+
   showFactionSelection(): void {
     this.renderedState = null
     this.root.innerHTML = this.factionSelection()
@@ -1433,7 +1474,7 @@ export class StrategyUI {
 
   private accessGate(): string {
     const offline = this.auth.status === 'offline'
-    return `<section class="access-gate"><div class="access-gate__backdrop"></div><div class="access-gate__panel"><div class="access-gate__art" aria-hidden="true"></div><div class="access-gate__seal"><span>✦</span></div><span class="eyebrow">천하 · 패왕의 시대</span><h1>천하: 패왕의 시대</h1><p class="access-gate__lead">무장을 모으고, 진형을 지휘하고,<br>당신의 이름을 전장에 새기십시오.</p><div class="access-gate__divider"><i></i><span>접속 방식 선택</span><i></i></div><div class="access-gate__actions"><button class="access-choice access-choice--member" data-action="login"><strong>회원 로그인</strong><span>계정·전적·랭킹을 안전하게 저장합니다.</span><b>Manus 계정으로 계속 <em>→</em></b></button><button class="access-choice access-choice--guest" data-action="guest-login"><strong>게스트 로그인</strong><span>아이디만 정하고 바로 시작합니다.</span><b>${offline ? '이 기기에서만 로컬 저장' : '서버에 저장 · 모든 콘텐츠 이용'} <em>→</em></b></button></div><p class="access-gate__note">${offline ? '현재 회원 인증 서버에 연결할 수 없습니다. 게스트 모드로 플레이할 수 있습니다.' : '회원 로그인 후에도 기존 게스트 진행 데이터는 이 기기에 보존됩니다.'}</p><div class="setting-seg access-gate__lang" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div></section>`
+    return `<section class="access-gate"><div class="access-gate__backdrop"></div><div class="access-gate__panel"><div class="access-gate__art" aria-hidden="true"></div><div class="access-gate__seal"><span>✦</span></div><span class="eyebrow">천하 · 패왕의 시대</span><h1>천하: 패왕의 시대</h1><p class="access-gate__lead">무장을 모으고, 진형을 지휘하고,<br>당신의 이름을 전장에 새기십시오.</p><div class="access-gate__divider"><i></i><span>접속 방식 선택</span><i></i></div><div class="access-gate__actions"><button class="access-choice access-choice--member" data-action="login"><strong>회원 로그인</strong><span>계정·전적·랭킹을 안전하게 저장합니다.</span><b>아이디 · 비밀번호로 계속 <em>→</em></b></button><button class="access-choice access-choice--guest" data-action="guest-login"><strong>게스트 로그인</strong><span>아이디만 정하고 바로 시작합니다.</span><b>${offline ? '이 기기에서만 로컬 저장' : '서버에 저장 · 모든 콘텐츠 이용'} <em>→</em></b></button></div><p class="access-gate__note">${offline ? '현재 회원 인증 서버에 연결할 수 없습니다. 게스트 모드로 플레이할 수 있습니다.' : '회원 로그인 후에도 기존 게스트 진행 데이터는 이 기기에 보존됩니다.'}</p><div class="setting-seg access-gate__lang" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div></section>`
   }
 
   private factionSelection(): string {

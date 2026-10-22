@@ -1,13 +1,15 @@
 import express from 'express'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createExpressMiddleware } from '@trpc/server/adapters/express'
-import { registerOAuthRoutes, createContext, webdevRouter, router, publicPlatformConfig, ENV, OAUTH_STATE_COOKIE, ONE_YEAR_MS, sdk, findUserByName, createGuestUser, getUserByOpenId, setSessionCookie, resetGuestGameState } from './webdev-adapter.mjs'
+import { registerOAuthRoutes, createContext, webdevRouter, router, publicPlatformConfig, ENV, OAUTH_STATE_COOKIE, ONE_YEAR_MS, sdk, findUserByName, createGuestUser, createPasswordUser, findPasswordLogin, grantAdminByName, getUserByOpenId, setSessionCookie, resetGuestGameState } from './webdev-adapter.mjs'
+import { registerAccountAuthRoutes } from './account-auth.mjs'
+import { registerStaticClient } from './static-client.mjs'
 import { registerGuestAuthRoutes } from './guest-auth.mjs'
 import { registerDesktopAuthRoutes } from './desktop-auth.mjs'
 import { balanceAccess, isLaunched } from './launch.mjs'
 import { registerChatStream } from './chat.mjs'
 
-export function createGameApp(gameRouter, { leaderboard } = {}) {
+export function createGameApp(gameRouter, { leaderboard, staticDir = process.env.STATIC_DIR } = {}) {
   const app = express()
   app.disable('x-powered-by')
   if (leaderboard) app.use(leaderboard.middleware)
@@ -50,7 +52,10 @@ export function createGameApp(gameRouter, { leaderboard } = {}) {
     createSessionToken: (openId, options) => sdk.createSessionToken(openId, options),
     sessionMaxAgeMs: ONE_YEAR_MS,
   })
-  registerOAuthRoutes(app, { afterLogin: desktopAuth.afterLogin })
+  // Manus OAuth는 MANUS_OAUTH_API_URL이 있을 때만(자체 서버에서는 아이디 · 비밀번호 로그인만 쓴다)
+  if (ENV.oAuthServerUrl) registerOAuthRoutes(app, { afterLogin: desktopAuth.afterLogin })
+  // 아이디 · 비밀번호 계정
+  registerAccountAuthRoutes(app, { json: express.json({ limit: '4kb' }), sdk, findUserByName, findPasswordLogin, createPasswordUser, grantAdminByName, setSessionCookie, sessionMaxAgeMs: ONE_YEAR_MS })
   // 게스트 계정: 아이디만 정하면 서버 계정으로 모든 콘텐츠를 쓴다
   registerGuestAuthRoutes(app, { json: express.json({ limit: '4kb' }), sdk, findUserByName, createGuestUser, getUserByOpenId, setSessionCookie, resetGuestGameState })
   // 실시간 채팅 받기(서버 전송 이벤트)
@@ -69,8 +74,8 @@ export function createGameApp(gameRouter, { leaderboard } = {}) {
     router: router({ webdev: webdevRouter, game: gameRouter }),
     createContext,
   }))
-  // Stripe webhooks belong outside /api/trpc. Register the application's
-  // signature-verified raw-body handler before any JSON body parser.
+  // 게임 화면(빌드한 dist/)도 같은 서버에서 준다: 접속기 · 브라우저가 API와 같은 주소를 쓰므로 쿠키 · 상대 경로가 그대로 동작한다
+  registerStaticClient(app, { dir: staticDir })
   return app
 }
 

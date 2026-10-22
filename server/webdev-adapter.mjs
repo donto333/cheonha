@@ -205,10 +205,10 @@ var guildWeeksTable = mysqlTable("game_guild_weeks", {
 // starters/web-db-user-v1/server/_core/env.ts
 var ENV = {
   get appId() {
-    return process.env.MANUS_PROJECT_ID ?? "";
+    return process.env.APP_ID || process.env.MANUS_PROJECT_ID || "cheonha";
   },
   get cookieSecret() {
-    return process.env.MANUS_JWT_SECRET ?? "";
+    return process.env.JWT_SECRET || process.env.MANUS_JWT_SECRET || "";
   },
   get databaseUrl() {
     return process.env.DATABASE_URL ?? "";
@@ -336,6 +336,27 @@ async function findUserByName(name) {
   if (!db) throw new Error("Database is not available");
   const rows = await db.select({ id: users.id }).from(users).where(sql`LOWER(${users.name}) = ${String(name).toLowerCase()}`).limit(1);
   return rows[0] ?? null;
+}
+/** 아이디 · 비밀번호 계정 만들기(openId는 member_로 시작, server/039_password_login.sql) */
+async function createPasswordUser(openId, name, passwordHash) {
+  await upsertUser({ openId, name, email: null, loginMethod: "password", lastSignedIn: new Date() });
+  const db = await getDb();
+  await db.execute(sql`UPDATE users SET passwordHash = ${passwordHash} WHERE openId = ${openId}`);
+  return getUserByOpenId(openId);
+}
+/** 로그인용: 아이디(대소문자 무시)로 비밀번호 해시를 찾는다 */
+async function findPasswordLogin(name) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const result = await db.execute(sql`SELECT openId, name, passwordHash FROM users WHERE LOWER(name) = ${String(name).toLowerCase()} AND passwordHash IS NOT NULL LIMIT 1`);
+  const rows = Array.isArray(result?.[0]) ? result[0] : Array.isArray(result?.rows) ? result.rows : result;
+  return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+/** 운영자 아이디(ADMIN_NAMES 환경 변수, 쉼표로 구분)에게 관리자 권한을 준다 */
+async function grantAdminByName(openId, name) {
+  const names = String(process.env.ADMIN_NAMES ?? "").split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);
+  if (!names.includes(String(name).toLowerCase())) return;
+  await upsertUser({ openId, role: "admin" });
 }
 /** 게스트 계정 만들기(Manus 로그인 없이, openId는 guest_로 시작) */
 async function createGuestUser(openId, name) {
@@ -2063,6 +2084,8 @@ var SDKServer = class {
     let user = await getUserByOpenId(sessionUserId);
     // 초기화로 지운 게스트 계정의 옛 세션: 다시 만들지 않는다(Manus 계정 정보로 되살리지 않게)
     if (!user && sessionUserId.startsWith("guest_")) throw ForbiddenError("Guest account removed");
+    // 자체 서버(Manus 없이): 지워진 계정의 옛 세션은 외부에서 되살리지 않는다
+    if (!user && !ENV.oAuthServerUrl) throw ForbiddenError("User not found");
     if (!user) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionToken ?? "");
@@ -2370,6 +2393,9 @@ export {
   guildService,
   findUserByName,
   createGuestUser,
+  createPasswordUser,
+  findPasswordLogin,
+  grantAdminByName,
   getUserByOpenId,
   setSessionCookie,
   OAUTH_STATE_COOKIE,

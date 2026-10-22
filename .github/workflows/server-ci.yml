@@ -1,0 +1,73 @@
+name: 서버 · 게임 빌드 점검
+
+# main에 올릴 때마다: 단위 테스트, 게임 화면 빌드, 서버 모듈 불러오기(문법 · 가져오기) 확인, Docker 이미지 빌드.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: server-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: 타입 검사
+        run: pnpm typecheck
+      - name: 단위 테스트
+        run: pnpm test
+      - name: 게임 화면 빌드
+        run: pnpm build
+      - name: 서버 의존성
+        working-directory: server
+        run: npm ci --omit=dev
+      - name: 서버 모듈 불러오기
+        working-directory: server
+        run: node --input-type=module -e "for (const m of ['./app.mjs','./routers.mjs','./account-auth.mjs','./static-client.mjs','./db-url.mjs']) await import(m); console.log('ok')"
+      - name: 서버 실제 실행(MySQL)
+        working-directory: server
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/cheonha
+          JWT_SECRET: ci-only-secret-0123456789abcdef0123456789
+          STATIC_DIR: ${{ github.workspace }}/dist
+          ADMIN_NAMES: 천하대장
+          PORT: 3100
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE cheonha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+          node db-migrate.mjs
+          node leaderboard/migrate.mjs
+          node index.mjs > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:3100/api/health && break; sleep 1; done
+          set -x
+          curl -sf localhost:3100/ | grep -q '<canvas id="game">'
+          curl -sf localhost:3100/api/auth/config
+          J='Content-Type: application/json'
+          curl -sf -H "$J" -d '{"name":"시험장수","password":"abcdef12"}' localhost:3100/api/account/signup | tee signup.json | grep -q '"ok":true'
+          TOKEN=$(node -p "require('./signup.json').token")
+          curl -s -o /dev/null -w '%{http_code}' -H "$J" -d '{"name":"시험장수","password":"abcdef12"}' localhost:3100/api/account/signup | grep -q 409
+          curl -s -o /dev/null -w '%{http_code}' -H "$J" -d '{"name":"시험장수","password":"wrongpass"}' localhost:3100/api/account/login | grep -q 401
+          curl -sf -H "$J" -d '{"name":"시험장수","password":"abcdef12"}' localhost:3100/api/account/login | grep -q '"ok":true'
+          curl -sf -H "Authorization: Bearer $TOKEN" 'localhost:3100/api/trpc/webdev.auth.me' | tee me.json | grep -q '시험장수'
+          curl -sf -H "Authorization: Bearer $TOKEN" 'localhost:3100/api/trpc/game.account.gameState' | head -c 300
+          curl -sf -H "$J" -d '{"name":"천하대장","password":"abcdef12"}' localhost:3100/api/account/signup | grep -q '"ok":true'
+          mysql -uroot -proot -N -e "SELECT role FROM cheonha.users WHERE name='천하대장'" | grep -q admin
+      - name: 서버 기록
+        if: always()
+        working-directory: server
+        run: cat server.log || true
+      - name: Docker 이미지
+        run: docker build -t cheonha .

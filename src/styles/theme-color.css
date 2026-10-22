@@ -2101,6 +2101,9 @@ html body .conquest-card .final-war-wait{margin-top:10px}
 .guest-signup__panel input{min-height:42px;padding:10px 12px;border:1px solid rgba(224,177,82,.45);background:#29180e;color:#faf5ec;border-radius:4px;font:inherit;font-size:16px}
 .guest-signup__error{min-height:16px;color:#ffb39e;font-size:12px}
 .guest-signup__actions{display:flex;justify-content:flex-end;gap:8px}
+.account-login [hidden]{display:none!important}
+.account-login__switch{display:block;width:100%;min-height:44px;font-size:14px}
+.account-login .guest-signup__actions .action-button{min-height:48px}
 .guest-signup__note{color:#a89b86;font-size:11.5px;line-height:1.5}
 /* 출석 체크 */
 .attendance-modal{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(14,8,4,.7);backdrop-filter:blur(6px)}

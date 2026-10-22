@@ -1,0 +1,70 @@
+name: 안드로이드 접속기 APK
+
+# 손으로 실행(Actions → 안드로이드 접속기 APK → Run workflow): 서버 주소를 넣으면 그 주소의 게임을 여는 APK를 만들어
+# 'mobile-latest' 릴리스에 올린다. 휴대폰에서 릴리스 페이지를 열어 APK를 받아 설치하면 된다.
+# 서버 주소를 매번 넣기 싫으면 저장소 Settings → Secrets and variables → Actions → Variables에 SERVER_URL을 만들어 둔다.
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: '게임 서버 주소 (예: https://cheonha.onrender.com). 비우면 저장소 변수 SERVER_URL'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: 설치
+        run: npm install --no-audit --no-fund
+      - name: 서버 주소 설정
+        env:
+          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL }}
+        run: node configure.mjs "$SERVER_URL"
+      - name: 안드로이드 프로젝트
+        run: |
+          npx cap add android
+          npx cap sync android
+          # 게임 아이콘: 파비콘을 런처 아이콘으로 쓴다
+          for d in android/app/src/main/res/mipmap-*; do
+            cp ../assets/share/favicon.png "$d/ic_launcher.png"
+            cp ../assets/share/favicon.png "$d/ic_launcher_round.png"
+            rm -f "$d/ic_launcher_foreground.png"
+          done
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+      - name: APK 빌드
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: 이름 붙이기
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ../cheonha.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cheonha-apk
+          path: cheonha.apk
+      - name: 릴리스에 올리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL }}
+        working-directory: .
+        run: |
+          gh release delete mobile-latest --yes --cleanup-tag || true
+          gh release create mobile-latest cheonha.apk --title "천하 안드로이드 접속기" \
+            --notes "접속 서버: $SERVER_URL · 커밋 ${GITHUB_SHA::7}. 휴대폰에서 cheonha.apk를 받아 설치하십시오(출처를 알 수 없는 앱 설치 허용 필요)." --prerelease

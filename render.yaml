@@ -1,0 +1,18 @@
+# Render 블루프린트: 저장소를 Render에 연결하면 이 설정으로 무료 웹 서비스를 만든다.
+# DATABASE_URL은 직접 넣는다(무료 MySQL: Aiven 등). JWT_SECRET은 Render가 무작위로 만든다.
+services:
+  - type: web
+    name: cheonha
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_NAMES
+        sync: false

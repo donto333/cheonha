@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import '../db-url.mjs';
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';

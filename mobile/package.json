@@ -1,0 +1,15 @@
+{
+  "name": "cheonha-mobile",
+  "private": true,
+  "description": "천하 안드로이드 접속기: 서버 주소의 게임 화면을 앱으로 연다 (Capacitor)",
+  "scripts": {
+    "configure": "node configure.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/core": "^7.4.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.0"
+  }
+}
