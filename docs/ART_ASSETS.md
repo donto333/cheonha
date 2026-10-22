@@ -59,7 +59,47 @@ painterly semi-realistic rendering, soft rim light, high detail, clean silhouett
 | `admin.png` | 관리 | `golden official seal stamp` |
 | `battle.png` | 전투 버튼 문양 | `two crossed golden swords with a round shield emblem` |
 
-## 3. 다음 단계에서 쓸 그림 (선택)
+## 3. 움직이는 배경 영상 (AI 영상)
+
+접속 화면과 본영 배경은 영상 파일을 넣으면 그 영상이 소리 없이 반복 재생됩니다. 영상이 없거나, 설정에서 효과를 ‘줄임’으로 해 두면 지금 그림 배경이 나옵니다.
+
+| 파일 | 쓰이는 곳 |
+|---|---|
+| `video/title.mp4` (+ 선택 `video/title.webm`) | 접속(타이틀) 화면 전체 배경 |
+| `video/lobby.mp4` (+ 선택 `video/lobby.webm`) | 본영(메인) 화면 전체 배경 |
+
+**규격**
+- 가로 16:9, **1280×720** 이상(1920×1080 권장)
+- **5~10초**, 처음과 끝이 이어지는 반복(루프)
+- 소리 없음, H.264 mp4, **5MB 이하** 권장(크면 제가 줄여서 넣습니다)
+
+### 만드는 순서 (Kling · Runway · Pika · Luma 등 ‘이미지 → 영상’ 도구)
+
+1. **시작 그림 만들기(16:9)**: 무장 초상화는 세로 그림이라, 먼저 가로 그림으로 넓힙니다. 이미지 도구에 무장 사진을 넣고 아래처럼 요청합니다.
+   - 무장 사진 위치: 저장소 `public/assets/generals-realistic-webp/` (예: `guan-yu.webp` 관우, `zhao-yun`… 조운, `lu-bu.webp` 여포, `cao-cao.webp` 조조, `liu-bei.webp` 유비, `sun-quan.webp` 손권)
+   - 프롬프트: `Extend this portrait into a wide 16:9 cinematic scene, keep the character's face, armor and colors exactly the same, place him on the right third of the frame, left side is open sky and landscape for UI text`
+2. **영상 만들기**: 위 그림을 시작 프레임으로 넣고, 아래 프롬프트를 씁니다. ‘루프(Loop)’ 옵션이 있으면 켜고, 카메라 움직임은 작게 합니다.
+
+**접속 화면 (`title.mp4`)**: 무장이 주인공인 장면
+```
+The general stands still on a cliff at dusk, looking forward with determination.
+His cloak, red plume and the war banners behind him flow gently in the wind,
+glowing embers and petals drift through the air, clouds slowly move across the sky,
+very slow camera push-in, cinematic lighting, subtle natural motion only,
+no talking, no walking, no new characters, seamless loop
+```
+
+**본영 (`lobby.mp4`)**: 메뉴가 올라가므로 움직임이 잔잔해야 합니다. 앞의 `lobby-city.webp`(성채 풍경)를 시작 그림으로 쓰면 좋습니다.
+```
+Grand ancient Chinese capital city at golden hour, static camera,
+flags on the walls waving gently, river water shimmering, light clouds drifting,
+birds flying far away, cherry blossom petals drifting, smoke from chimneys,
+calm ambient motion only, no camera movement, seamless loop
+```
+
+3. 만든 영상을 이 채팅에 첨부해 주시면, 제가 크기 · 길이를 맞춰(필요하면 반복이 자연스럽게 앞뒤를 이어) `public/assets/ui/v2/video/`에 넣습니다.
+
+## 4. 다음 단계에서 쓸 그림 (선택)
 
 화면을 더 화려하게 다듬을 때 쓰면 좋은 그림입니다. 지금 화면에는 아직 자리가 없으니, 만드시면 알려 주세요.
 

@@ -9,7 +9,7 @@ const walk = dir => {
   for (const name of readdirSync(dir).sort()) {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) walk(path)
-    else if (/\.(glb|jpg|png|mp3|webp)$/i.test(name)) out['/assets/' + relative(root, path).split('\\').join('/')] = createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 10)
+    else if (/\.(glb|jpg|png|mp3|webp|mp4|webm)$/i.test(name)) out['/assets/' + relative(root, path).split('\\').join('/')] = createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 10)
   }
 }
 walk(join(root, 'models')); walk(join(root, 'sfx')); walk(join(root, 'music')); walk(join(root, 'generals-realistic-webp')); walk(join(root, 'ui', 'v2'))

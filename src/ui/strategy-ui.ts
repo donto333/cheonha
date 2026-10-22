@@ -29,6 +29,7 @@ function styleCounters(style: Archetype): { strong: string; weak: string } {
 }
 import { ensureIconSprite, icon, type IconName } from './icons'
 import { artIcon, probeArt, type ArtIconKey } from './art-icons'
+import { mountBgVideo } from './bg-video'
 import { playForgeCeremony, playSummonCeremony } from './summon-ceremony'
 
 const POWER_MARK_KEY = 'cheonharo.powerMark'
@@ -693,6 +694,8 @@ export class StrategyUI {
     const kept = sameSection ? this.captureView() : null
     this.root.innerHTML = this.shell(state)
     this.mergeHeadingIntoTabs()
+    // 본영 움직이는 배경(영상 파일이 있을 때만)
+    mountBgVideo(this.root.querySelector('.page-section--v2 .ml-bg'), 'lobby', 'has-lobby-video')
     if (kept) this.restoreView(kept)
     ensureIconSprite()
     // 시나리오 목록에 들어오면 고른(다음에 깰) 시나리오가 보이게 스크롤
@@ -806,6 +809,8 @@ export class StrategyUI {
   showAccessGate(): void {
     this.renderedState = null
     this.root.innerHTML = this.accessGate()
+    // 접속 화면 움직이는 배경(영상 파일이 있을 때만)
+    mountBgVideo(this.root.querySelector('.access-gate__backdrop'), 'title', 'has-title-video')
   }
 
   /** 게스트: 처음 들어올 때 아이디(표시 이름)를 정한다. onSubmit이 오류 문구를 돌려주면 그대로 보여 준다 */

@@ -41,8 +41,44 @@
 .v2-dot { position: absolute; top: 2px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #e2412c; box-shadow: 0 0 0 2px var(--v2-darker); }
 .v2-badge { position: absolute; top: 0; right: calc(50% - 26px); min-width: 16px; height: 16px; padding: 0 4px; display: grid; place-items: center; border-radius: 8px; background: #e2412c; color: #fff; font-size: 10px; box-shadow: 0 0 0 1.5px var(--v2-darker); }
 
+/* ── 움직이는 배경 영상(src/ui/bg-video.ts) ── */
+.bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 0; }
+/* 접속 화면: 영상이 재생되면 배경 그림 대신 영상 위에 어두운 막만 */
+html.has-title-video .access-gate__backdrop { background: none !important; }
+html.has-title-video .access-gate__backdrop::after { content: ''; position: absolute; inset: 0; z-index: 1; background: radial-gradient(ellipse at 50% 45%, rgba(20, 11, 6, .1), rgba(20, 11, 6, .7) 80%), linear-gradient(180deg, rgba(20, 11, 6, .2), rgba(20, 11, 6, .6)); }
+html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+/* 영상이 없을 때도 접속 화면 그림이 천천히 숨 쉬듯 움직인다 */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.has-title-video) .access-gate__backdrop { animation: v2-kenburns 26s ease-in-out infinite alternate; }
+  html:not([data-fx="reduced"]) .access-gate__art { animation: gate-art-in 1.2s ease-out both, v2-drift 18s ease-in-out 1.2s infinite alternate; }
+}
+@keyframes v2-kenburns { from { background-position: 45% 50%; background-size: 108% auto; } to { background-position: 55% 45%; background-size: 118% auto; } }
+@keyframes v2-drift { from { background-position: 50% 20%; } to { background-position: 46% 26%; } }
+@keyframes v2-breathe { from { transform: translateX(-38%) scale(1); } to { transform: translateX(-37%) scale(1.04); } }
+@keyframes v2-mist { from { transform: translateX(-6%); opacity: .35; } to { transform: translateX(6%); opacity: .6; } }
+@keyframes v2-ember { 0% { transform: translateY(0) translateX(0); opacity: 0; } 15% { opacity: .9; } 100% { transform: translateY(-110vh) translateX(6vw); opacity: 0; } }
+
 @media (orientation: landscape) and (max-height: 500px) {
   /* ════════ 본영 ════════ */
+  /* 본영 영상이 재생되면 그림 배경 · 대표 무장은 숨긴다 */
+  html.has-lobby-video body .page-section--v2 .ml-bg { background: none; }
+  html.has-lobby-video body .page-section--v2 .ml-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14, 6, 2, .5) 0%, rgba(14, 6, 2, 0) 22%, rgba(14, 6, 2, 0) 68%, rgba(14, 6, 2, .7) 100%); }
+  html.has-lobby-video body .page-section--v2 .ml-hero { display: none; }
+  /* 영상이 없을 때: 대표 무장이 숨 쉬듯 · 안개 · 불씨 */
+  @media (prefers-reduced-motion: no-preference) {
+    html:not([data-fx="reduced"]) body .page-section--v2 .ml-hero { animation: v2-breathe 7s ease-in-out infinite alternate; transform-origin: 50% 80%; }
+    html:not([data-fx="reduced"]) body .page-section--v2 .ml-bg::before {
+      content: ''; position: absolute; inset: -10% -10% 20% -10%; pointer-events: none;
+      background: radial-gradient(ellipse at 30% 60%, rgba(220, 210, 190, .18), transparent 55%), radial-gradient(ellipse at 75% 70%, rgba(220, 210, 190, .14), transparent 50%);
+      animation: v2-mist 16s ease-in-out infinite alternate;
+    }
+    html:not([data-fx="reduced"]):not(.has-lobby-video) body .page-section--v2::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 10px; pointer-events: none; z-index: 2;
+      background-image: radial-gradient(circle, #ffb347 0 1.5px, transparent 2px), radial-gradient(circle, #ff8a3d 0 1px, transparent 1.5px), radial-gradient(circle, #ffd27a 0 1.2px, transparent 1.8px);
+      background-size: 140px 10px, 190px 10px, 260px 10px; background-position: 20px 0, 90px 0, 40px 0;
+      animation: v2-ember 9s linear infinite;
+    }
+  }
   html body .page-section--v2 { font-family: Pretendard, system-ui, sans-serif; }
   /* 배경: 성채 풍경 그림이 있으면 그 그림, 없으면 관문 풍경 + 대표 무장 */
   html.has-lobby-city body .page-section--v2 .ml-bg {
