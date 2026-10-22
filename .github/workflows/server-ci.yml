@@ -60,9 +60,9 @@ jobs:
           trap 'echo "::error title=server check failed::$BASH_COMMAND"' ERR
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE cheonha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-          node db-migrate.mjs
-          node leaderboard/migrate.mjs
-          node index.mjs > server.log 2>&1 &
+          node db-migrate.mjs >> server.log 2>&1
+          node leaderboard/migrate.mjs >> server.log 2>&1
+          node index.mjs >> server.log 2>&1 &
           for i in $(seq 1 30); do curl -sf localhost:3100/api/health && break; sleep 1; done
           set -x
           curl -sf localhost:3100/ | grep -q '<canvas id="game">'
