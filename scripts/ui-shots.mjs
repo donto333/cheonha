@@ -125,6 +125,7 @@ try {
       await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
       await page.locator('[data-action="lobby-panel"]').first().evaluate(b => b.click()); await shot('92-lobby-missions')
       await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click())
+      if (await page.locator('[data-panel="menu"]').count()) { await page.locator('[data-panel="menu"]').first().evaluate(b => b.click()); await shot('93-lobby-menu'); await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click()) }
     }
     // 모집 결과 · 장비 결과 창
     await page.evaluate(() => { const g = window.__strategy; g.ui.showRecruitResults(g.catalog.generals().slice(10, 20)) })

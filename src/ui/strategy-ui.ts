@@ -28,6 +28,7 @@ function styleCounters(style: Archetype): { strong: string; weak: string } {
   return { strong: STYLE_BEATS[style].map(label).join(', '), weak: ARCHETYPES.filter(key => STYLE_BEATS[key].includes(style)).map(label).join(', ') }
 }
 import { ensureIconSprite, icon, type IconName } from './icons'
+import { artIcon, probeArt, type ArtIconKey } from './art-icons'
 import { playForgeCeremony, playSummonCeremony } from './summon-ceremony'
 
 const POWER_MARK_KEY = 'cheonharo.powerMark'
@@ -570,6 +571,10 @@ export class StrategyUI {
     root.addEventListener('pointerdown', this.handleUnitPress)
     // 가로 휴대폰 화면으로 들어가거나 나오면(회전 · 창 크기) 본영 배치가 달라지므로 다시 그린다
     window.matchMedia?.(PHONE_LANDSCAPE)?.addEventListener?.('change', () => { if (this.renderedState) this.render(this.renderedState) })
+    // 새 디자인 큰 그림이 준비돼 있으면 CSS가 그 그림을 쓴다(docs/ART_ASSETS.md)
+    probeArt('/assets/ui/v2/lobby-city.webp', 'has-lobby-city')
+    probeArt('/assets/ui/v2/screen-bg.webp', 'has-screen-bg')
+    probeArt('/assets/ui/v2/btn-battle.png', 'has-art-battle')
     for (const type of ['pointerup', 'pointercancel', 'pointerleave']) root.addEventListener(type, this.cancelUnitPress)
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
     window.addEventListener('keydown', event => {
@@ -1602,9 +1607,9 @@ export class StrategyUI {
     const balance = hub.id === 'more' && this.canOpenBalance() ? `<a class="hub-tabs__tab" href="./balance.html" data-no-tr>${isEnglish() ? 'Balance' : '밸런스'}</a>` : ''
     // 참고 게임처럼: 왼쪽 붉은 제목판 · 탭, 오른쪽 재화 · 종료(본영으로)
     const en = isEnglish()
-    const title = `<div class="hub-tabs__title" data-no-tr>${en ? hub.en : hub.ko}</div>`
+    const title = `<button class="hub-tabs__title" data-action="section" data-section="overview" aria-label="본영으로" data-no-tr><span class="hub-tabs__back-arrow">‹</span>${en ? hub.en : hub.ko}</button>`
     const res = `<div class="hub-tabs__res"><button type="button" class="hub-tabs__chip" data-action="gold-log">${icon('gold')}<b>${formatNumber(state.gold)}</b></button><span class="hub-tabs__chip">${icon('honor')}<b>${compactNumber(state.honor)}</b></span><span class="hub-tabs__chip">${icon('silver')}<b>${compactNumber(state.silver)}</b></span></div>`
-    const exit = `<button class="hub-tabs__exit" data-action="section" data-section="overview" aria-label="본영으로">↩ <span data-no-tr>${en ? 'Exit' : '종료'}</span></button>`
+    const exit = `<button class="hub-tabs__exit" data-action="section" data-section="overview" aria-label="본영으로">✕</button>`
     return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${title}<div class="hub-tabs__tabs">${tabs}${balance}</div>${res}${exit}</div>`
   }
 
@@ -1672,12 +1677,39 @@ export class StrategyUI {
     return `${Math.floor(minutes / 60)}시간 전`
   }
 
-  /** 가로 휴대폰 본영: 임무 창 */
-  private lobbyPanel: 'missions' | null = null
+  /** 가로 휴대폰 본영: 임무 창 · 메뉴 전체 보기 */
+  private lobbyPanel: 'missions' | 'menu' | null = null
+
+  /** 메뉴 전체 보기 칸: [화면 또는 동작, 아이콘, 한글, 영어, 그림 파일 이름] */
+  private lobbyMenuItems(): Array<{ section?: Section; action?: string; icon: ArtIconKey; ko: string; en: string; art: string }> {
+    const items: Array<{ section?: Section; action?: string; icon: ArtIconKey; ko: string; en: string; art: string }> = [
+      { section: 'roster', icon: 'roster', ko: '장수', en: 'Generals', art: 'generals' },
+      { section: 'formation', icon: 'formation', ko: '편성', en: 'Lineup', art: 'formation' },
+      { section: 'equipment', icon: 'bag', ko: '장비', en: 'Gear', art: 'gear' },
+      { section: 'recruit', icon: 'recruit', ko: '모집', en: 'Recruit', art: 'recruit' },
+      { section: 'research', icon: 'research', ko: '연구', en: 'Research', art: 'research' },
+      { section: 'territory', icon: 'territory', ko: '영토', en: 'Territory', art: 'territory' },
+      { section: 'duel', icon: 'duel', ko: '대련', en: 'Duel', art: 'duel' },
+      { section: 'raid', icon: 'raid', ko: '레이드', en: 'Raid', art: 'raid' },
+      { section: 'guild', icon: 'guild', ko: '연맹', en: 'Guild', art: 'guild' },
+      { section: 'board', icon: 'board', ko: '게시판', en: 'Board', art: 'board' },
+      { section: 'codex', icon: 'codex', ko: '도감', en: 'Codex', art: 'codex' },
+      { section: 'shop', icon: 'shop', ko: '상점', en: 'Shop', art: 'shop' },
+      { action: 'lobby-panel', icon: 'scroll', ko: '임무', en: 'Missions', art: 'missions' },
+      { section: 'rank', icon: 'trophy', ko: '랭킹', en: 'Ranks', art: 'rank' },
+      { section: 'account', icon: 'gear', ko: '설정', en: 'Settings', art: 'settings' },
+      { section: 'updates', icon: 'help', ko: '소식', en: 'News', art: 'news' },
+    ]
+    if (this.isAdmin()) items.push({ section: 'admin', icon: 'admin', ko: '관리', en: 'Admin', art: 'admin' })
+    if (this.auth.status === 'authenticated') items.push({ action: 'logout', icon: 'logout', ko: '로그아웃', en: 'Log out', art: 'logout' })
+    return items
+  }
 
   /**
-   * 가로 휴대폰 본영(모바일 전략 게임형): 대표 무장 그림을 화면 전체에 깔고
-   * 왼쪽 위 내 정보 · 이벤트 아이콘 · 임무, 오른쪽 출전 무장, 오른쪽 아래 붉은 메뉴 묶음과 출전 버튼을 얹는다.
+   * 가로 휴대폰 본영(새 디자인 2026.10): 성채 풍경(그림이 없으면 관문 배경 + 대표 무장) 위에
+   * 왼쪽 위 내 정보 · 위 재화 · 오른쪽 위 작은 아이콘, 왼쪽 세로 아이콘, 오른쪽 장(章) 진행 · 행사,
+   * 아래 가운데 주요 메뉴 5개(더보기 = 메뉴 전체 보기), 오른쪽 아래 큰 전투 버튼.
+   * 그림 파일 목록: docs/ART_ASSETS.md
    */
   private mobileLobby(state: StrategyState): string {
     const next = this.nextScenario(state)
@@ -1689,25 +1721,41 @@ export class StrategyUI {
     const en = isEnglish()
     const name = this.auth.status === 'authenticated' && this.auth.name ? this.auth.name : (en ? 'Guest' : '게스트')
     const cities = state.cities.filter(city => city.owner === state.faction).length
-    // 일일 임무: 끝낸 수 / 전체, 받을 보상이 있으면 붉은 점
     const daily = MISSIONS.filter(mission => mission.scope === 'daily')
     const statuses = daily.map(mission => missionStatus(state, mission))
     const doneCount = statuses.filter(status => status !== 'progress').length
     const claimable = statuses.includes('ready') || dailyBonusReady(state)
-    const nextMission = daily.find((_, index) => statuses[index] === 'progress')
-    // 본영은 상단바를 숨기고 재화 줄을 직접 그린다(내 정보 카드와 겹치지 않게)
-    const chip = (name: IconName, value: number, extra = '') => `<span class="ml-res__chip"${extra}>${icon(name)}<strong title="${formatNumber(value)}">${compactNumber(value)}</strong></span>`
-    const resources = `<div class="ml-res"><button type="button" class="ml-res__chip" data-action="gold-log">${icon('gold')}<strong>${formatNumber(state.gold)}</strong></button>${chip('silver', state.silver)}${chip('honor', state.honor)}${chip('grain', state.resources.grain)}<button type="button" class="ml-res__sound" data-action="sound-toggle" aria-label="${muteSetting() ? '소리 켜기' : '소리 끄기'}">${muteSetting() ? '🔇' : '🔊'}</button></div>`
-    const profile = `<button class="ml-profile" data-action="section" data-section="account">${leader ? `<span class="ml-profile__face" style="background-image:url('${this.portraitAsset(leader)}')"></span>` : ''}<span class="ml-profile__seal" data-no-tr>${escapeHtml(state.faction.slice(0, 1))}</span><span class="ml-profile__body"><strong>${ugc(name)}</strong><small>${escapeHtml(state.faction)} · ${en ? 'Power' : '전투력'} <b>${formatNumber(power)}</b></small><small>${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}${en ? '' : '성'}</small></span></button>`
-    const events = `<div class="ml-events"><button class="ml-event" data-action="attendance-open"><span class="ml-event__icon">${CALENDAR_SVG}</span><span>${en ? 'Check-in' : '출석'}</span></button><button class="ml-event" data-action="section" data-section="updates"><span class="ml-event__icon">${icon('updates')}</span><span>${en ? 'News' : '소식'}</span></button><button class="ml-event" data-action="section" data-section="rank"><span class="ml-event__icon">${icon('rank')}</span><span>${en ? 'Ranks' : '랭킹'}</span></button></div>`
-    const missions = `<button class="ml-missions${claimable ? ' has-reward' : ''}" data-action="lobby-panel" data-panel="missions"><span class="ml-missions__head"><b>${en ? 'Daily missions' : '일일 임무'}</b><span>(${doneCount}/${daily.length})</span></span><span class="ml-missions__line">${doneCount >= daily.length ? (en ? '✓ All done today' : '✓ 오늘 임무 완료') : escapeHtml(nextMission?.label ?? '')}</span></button>`
-    const army = `<div class="ml-army">${[0, 1, 2].map(index => { const general = deployed[index]; return general ? `<button class="ml-army__slot" data-action="section" data-section="formation" style="--grade:${gradeColor(general)}"><span class="ml-army__face" style="background-image:url('${this.portraitAsset(general)}')"></span><small>${escapeHtml(general.name)}</small></button>` : `<button class="ml-army__slot is-empty" data-action="section" data-section="formation"><span class="ml-army__face">＋</span><small>${en ? 'Empty' : '빈 자리'}</small></button>` }).join('')}</div>`
-    // 화면 아래쪽을 가로로 꽉 채우는 메뉴 바(12칸)
-    const menu = `<nav class="ml-dock" aria-label="메뉴">${LOBBY_MENU.map(([section, iconName, ko, enLabel]) => { const badge = section === 'formation' ? (deployed.length < 3 ? '!' : '') : section === 'duel' ? `${duelAttemptsRemaining(state)}` : section === 'recruit' && state.lastRecruit ? '●' : ''; return `<button class="ml-dock__btn${this.coachSection === section ? ' is-coach' : ''}" data-action="section" data-section="${section}"><span class="ml-dock__icon">${icon(iconName)}</span><span class="ml-dock__label" data-no-tr>${en ? enLabel : ko}</span>${badge ? `<b>${badge}</b>` : ''}</button>` }).join('')}</nav>`
-    const march = next ? `<button class="ml-march" data-action="section" data-section="battle" data-scenario-id="${next.id}"><span class="ml-march__info"><small>${allCleared ? (en ? 'Replay' : '다시 도전') : `${next.year}${en ? '' : '년'}`} · ${en ? 'Enemy' : '적'} Lv.${scenarioEnemyLevel(next)} <i>${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</i></small><strong>${escapeHtml(next.title)}</strong></span><span class="ml-march__go">${en ? 'March' : '출전'}</span></button>` : ''
-    const tools = `<div class="ml-tools"><button class="ml-tool" data-action="section" data-section="account" aria-label="설정">${icon('account')}</button>${this.isAdmin() ? `<button class="ml-tool" data-action="section" data-section="admin" aria-label="관리자">${icon('admin')}</button>` : ''}</div>`
-    const panel = this.lobbyPanel === 'missions' ? `<div class="ml-panel" role="dialog" aria-label="임무"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="ml-panel__body"><button class="ml-panel__close" data-action="lobby-panel-close" aria-label="닫기">✕</button>${this.tutorialCard(state)}${this.missionCard(state)}</div></div>` : ''
-    return `<section class="page-section page-section--mlobby"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}${resources}${profile}${events}${missions}${army}${menu}${march}${tools}${panel}</section>`
+    const dot = (on: unknown) => on ? '<i class="v2-dot" aria-hidden="true"></i>' : ''
+    // 위: 내 정보
+    const profile = `<button class="v2-profile" data-action="section" data-section="account">${leader ? `<span class="v2-profile__face" style="background-image:url('${this.portraitAsset(leader)}')"></span>` : ''}<span class="v2-profile__seal" data-no-tr>${escapeHtml(state.faction.slice(0, 1))}</span><span class="v2-profile__body"><strong>${ugc(name)}</strong><span class="v2-profile__power"><small>${en ? 'Power' : '전투력'}</small><b>${formatNumber(power)}</b></span><small class="v2-profile__meta">${escapeHtml(state.faction)} · ${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}</small></span></button>`
+    // 위: 재화(+는 상점)
+    const res = (iconName: IconName, value: number, title: string) => `<span class="v2-res" title="${title}">${icon(iconName)}<b title="${formatNumber(value)}">${compactNumber(value)}</b><button class="v2-res__plus" data-action="section" data-section="shop" aria-label="${title} 얻기">+</button></span>`
+    const resources = `<div class="v2-resources">${res('gold', state.gold, '금화')}${res('honor', state.honor, '옥패')}${res('silver', state.silver, '은전')}</div>`
+    // 오른쪽 위: 작은 아이콘
+    const topIcon = (key: ArtIconKey, art: string, label: string, attrs: string, badge = '') => `<button class="v2-topicon" ${attrs}>${artIcon(key, art)}<span>${label}</span>${badge}</button>`
+    const topIcons = `<div class="v2-topicons">${topIcon('calendar', 'attendance', en ? 'Check-in' : '출석', 'data-action="attendance-open"')}${topIcon('mail', 'news', en ? 'News' : '소식', 'data-action="section" data-section="updates"')}${topIcon('gear', 'settings', en ? 'Settings' : '설정', 'data-action="section" data-section="account"')}<button class="v2-sound" data-action="sound-toggle" aria-label="${muteSetting() ? '소리 켜기' : '소리 끄기'}">${muteSetting() ? '🔇' : '🔊'}</button></div>`
+    // 왼쪽 세로 아이콘
+    const sideIcon = (key: ArtIconKey, art: string, label: string, attrs: string, badge = '') => `<button class="v2-sideicon" ${attrs}>${artIcon(key, art)}<span>${label}</span>${badge}</button>`
+    const sideIcons = `<div class="v2-sideicons">${sideIcon('gift', 'event', en ? 'Event' : '이벤트', 'data-action="attendance-open"')}${sideIcon('scroll', 'missions', en ? 'Missions' : '임무', 'data-action="lobby-panel" data-panel="missions"', dot(claimable))}${sideIcon('trophy', 'rank', en ? 'Ranks' : '랭킹', 'data-action="section" data-section="rank"')}</div>`
+    // 오른쪽: 장 진행 · 오늘 임무 · 출전 무장
+    const clearedCount = state.scenarioCleared.length
+    const chapter = next ? `<button class="v2-chapter" data-action="section" data-section="battle" data-scenario-id="${next.id}"><span class="v2-chapter__title">${allCleared ? (en ? 'Replay' : '다시 도전') : `${next.year}${en ? '' : '년'}`} · ${escapeHtml(next.title)}</span><span class="v2-chapter__sub">(${clearedCount}/${SCENARIOS.length}) ${en ? 'Enemy' : '적'} Lv.${scenarioEnemyLevel(next)} <i>${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</i></span><span class="v2-chapter__arrow">›</span></button>` : ''
+    const missionLine = `<button class="v2-mission${claimable ? ' has-reward' : ''}" data-action="lobby-panel" data-panel="missions"><b>${en ? 'Daily' : '일일 임무'}</b><span>${doneCount}/${daily.length}</span></button>`
+    const army = `<div class="v2-army">${[0, 1, 2].map(index => { const general = deployed[index]; return general ? `<button class="v2-army__slot" data-action="section" data-section="formation" style="--grade:${gradeColor(general)}"><span class="v2-army__face" style="background-image:url('${this.portraitAsset(general)}')"></span><small>${escapeHtml(general.name)}</small></button>` : `<button class="v2-army__slot is-empty" data-action="section" data-section="formation"><span class="v2-army__face">＋</span><small>${en ? 'Empty' : '빈 자리'}</small></button>` }).join('')}</div>`
+    // 아래 가운데: 주요 메뉴 5개 + 더보기
+    const dockItem = (section: Section, key: ArtIconKey, art: string, label: string, badge = '') => `<button class="v2-dock__btn${this.coachSection === section ? ' is-coach' : ''}" data-action="section" data-section="${section}">${artIcon(key, art)}<span>${label}</span>${badge}</button>`
+    const coachInMenu = this.coachSection && !['roster', 'formation', 'equipment', 'guild', 'shop', 'recruit'].includes(this.coachSection)
+    const dock = `<nav class="v2-dock" aria-label="메뉴">${dockItem('roster', 'roster', 'generals', en ? 'Generals' : '장수')}${dockItem('formation', 'formation', 'formation', en ? 'Lineup' : '편성', deployed.length < 3 ? '<b class="v2-badge">!</b>' : '')}${dockItem('recruit', 'recruit', 'recruit', en ? 'Recruit' : '모집', dot(state.lastRecruit))}${dockItem('equipment', 'bag', 'gear', en ? 'Gear' : '장비')}${dockItem('guild', 'guild', 'guild', en ? 'Guild' : '연맹', dot(this.guildUi.me?.requests?.length))}${dockItem('shop', 'shop', 'shop', en ? 'Shop' : '상점')}<button class="v2-dock__btn${coachInMenu ? ' is-coach' : ''}" data-action="lobby-panel" data-panel="menu">${artIcon('more', 'more')}<span>${en ? 'More' : '더보기'}</span></button></nav>`
+    // 오른쪽 아래: 전투
+    const battle = `<button class="v2-battle" data-action="section" data-section="battle"${next ? ` data-scenario-id="${next.id}"` : ''}><span class="v2-battle__emblem">${artIcon('swords', 'battle')}</span><span class="v2-battle__label">${en ? 'Battle' : '전투'}</span></button>`
+    // 창: 임무 · 메뉴 전체 보기
+    let panel = ''
+    if (this.lobbyPanel === 'missions') panel = `<div class="ml-panel" role="dialog" aria-label="임무"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="ml-panel__body v2-frame"><button class="ml-panel__close" data-action="lobby-panel-close" aria-label="닫기">✕</button>${this.tutorialCard(state)}${this.missionCard(state)}</div></div>`
+    if (this.lobbyPanel === 'menu') {
+      const cells = this.lobbyMenuItems().map(item => `<button class="v2-menu__cell${item.section && this.coachSection === item.section ? ' is-coach' : ''}" ${item.section ? `data-action="section" data-section="${item.section}"` : item.action === 'lobby-panel' ? 'data-action="lobby-panel" data-panel="missions"' : `data-action="${item.action}"`}>${artIcon(item.icon, item.art)}<span>${en ? item.en : item.ko}</span></button>`).join('')
+      panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="메뉴"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-frame"><div class="v2-menu__head"><strong>${en ? 'Menu' : '메뉴'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><div class="v2-menu__grid">${cells}</div></div></div>`
+    }
+    return `<section class="page-section page-section--mlobby page-section--v2"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${chapter}${missionLine}${army}</div>${dock}${battle}${panel}</section>`
   }
 
   private overviewSection(state: StrategyState): string {
@@ -3452,7 +3500,7 @@ export class StrategyUI {
     if (action === 'research-branch') { this.researchBranch = button.dataset.branch ?? null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
-    if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : null; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : button.dataset.panel === 'menu' ? 'menu' : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel-close') { this.lobbyPanel = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'scroll-missions') {
       // 같은 화면(본영)의 임무 칸으로 내려가 받을 수 있는 보상을 깜빡여 보여 준다
@@ -3463,7 +3511,7 @@ export class StrategyUI {
     }
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
-    if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null }
+    if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null; this.lobbyPanel = null }
     if (action === 'section') { if (button.dataset.scenarioId) { this.scenarioSelectedId = button.dataset.scenarioId; this.scenarioPicked = true; this.scenarioDifficulty = 'normal' } this.callbacks.onSection((button.dataset.section ?? 'overview') as Section) }
     else if (action === 'summon-tab') {
       this.summonTab = button.dataset.summonTab === 'equipment' ? 'equipment' : 'generals'

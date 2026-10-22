@@ -12,6 +12,6 @@ const walk = dir => {
     else if (/\.(glb|jpg|png|mp3|webp)$/i.test(name)) out['/assets/' + relative(root, path).split('\\').join('/')] = createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 10)
   }
 }
-walk(join(root, 'models')); walk(join(root, 'sfx')); walk(join(root, 'music')); walk(join(root, 'generals-realistic-webp'))
+walk(join(root, 'models')); walk(join(root, 'sfx')); walk(join(root, 'music')); walk(join(root, 'generals-realistic-webp')); walk(join(root, 'ui', 'v2'))
 writeFileSync('src/asset-versions.json', JSON.stringify(out, null, 1) + '\n')
 console.log(`자산 해시: ${Object.keys(out).length}개`)
