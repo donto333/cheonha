@@ -88,8 +88,8 @@ const MAP_REGION_LABELS: ReadonlyArray<{ id: string; name: string; hanja: string
 /** 휴대폰 하단 탭에 늘 보이는 메뉴(나머지는 ‘더보기’) */
 const MOBILE_TABS: Section[] = ['overview', 'roster', 'formation', 'recruit', 'battle']
 /**
- * 가로 휴대폰(모바일 게임형) 메뉴: 왼쪽 띠에는 묶음(허브) 7개만, 묶음 안의 화면은 위쪽 탭으로 고른다.
- * 첫 화면은 묶음을 처음 열 때 보이는 화면이다.
+ * 가로 휴대폰(모바일 게임형) 화면 묶음: 본영의 붉은 메뉴로 들어간 화면은 같은 묶음 화면끼리 위쪽 탭으로 오가고,
+ * 왼쪽 위 ‹ 본영 으로 돌아간다.
  */
 interface NavHub { id: string; ko: string; en: string; icon: IconName; sections: Section[] }
 const NAV_HUBS: NavHub[] = [
@@ -101,6 +101,16 @@ const NAV_HUBS: NavHub[] = [
   { id: 'social', ko: '소통', en: 'Social', icon: 'guild', sections: ['guild', 'board'] },
   { id: 'more', ko: '설정', en: 'More', icon: 'account', sections: ['account', 'updates', 'admin'] },
 ]
+/** 가로 휴대폰(모바일 게임형 화면) 조건: CSS의 mobile-landscape.css와 같다 */
+const PHONE_LANDSCAPE = '(orientation: landscape) and (max-height: 500px)'
+const isPhoneLandscape = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.(PHONE_LANDSCAPE).matches)
+/** 가로 휴대폰 본영: 오른쪽 아래 붉은 메뉴 묶음(4칸 × 3줄) */
+const LOBBY_MENU: Array<[Section, IconName, string, string]> = [
+  ['formation', 'formation', '편성', 'Lineup'], ['roster', 'roster', '무장', 'Generals'], ['equipment', 'equipment', '장비', 'Gear'], ['recruit', 'recruit', '모집', 'Recruit'],
+  ['research', 'research', '연구', 'Research'], ['territory', 'territory', '영토', 'Territory'], ['duel', 'duel', '대련', 'Duel'], ['raid', 'raid', '레이드', 'Raid'],
+  ['guild', 'guild', '연맹', 'Guild'], ['board', 'board', '게시판', 'Board'], ['codex', 'codex', '도감', 'Codex'], ['shop', 'shop', '상점', 'Shop'],
+]
+const CALENDAR_SVG = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="6" y="8" width="20" height="18" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 13.5h20M11 5.5v5M21 5.5v5M11.5 19l3 3 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 const HUB_TAB_NAMES: Partial<Record<Section, [string, string]>> = { roster: ['보유', 'Owned'], battle: ['시나리오', 'Scenario'] }
 const hubOf = (section: Section): NavHub => NAV_HUBS.find(hub => hub.sections.includes(section)) ?? NAV_HUBS[0]
 /** 휴대폰에서 쓰는 짧은 메뉴 이름(한·영을 직접 고른다: ‘장비’ 같은 말이 사전에서 인물 이름으로 바뀌지 않게) */
@@ -558,6 +568,8 @@ export class StrategyUI {
     root.addEventListener('scroll', this.handleScroll, true)
     root.addEventListener('input', this.handleInput)
     root.addEventListener('pointerdown', this.handleUnitPress)
+    // 가로 휴대폰 화면으로 들어가거나 나오면(회전 · 창 크기) 본영 배치가 달라지므로 다시 그린다
+    window.matchMedia?.(PHONE_LANDSCAPE)?.addEventListener?.('change', () => { if (this.renderedState) this.render(this.renderedState) })
     for (const type of ['pointerup', 'pointercancel', 'pointerleave']) root.addEventListener(type, this.cancelUnitPress)
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
     window.addEventListener('keydown', event => {
@@ -1538,7 +1550,6 @@ export class StrategyUI {
           <div class="sidebar-spacer"></div>
           <div class="sidebar-profile"><div class="profile-orb">${state.faction.slice(0, 1)}</div><div><strong>${state.faction} 진영</strong><small>무장 ${state.generals.length}명 · 영토 ${state.cities.filter(city => city.owner === state.faction).length}성</small></div></div>
         </aside>
-        ${this.hubRail(state)}
         <main class="main-content">
           ${this.hubTabs(state)}
           ${this.renderSection(state)}
@@ -1556,25 +1567,9 @@ export class StrategyUI {
     return `<button class="nav-button ${primary} ${current === section ? 'is-active' : ''} ${coach}" data-action="section" data-section="${section}" data-nav><span class="nav-icon">${icon}</span><span class="nav-label">${label}</span>${shortNavLabel(section)}${mark}</button>`
   }
 
-  /** 묶음마다 마지막으로 본 화면(묶음을 다시 누르면 그 화면으로) */
-  private hubLast = new Map<string, Section>()
-
   /** 묶음 안에서 지금 보여 줄 수 있는 화면(관리자 화면은 관리자만) */
   private hubSections(hub: NavHub): Section[] {
     return hub.sections.filter(section => section !== 'admin' || this.isAdmin())
-  }
-
-  /** 가로 휴대폰: 왼쪽 묶음 띠(CSS가 가로 휴대폰에서만 보여 준다) */
-  private hubRail(state: StrategyState): string {
-    const current = hubOf(state.section)
-    this.hubLast.set(current.id, state.section)
-    const buttons = NAV_HUBS.map(hub => {
-      const target = this.hubLast.get(hub.id) ?? hub.sections[0]
-      const coach = this.coachSection && hub.sections.includes(this.coachSection as Section) && hub.id !== current.id ? ' nav-coach' : ''
-      const fresh = (hub.id === 'recruit' && state.lastRecruit) || (hub.id === 'social' && this.guildUi.me?.requests?.length) ? '<i class="hub-rail__dot" aria-hidden="true"></i>' : ''
-      return `<button class="hub-rail__btn${hub.id === current.id ? ' is-active' : ''}${coach}" data-action="section" data-section="${target}" data-hub="${hub.id}" data-nav aria-label="${isEnglish() ? hub.en : hub.ko}"><span class="hub-rail__icon">${icon(hub.icon)}</span><span class="hub-rail__label" data-no-tr>${isEnglish() ? hub.en : hub.ko}</span>${fresh}</button>`
-    }).join('')
-    return `<nav class="hub-rail" aria-label="메뉴">${buttons}</nav>`
   }
 
   /** 가로 휴대폰: 묶음 안 화면을 고르는 위쪽 탭(화면 제목을 겸한다) */
@@ -1589,7 +1584,8 @@ export class StrategyUI {
       return `<button class="hub-tabs__tab${section === state.section ? ' is-active' : ''}" data-action="section" data-section="${section}" data-no-tr>${label}</button>`
     }).join('')
     const balance = hub.id === 'more' && this.canOpenBalance() ? `<a class="hub-tabs__tab" href="./balance.html" data-no-tr>${isEnglish() ? 'Balance' : '밸런스'}</a>` : ''
-    return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${tabs}${balance}</div>`
+    const back = `<button class="hub-tabs__back" data-action="section" data-section="overview" aria-label="본영으로">‹ <span data-no-tr>${isEnglish() ? 'Base' : '본영'}</span></button>`
+    return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${back}${tabs}${balance}</div>`
   }
 
   /** 휴대폰 하단 탭의 ‘더보기’: 주요 5개 밖의 메뉴를 펼친다 */
@@ -1656,7 +1652,43 @@ export class StrategyUI {
     return `${Math.floor(minutes / 60)}시간 전`
   }
 
+  /** 가로 휴대폰 본영: 메뉴 묶음 펼침 · 임무 창 */
+  private lobbyMenuOpen = true
+  private lobbyPanel: 'missions' | null = null
+
+  /**
+   * 가로 휴대폰 본영(모바일 전략 게임형): 대표 무장 그림을 화면 전체에 깔고
+   * 왼쪽 위 내 정보 · 이벤트 아이콘 · 임무, 오른쪽 출전 무장, 오른쪽 아래 붉은 메뉴 묶음과 출전 버튼을 얹는다.
+   */
+  private mobileLobby(state: StrategyState): string {
+    const next = this.nextScenario(state)
+    const allCleared = SCENARIOS.every(scenario => state.scenarioCleared.includes(scenario.id))
+    const stars = next ? scenarioStars(state.scenarioCleared, next.id) : 0
+    const power = totalPower(state)
+    const deployed = state.formation.map(id => state.generals.find(item => item.id === id)).filter((item): item is General => Boolean(item))
+    const leader = [...deployed].sort((a, b) => combatPower(b) - combatPower(a))[0] ?? state.generals[0]
+    const en = isEnglish()
+    const name = this.auth.status === 'authenticated' && this.auth.name ? this.auth.name : (en ? 'Guest' : '게스트')
+    const cities = state.cities.filter(city => city.owner === state.faction).length
+    // 일일 임무: 끝낸 수 / 전체, 받을 보상이 있으면 붉은 점
+    const daily = MISSIONS.filter(mission => mission.scope === 'daily')
+    const statuses = daily.map(mission => missionStatus(state, mission))
+    const doneCount = statuses.filter(status => status !== 'progress').length
+    const claimable = statuses.includes('ready') || dailyBonusReady(state)
+    const nextMission = daily.find((_, index) => statuses[index] === 'progress')
+    const profile = `<button class="ml-profile" data-action="section" data-section="account">${leader ? `<span class="ml-profile__face" style="background-image:url('${this.portraitAsset(leader)}')"></span>` : ''}<span class="ml-profile__seal" data-no-tr>${escapeHtml(state.faction.slice(0, 1))}</span><span class="ml-profile__body"><strong>${ugc(name)}</strong><small>${escapeHtml(state.faction)} · ${en ? 'Power' : '전투력'} <b>${formatNumber(power)}</b></small><small>${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}${en ? '' : '성'}</small></span></button>`
+    const events = `<div class="ml-events"><button class="ml-event" data-action="attendance-open"><span class="ml-event__icon">${CALENDAR_SVG}</span><span>${en ? 'Check-in' : '출석'}</span></button><button class="ml-event" data-action="section" data-section="updates"><span class="ml-event__icon">${icon('updates')}</span><span>${en ? 'News' : '소식'}</span></button><button class="ml-event" data-action="section" data-section="rank"><span class="ml-event__icon">${icon('rank')}</span><span>${en ? 'Ranks' : '랭킹'}</span></button></div>`
+    const missions = `<button class="ml-missions${claimable ? ' has-reward' : ''}" data-action="lobby-panel" data-panel="missions"><span class="ml-missions__head"><b>${en ? 'Daily missions' : '일일 임무'}</b><span>(${doneCount}/${daily.length})</span></span><span class="ml-missions__line">${doneCount >= daily.length ? (en ? '✓ All done today' : '✓ 오늘 임무 완료') : escapeHtml(nextMission?.label ?? '')}</span></button>`
+    const army = `<div class="ml-army">${[0, 1, 2].map(index => { const general = deployed[index]; return general ? `<button class="ml-army__slot" data-action="section" data-section="formation" style="--grade:${gradeColor(general)}"><span class="ml-army__face" style="background-image:url('${this.portraitAsset(general)}')"></span><small>${escapeHtml(general.name)}</small></button>` : `<button class="ml-army__slot is-empty" data-action="section" data-section="formation"><span class="ml-army__face">＋</span><small>${en ? 'Empty' : '빈 자리'}</small></button>` }).join('')}</div>`
+    const menu = `<nav class="ml-menu${this.lobbyMenuOpen ? '' : ' is-collapsed'}" aria-label="메뉴"><div class="ml-menu__grid">${LOBBY_MENU.map(([section, iconName, ko, enLabel]) => { const badge = section === 'formation' ? (deployed.length < 3 ? '!' : '') : section === 'duel' ? `${duelAttemptsRemaining(state)}` : section === 'recruit' && state.lastRecruit ? '●' : ''; return `<button class="ml-menu__btn${this.coachSection === section ? ' is-coach' : ''}" data-action="section" data-section="${section}"><span class="ml-menu__icon">${icon(iconName)}</span><span class="ml-menu__label" data-no-tr>${en ? enLabel : ko}</span>${badge ? `<b>${badge}</b>` : ''}</button>` }).join('')}</div><button class="ml-menu__toggle" data-action="lobby-menu-toggle" aria-label="${this.lobbyMenuOpen ? '메뉴 접기' : '메뉴 펼치기'}">${this.lobbyMenuOpen ? '▾' : '▴'}</button></nav>`
+    const march = next ? `<button class="ml-march" data-action="section" data-section="battle" data-scenario-id="${next.id}"><span class="ml-march__info"><small>${allCleared ? (en ? 'Replay' : '다시 도전') : `${next.year}${en ? '' : '년'}`} · ${en ? 'Enemy' : '적'} Lv.${scenarioEnemyLevel(next)} <i>${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</i></small><strong>${escapeHtml(next.title)}</strong></span><span class="ml-march__go">${en ? 'March' : '출전'}</span></button>` : ''
+    const tools = `<div class="ml-tools"><button class="ml-tool" data-action="section" data-section="account" aria-label="설정">${icon('account')}</button>${this.isAdmin() ? `<button class="ml-tool" data-action="section" data-section="admin" aria-label="관리자">${icon('admin')}</button>` : ''}</div>`
+    const panel = this.lobbyPanel === 'missions' ? `<div class="ml-panel" role="dialog" aria-label="임무"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="ml-panel__body"><button class="ml-panel__close" data-action="lobby-panel-close" aria-label="닫기">✕</button>${this.tutorialCard(state)}${this.missionCard(state)}</div></div>` : ''
+    return `<section class="page-section page-section--mlobby">${leader ? `<div class="ml-bg" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}${profile}${events}${missions}${army}${menu}${march}${tools}${panel}</section>`
+  }
+
   private overviewSection(state: StrategyState): string {
+    if (isPhoneLandscape()) return this.mobileLobby(state)
     const next = this.nextScenario(state)
     const allCleared = SCENARIOS.every(scenario => state.scenarioCleared.includes(scenario.id))
     const stars = next ? scenarioStars(state.scenarioCleared, next.id) : 0
@@ -3277,6 +3309,9 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action === 'lobby-menu-toggle') { this.lobbyMenuOpen = !this.lobbyMenuOpen; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : null; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'lobby-panel-close') { this.lobbyPanel = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'scroll-missions') {
       // 같은 화면(본영)의 임무 칸으로 내려가 받을 수 있는 보상을 깜빡여 보여 준다
       const card = this.root.querySelector<HTMLElement>('.mission-card')

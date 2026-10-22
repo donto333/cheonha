@@ -80,6 +80,15 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
+    // 본영 임무 창 · 메뉴 접기
+    const missionsBtn = page.locator('[data-action="lobby-panel"]')
+    if (await missionsBtn.count()) {
+      await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
+      await page.locator('[data-action="lobby-panel"]').first().evaluate(b => b.click()); await shot('92-lobby-missions')
+      await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click())
+      await page.locator('[data-action="lobby-menu-toggle"]').first().evaluate(b => b.click()); await shot('93-lobby-collapsed')
+      await page.locator('[data-action="lobby-menu-toggle"]').first().evaluate(b => b.click())
+    }
     // 채팅 창
     const chat = page.locator('[data-social="toggle"]')
     if (await chat.count()) { await page.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
