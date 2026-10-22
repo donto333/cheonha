@@ -48,6 +48,21 @@
   html body .hub-rail__btn.nav-coach::after { content: ''; position: absolute; top: 5px; left: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--jade); box-shadow: 0 0 8px var(--jade); animation: hub-coach 1.6s ease-in-out infinite; }
   html body .hub-rail__dot { position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--lacquer-hi); box-shadow: 0 0 0 2px rgba(30, 14, 7, .97); }
 
+  /* 채팅 버튼: 띠 맨 아래 칸으로(내용을 가리지 않게) */
+  html body .app-shell .hub-rail { bottom: calc(50px + env(safe-area-inset-bottom, 0px)); }
+  html body .social-fab {
+    left: calc(4px + env(safe-area-inset-left, 0px)); right: auto; bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+    width: calc(var(--rail-w) - 8px - env(safe-area-inset-left, 0px)); height: 44px; padding: 2px 0;
+    flex-direction: column; justify-content: center; gap: 1px; border-radius: 10px;
+  }
+  html body .social-fab .fx-seal { width: 24px; height: 24px; }
+  html body .social-fab .fx-seal svg { width: 13px; height: 13px; }
+  html body .social-fab__label { font-size: 11px; line-height: 1; }
+  html body .social-fab__badge { top: -2px; right: 2px; }
+  html body:has(.app-shell--battle) .social-fab { display: none; }
+  /* 채팅 창: 띠 오른쪽에 낮은 화면 높이로 */
+  html body .social-panel { left: calc(var(--rail-w) + 8px); right: auto; bottom: 8px; top: calc(var(--top-h) + 6px); max-height: none; height: auto; width: min(420px, calc(100vw - var(--rail-w) - 16px)); }
+
   /* ── 내용: 띠 오른쪽, 상단바 아래 ── */
   html body .app-shell .main-content { margin-left: var(--rail-w); padding: calc(var(--top-h) + 6px) calc(12px + env(safe-area-inset-right, 0px)) 14px 12px; }
 

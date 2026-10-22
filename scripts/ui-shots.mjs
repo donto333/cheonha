@@ -80,6 +80,9 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
+    // 채팅 창
+    const chat = page.locator('[data-social="toggle"]')
+    if (await chat.count()) { await page.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
     await context.close()
   }
   // 세로로 든 휴대폰: 가로로 돌려 달라는 안내
