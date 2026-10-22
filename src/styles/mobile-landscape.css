@@ -522,7 +522,7 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .page-section--formation .formation-bench-card .formation-tags { transform: scale(.9); transform-origin: left center; }
   html body .app-shell .main-content .shop-row__buys { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
   html body .app-shell .main-content .shop-buy { min-width: 0; padding: 4px 2px; font-size: 12px; }
-  html body .app-shell .main-content .shop-row { padding: 6px 10px; gap: 6px; }
+  html body .app-shell .main-content .shop-row { grid-template-columns: 120px minmax(0, 1fr); padding: 6px 4px; gap: 8px; }
   html body .recruit-results-heading > button, html body .recruit-results-heading > .action-button { flex: 0 0 auto; width: auto; min-width: 110px; }
 
   /* 전투 화면은 탭 없이 전체 화면 */
