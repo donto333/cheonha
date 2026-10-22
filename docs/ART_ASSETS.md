@@ -76,7 +76,7 @@ painterly semi-realistic rendering, soft rim light, high detail, clean silhouett
 ### 만드는 순서 (Kling · Runway · Pika · Luma 등 ‘이미지 → 영상’ 도구)
 
 1. **시작 그림 만들기(16:9)**: 무장 초상화는 세로 그림이라, 먼저 가로 그림으로 넓힙니다. 이미지 도구에 무장 사진을 넣고 아래처럼 요청합니다.
-   - 무장 사진 위치: 저장소 `public/assets/generals-realistic-webp/` (예: `guan-yu.webp` 관우, `zhao-yun`… 조운, `lu-bu.webp` 여포, `cao-cao.webp` 조조, `liu-bei.webp` 유비, `sun-quan.webp` 손권)
+   - 무장 사진 위치: 저장소 `public/assets/generals-realistic-webp/` (예: `guan-yu.webp` 관우, `zhao-yun.webp` 조운, `zhuge-liang.webp` 제갈량, `lu-bu.webp` 여포, `cao-cao.webp` 조조, `liu-bei.webp` 유비, `sun-quan.webp` 손권)
    - 프롬프트: `Extend this portrait into a wide 16:9 cinematic scene, keep the character's face, armor and colors exactly the same, place him on the right third of the frame, left side is open sky and landscape for UI text`
 2. **영상 만들기**: 위 그림을 시작 프레임으로 넣고, 아래 프롬프트를 씁니다. ‘루프(Loop)’ 옵션이 있으면 켜고, 카메라 움직임은 작게 합니다.
 
