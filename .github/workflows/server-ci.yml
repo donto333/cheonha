@@ -36,7 +36,8 @@ jobs:
         run: npm ci --omit=dev
       - name: 서버 모듈 불러오기
         working-directory: server
-        continue-on-error: true
+        env:
+          DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/cheonha
         run: |
           cat > /tmp/import-check.mjs <<'JS'
           import { pathToFileURL } from 'node:url'
@@ -55,7 +56,8 @@ jobs:
           ADMIN_NAMES: 천하대장
           PORT: 3100
         run: |
-          trap 'code=$?; if [ $code -ne 0 ]; then echo "::error title=server run failed ($code)::$(tail -c 3000 server.log 2>/dev/null | sed ':a;N;$!ba;s/\n/%0A/g')"; fi' EXIT
+          # 어느 명령에서 멈췄는지 Actions 요약에 남긴다
+          trap 'echo "::error title=server check failed::$BASH_COMMAND"' ERR
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE cheonha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
           node db-migrate.mjs
@@ -78,6 +80,11 @@ jobs:
       - name: 서버 기록
         if: always()
         working-directory: server
-        run: cat server.log || true
+        run: |
+          cat server.log || true
+          # 실패하면 서버 기록 끝부분을 Actions 요약(누구나 볼 수 있는 곳)에 남긴다
+          if [ -f server.log ] && [ "${{ job.status }}" != "success" ]; then
+            node -e "const t=require('fs').readFileSync('server.log','utf8').slice(-3000).replace(/\r?\n/g,'%0A');console.log('::error title=server.log::'+t)"
+          fi
       - name: Docker 이미지
         run: docker build -t cheonha .
