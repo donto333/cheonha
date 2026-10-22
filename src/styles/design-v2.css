@@ -53,7 +53,7 @@
   html.has-lobby-city body .page-section--v2 .ml-hero { display: none; }
 
   /* 위 줄: 내 정보 · 재화 · 작은 아이콘 */
-  html body .v2-topbar { position: absolute; z-index: 4; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: flex-start; gap: 10px; padding: 0 calc(8px + var(--safe-r)) 0 calc(6px + var(--safe-l)); background: linear-gradient(180deg, rgba(10, 6, 3, .8), transparent); }
+  html body .v2-topbar { position: absolute; z-index: 4; top: 4px; left: 0; right: 0; height: 52px; display: flex; align-items: flex-start; gap: 10px; padding: 0 calc(8px + var(--safe-r)) 0 calc(6px + var(--safe-l)); background: linear-gradient(180deg, rgba(10, 6, 3, .8), transparent); }
   html body .v2-profile { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 8px; height: 58px; padding: 4px 26px 4px 4px; text-align: left; background: linear-gradient(90deg, rgba(43, 31, 23, .95) 0%, rgba(43, 31, 23, .85) 70%, rgba(43, 31, 23, 0) 100%); border: 0; }
   html body .v2-profile__face { width: 50px; height: 50px; border-radius: 4px; background: #2a160b center 15% / cover no-repeat; box-shadow: 0 0 0 2px var(--v2-gold), 0 2px 6px rgba(0, 0, 0, .6); }
   html body .v2-profile__seal { position: absolute; left: 40px; top: 2px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 3px; background: var(--v2-red); color: #fff; font-size: 11px; font-weight: 800; box-shadow: 0 0 0 1px var(--v2-gold); }
