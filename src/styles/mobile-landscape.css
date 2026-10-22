@@ -11,7 +11,7 @@
 html, :root:fullscreen, ::backdrop { background: #231710; }
 
 @media (orientation: landscape) and (max-height: 500px) {
-  html { --top-h: 44px; --safe-l: env(safe-area-inset-left, 0px); --safe-r: env(safe-area-inset-right, 0px); --safe-b: env(safe-area-inset-bottom, 0px); --mobile-top: var(--top-h); }
+  html { --top-h: 40px; --safe-l: env(safe-area-inset-left, 0px); --safe-r: env(safe-area-inset-right, 0px); --safe-b: env(safe-area-inset-bottom, 0px); --mobile-top: var(--top-h); }
 
   /* ── 상단바: 재화 · 소리 · 계정만(오른쪽 정렬) ── */
   html body .app-shell .topbar {
@@ -57,6 +57,28 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   }
   html body .hub-tabs__tab.is-active { color: #fff7e6; background: linear-gradient(180deg, var(--lacquer-hi), var(--lacquer)); box-shadow: var(--lacquer-shadow); }
 
+  /* ── 메뉴 화면: 스크롤을 줄이도록 촘촘하게 ── */
+  /* 상단바를 낮추고 시즌 표시는 숨긴다 */
+  html body .app-shell .topbar .topbar-season { display: none; }
+  /* 탭 줄을 낮게 */
+  html body .app-shell .hub-tabs { padding: 3px; margin-bottom: 6px; border-radius: 10px; }
+  html body .hub-tabs__back, html body .hub-tabs__tab { height: 30px; font-size: 13.5px; }
+  html body .hub-tabs__tab { min-width: 60px; padding: 0 12px; }
+  /* 탭 줄 오른쪽으로 옮긴 제목줄(설명 · 새로고침 버튼, 숫자) */
+  html body .hub-tabs .is-in-tabs { flex: 0 0 auto; margin: 0 0 0 auto; padding: 0 0 0 8px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 6px; min-height: 0; border: 0; background: none; }
+  html body .hub-tabs .is-in-tabs > div { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; width: auto; margin: 0; }
+  html body .hub-tabs .is-in-tabs .action-button, html body .hub-tabs .is-in-tabs .mini-action, html body .hub-tabs .is-in-tabs button {
+    min-height: 0; height: 30px; padding: 0 10px; font-size: 12.5px; white-space: nowrap;
+  }
+  html body .hub-tabs .is-in-tabs .section-counter, html body .hub-tabs .is-in-tabs [class*="counter"], html body .hub-tabs .is-in-tabs [class*="stat"] { display: flex; align-items: baseline; gap: 4px; padding: 0 4px; margin: 0; min-height: 0; border: 0; background: none; box-shadow: none; }
+  html body .hub-tabs .is-in-tabs .section-counter span, html body .hub-tabs .is-in-tabs [class*="counter"] span, html body .hub-tabs .is-in-tabs small { font-size: 11px; }
+  html body .hub-tabs .is-in-tabs .section-counter strong, html body .hub-tabs .is-in-tabs [class*="counter"] strong, html body .hub-tabs .is-in-tabs strong { font-size: 16px; line-height: 1; }
+  html body .hub-tabs .is-in-tabs::before, html body .hub-tabs .is-in-tabs::after { display: none; }
+  /* 내용 전체를 촘촘하게(글자 · 여백을 함께 줄여 한 화면에 더 많이) */
+  html body .app-shell:not(.app-shell--battle) .main-content > .page-section:not(.page-section--mlobby) { zoom: .86; }
+  html body .app-shell:not(.app-shell--battle) .main-content .glass-card { padding: 12px 14px; }
+  html body .app-shell:not(.app-shell--battle) .main-content .card-header { margin-bottom: 8px; }
+
   /* 탭이 제목을 대신하므로 큰 제목 · 설명은 접고, 버튼은 한 줄로 */
   html body .app-shell .section-heading { margin-bottom: 8px; gap: 8px; min-height: 0; display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
   html body .app-shell .section-heading > div:not(:first-child) { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; width: auto; }
@@ -74,6 +96,9 @@ html, :root:fullscreen, ::backdrop { background: #231710; }
   html body .social-fab { left: calc(8px + var(--safe-l)); right: auto; bottom: calc(8px + var(--safe-b)); height: 38px; padding: 3px 14px 3px 4px; }
   html body .social-fab .fx-seal { width: 30px; height: 30px; }
   html body:has(.app-shell--battle) .social-fab { display: none; }
+  /* 메뉴 화면에서는 채팅 버튼을 작은 동그라미로(내용을 덜 가리게) */
+  html body:not(:has(.page-section--mlobby)) .social-fab { width: 38px; padding: 3px; justify-content: center; opacity: .9; }
+  html body:not(:has(.page-section--mlobby)) .social-fab__label { display: none; }
   html body .social-panel { left: calc(8px + var(--safe-l)); right: auto; bottom: calc(52px + var(--safe-b)); top: calc(var(--top-h) + 6px); max-height: none; height: auto; width: min(420px, calc(100vw - 16px)); }
 
   /* ════════ 본영 ════════ */

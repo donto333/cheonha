@@ -694,6 +694,7 @@ export class StrategyUI {
     // 같은 메뉴 안에서 버튼을 눌러 다시 그릴 때는 보던 자리(스크롤)와 펼친 칸을 그대로 둔다
     const kept = sameSection ? this.captureView() : null
     this.root.innerHTML = this.shell(state)
+    this.mergeHeadingIntoTabs()
     if (kept) this.restoreView(kept)
     ensureIconSprite()
     // 시나리오 목록에 들어오면 고른(다음에 깰) 시나리오가 보이게 스크롤
@@ -1570,6 +1571,21 @@ export class StrategyUI {
   /** 묶음 안에서 지금 보여 줄 수 있는 화면(관리자 화면은 관리자만) */
   private hubSections(hub: NavHub): Section[] {
     return hub.sections.filter(section => section !== 'admin' || this.isAdmin())
+  }
+
+  /**
+   * 가로 휴대폰: 화면 제목줄(설명 · 새로고침 버튼, 숫자)을 위쪽 탭 줄 오른쪽으로 옮겨 한 줄을 아낀다.
+   * (클릭은 화면 전체에서 받으므로 옮겨도 그대로 동작한다)
+   */
+  private mergeHeadingIntoTabs(): void {
+    if (!isPhoneLandscape()) return
+    const tabs = this.root.querySelector<HTMLElement>('.hub-tabs')
+    const section = this.root.querySelector<HTMLElement>('.main-content > .page-section')
+    if (!tabs || !section) return
+    const heading = section.querySelector<HTMLElement>(':scope > .section-heading, :scope > .summon-menu-head')
+    if (!heading) return
+    heading.classList.add('is-in-tabs')
+    tabs.appendChild(heading)
   }
 
   /** 가로 휴대폰: 묶음 안 화면을 고르는 위쪽 탭(화면 제목을 겸한다) */
