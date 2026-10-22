@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import mysql from 'mysql2/promise'
+import { runMigrationSql } from './migrate-compat.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const files = ['0000_initial_users.sql', '005_game_account_states.sql', '006_game_strategy_state.sql', '007_action_cooldowns.sql', '008_faction_war_score.sql', '009_equipment_system.sql', '010_equipment_payload_capacity.sql', '011_duel_mythic_shop.sql', '012_faction_territories.sql', '013_gold_shop.sql', '014_faction_selection.sql', '014_scenario_state.sql', '015_initial_season_neutral_territories.sql', '016_neutral_territory_ai.sql', '017_luoyang_reward.sql', '018_luoyang_weekly_settlement.sql', '019_city_expansion.sql', '020_save_payload_capacity.sql', '021_faction_boards.sql', '022_board_post_password.sql', '023_reset_board_posts.sql', '024_board_moderation.sql', '025_city_damage_rankings.sql', '026_neutral_ai_battle_logs.sql', '021_city_garrisons.sql', '027_mythic_enhance_stones.sql', '028_grant_ledger.sql', '029_mission_data.sql', '030_squads_and_raid.sql', '031_city_jianan.sql', '032_city_yongchang_bohai.sql', '034_remove_city_shixin.sql', '035_city_rebalance.sql', '036_wanderer_faction.sql', '037_guilds.sql', '038_chat.sql', '039_password_login.sql']
@@ -28,7 +29,11 @@ async function applyMigrations(connection, migrations) {
     const previous = applied.get(migration.name)
     if (previous && previous !== migration.sha256) throw new Error(`Migration ${migration.name} changed after it was applied`)
     if (previous) continue
-    await connection.query(migration.sql)
+    try {
+      await runMigrationSql(connection, migration.sql)
+    } catch (error) {
+      throw new Error(`마이그레이션 ${migration.name} 실패: ${error instanceof Error ? error.message : error}`)
+    }
     await connection.execute('INSERT INTO game_app_schema_migrations (name,sha256) VALUES (?,?)', [migration.name, migration.sha256])
   }
 }

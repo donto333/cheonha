@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import '../db-url.mjs';
+import { runMigrationSql } from '../migrate-compat.mjs';
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -36,7 +37,7 @@ export async function applyMigrations(connection, migrations) {
       throw new Error(`Migration ${migration.name} changed after it was applied`);
     }
     if (previous) continue;
-    await connection.query(migration.sql);
+    await runMigrationSql(connection, migration.sql);
     await connection.execute(
       'INSERT INTO game_lb_schema_migrations (name,sha256) VALUES (?,?)',
       [migration.name, migration.sha256],
