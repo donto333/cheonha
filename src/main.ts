@@ -6,6 +6,7 @@ import './styles/social.css'
 import './styles/territory-map.css'
 import './styles/mobile-type.css'
 import './styles/mobile-landscape.css'
+import { enableLandscapeLock } from './platform/orientation'
 import { SocialPanel } from './ui/social'
 import { ManusAuth } from '../manus-auth.js'
 import { createLeaderboardClient, type Result, type RunTicket } from '../leaderboard.js'
@@ -2984,3 +2985,6 @@ window.setInterval(() => {
   if (seasonClockKey && key !== seasonClockKey) { void refreshSeason(); ui.render(state) }
   seasonClockKey = key
 }, 30_000)
+
+// 휴대폰 브라우저: 첫 터치에 전체 화면 · 가로 고정
+enableLandscapeLock()

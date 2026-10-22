@@ -94,15 +94,6 @@ try {
     if (await chat.count()) { await page.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
     await context.close()
   }
-  // 세로로 든 휴대폰: 가로로 돌려 달라는 안내
-  {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR' })
-    const page = await context.newPage()
-    await page.goto(url)
-    await sleep(1500)
-    await page.screenshot({ path: `${out}/portrait-rotate-hint.png` })
-    await context.close()
-  }
   await browser.close()
 } finally {
   server.kill('SIGTERM')
