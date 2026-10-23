@@ -4,7 +4,7 @@ name: 모바일 화면 캡처
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'index.html', 'scripts/ui-shots.mjs', '.github/workflows/ui-shots.yml']
+    paths: ['src/**', 'public/assets/ui/**', 'index.html', 'scripts/ui-shots.mjs', '.github/workflows/ui-shots.yml']
   workflow_dispatch:
 
 permissions:
