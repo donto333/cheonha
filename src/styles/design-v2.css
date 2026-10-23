@@ -356,3 +356,133 @@ html body .terr-search { display: none; }
   html body .result-score { margin: 8px 0; padding: 8px 12px; }
   html body .result-card .action-button { min-height: 38px; }
 }
+
+/* ════════════════ 장수 · 편성 · 모집 화면(2026.10.23 디자인 도안, 그림: public/assets/ui/v2/kit/) ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 화면 배경: 내 진영 풍경을 위쪽에 깔고 아래로 어둡게 */
+  html[data-realm] body .app-shell:not(.app-shell--battle):not(:has(.page-section--mlobby)) { background: linear-gradient(180deg, rgba(10, 6, 3, .38) 0%, rgba(10, 6, 3, .86) 30%, rgba(8, 5, 3, .95) 100%), var(--screen-bg, url('/assets/battlefield/huanghun-gate.webp')) center 30% / cover no-repeat, #120a06; }
+  html[data-realm="wei"] { --screen-bg: url('/assets/ui/v2/lobby/bg-wei.webp'); }
+  html[data-realm="shu"] { --screen-bg: url('/assets/ui/v2/lobby/bg-shu.webp'); }
+  html[data-realm="wu"] { --screen-bg: url('/assets/ui/v2/lobby/bg-wu.webp'); }
+
+  /* ── 머리 줄: 제목판(용 장식) · 금/검 탭 · 재화 칩 · 닫기 ── */
+  html body .app-shell .hub-tabs { background: linear-gradient(180deg, rgba(8, 5, 3, .92), rgba(8, 5, 3, .55)); border-bottom: 1px solid rgba(212, 175, 55, .55); box-shadow: 0 1px 0 rgba(0, 0, 0, .6); }
+  html body .app-shell .hub-tabs .hub-tabs__title { position: relative; padding: 0 64px 0 calc(10px + var(--safe-l)); font-family: 'Gowun Batang', serif; font-size: 22px; font-weight: 700; letter-spacing: .06em; background: linear-gradient(90deg, rgba(20, 12, 8, .95), rgba(20, 12, 8, .6)); border-right: 1px solid rgba(212, 175, 55, .35); }
+  html body .app-shell .hub-tabs .hub-tabs__title::after { content: ''; position: absolute; right: -14px; top: 50%; width: 82px; height: 34px; transform: translateY(-50%); background: url('/assets/ui/v2/kit/dragon-ornament.webp') right center / contain no-repeat; pointer-events: none; }
+  html body .app-shell .hub-tabs .hub-tabs__title { color: transparent; background-clip: padding-box; }
+  html body .app-shell .hub-tabs .hub-tabs__title { color: #f3d98a; text-shadow: 0 1px 0 #3a2408, 0 0 6px rgba(0, 0, 0, .8); }
+  html body .app-shell .hub-tabs .hub-tabs__back-arrow { color: #f0c35a; }
+  html body .app-shell .hub-tabs .hub-tabs__tabs { gap: 3px; margin-left: 14px; }
+  html body .app-shell .hub-tabs .hub-tabs__tab { height: 30px; min-width: 76px; padding: 0 14px; font-size: 14px; font-weight: 800; color: #e8dcc0; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; box-shadow: none; border-radius: 0; }
+  html body .app-shell .hub-tabs .hub-tabs__tab.is-active { color: #2b1a06; border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); text-shadow: 0 1px 0 rgba(255, 244, 210, .7); }
+  html body .app-shell .hub-tabs .hub-tabs__res { gap: 4px; }
+  html body .app-shell .hub-tabs .hub-tabs__chip {
+    --cs: .155; height: calc(180px * var(--cs)); min-width: 96px; justify-content: flex-end; gap: 0; padding: 0 2px; border-radius: 0; background: none; color: #fff;
+    border-style: solid; border-width: 0 calc(150px * var(--cs)) 0 calc(185px * var(--cs)); border-image-slice: 0 150 0 185 fill; border-image-width: 0 calc(150px * var(--cs)) 0 calc(185px * var(--cs)); border-image-repeat: stretch;
+  }
+  html body .app-shell .hub-tabs .hub-tabs__chip--gold { border-image-source: url('/assets/ui/v2/lobby/chip-gold.webp'); }
+  html body .app-shell .hub-tabs .hub-tabs__chip--honor { border-image-source: url('/assets/ui/v2/lobby/chip-honor.webp'); }
+  html body .app-shell .hub-tabs .hub-tabs__chip--silver { border-image-source: url('/assets/ui/v2/lobby/chip-silver.webp'); }
+  html body .app-shell .hub-tabs .hub-tabs__chip .gi, html body .app-shell .hub-tabs .hub-tabs__chip svg { display: none; }
+  html body .app-shell .hub-tabs .hub-tabs__chip b { font-size: 12.5px; font-weight: 800; text-shadow: 0 1px 1px #000; }
+  html body .app-shell .hub-tabs .hub-tabs__exit { width: 34px; height: 32px; margin: 0 calc(4px + var(--safe-r)) 0 4px; padding: 0; font-size: 0; color: transparent; background: url('/assets/ui/v2/kit/btn-x.webp') center / contain no-repeat; }
+
+  /* ── 장수: 진영 거르기 · 정렬 ── */
+  html body .mroster-bar .filter-tabs--realm { flex: 0 1 auto; gap: 0; padding: 2px; background: linear-gradient(180deg, rgba(14, 12, 14, .92), rgba(6, 6, 8, .92)); border: 1px solid rgba(212, 175, 55, .55); border-radius: 4px; box-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
+  html body .mroster-bar .filter-tabs--realm .filter-tab { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px; font-size: 13.5px; font-weight: 800; color: #eee2c6; background: none; border: 0; border-left: 1px solid rgba(212, 175, 55, .22); border-radius: 0; box-shadow: none; white-space: nowrap; }
+  html body .mroster-bar .filter-tabs--realm .filter-tab:first-child { border-left: 0; }
+  html body .mroster-bar .filter-tabs--realm .filter-tab b { font-weight: 700; color: #d9cba8; }
+  html body .mroster-bar .filter-tabs--realm .filter-tab.is-active { color: #fff; border: 6px solid transparent; border-image: url('/assets/ui/v2/kit/btn-red.webp') 22 fill / 6px / 0 stretch; padding: 0 10px; height: 30px; }
+  html body .mroster-bar .filter-tabs--realm .filter-tab.is-active b { color: #ffe9b0; }
+  html body .filter-tab__ico { width: 18px; height: 20px; background: center / contain no-repeat; }
+  html body .filter-tab--all .filter-tab__ico { width: 16px; height: 16px; background: linear-gradient(90deg, #f3d98a 0 28%, transparent 28% 36%, #f3d98a 36% 64%, transparent 64% 72%, #f3d98a 72%) 0 0 / 100% 46% no-repeat, linear-gradient(90deg, #f3d98a 0 28%, transparent 28% 36%, #f3d98a 36% 64%, transparent 64% 72%, #f3d98a 72%) 0 100% / 100% 46% no-repeat; }
+  html body .filter-tab--shu .filter-tab__ico { background-image: url('/assets/ui/v2/kit/fi-shu.webp'); }
+  html body .filter-tab--wei .filter-tab__ico { background-image: url('/assets/ui/v2/kit/fi-wei.webp'); }
+  html body .filter-tab--wu .filter-tab__ico { background-image: url('/assets/ui/v2/kit/fi-wu.webp'); }
+  html body .filter-tab--qun .filter-tab__ico { background-image: url('/assets/ui/v2/kit/fi-qun.webp'); }
+  html body .mroster-bar .mroster-sort { margin-left: auto; height: 34px; padding: 0 4px 0 6px; gap: 6px; font-size: 13.5px; font-weight: 800; color: #eee2c6; background: linear-gradient(180deg, rgba(14, 12, 14, .92), rgba(6, 6, 8, .92)); border: 1px solid rgba(212, 175, 55, .55); border-radius: 4px; }
+  html body .mroster-sort__helm { width: 22px; height: 22px; background: url('/assets/ui/v2/kit/helmet.webp') center / 150% no-repeat; border-radius: 50%; }
+  html body .mroster-bar .mroster-sort select { height: 26px; padding: 0 6px; font-weight: 700; color: #fff; background: #0c0b0d; border: 1px solid rgba(212, 175, 55, .5); border-radius: 3px; }
+  html body .mroster-bar .sort-direction { width: 34px; height: 34px; color: #f0c35a; background: linear-gradient(180deg, #1a1612, #0a0807); border: 1px solid rgba(212, 175, 55, .6); border-radius: 4px; }
+
+  /* ── 무장 카드(금테 · 등급 방패 · 병과 메달 · 진영 깃발 · Lv · 별 · 이름) ── */
+  html body .gtile-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px 7px; padding: 4px 2px; }
+  html body .gtile { container-type: inline-size; aspect-ratio: 300 / 406; overflow: visible; border: 0; border-radius: 0; background: none; box-shadow: none; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .6)); }
+  html body .gtile .gtile__art { inset: 2.6% 3.2% 2.6% 3.2%; background-color: #120c0a; background-position: center 14%; }
+  html body .gtile .gtile__frame { position: absolute; inset: 0; z-index: 1; background: url('/assets/ui/v2/kit/card-frame.webp') 0 0 / 100% 100% no-repeat; pointer-events: none; }
+  html body .gtile--g5 .gtile__frame { filter: drop-shadow(0 0 3px #ffb347) drop-shadow(0 0 6px rgba(255, 150, 40, .7)) brightness(1.08); }
+  html body .gtile .gtile__grade { z-index: 2; top: -1%; left: 2.4%; width: 23%; min-width: 0; height: auto; aspect-ratio: 90 / 105; padding: 0 0 6% 0; display: grid; place-items: center; font-size: 15cqw; font-weight: 900; line-height: 1; color: #fff; background: url('/assets/ui/v2/kit/shield.webp') 0 0 / 100% 100% no-repeat; border-radius: 0; box-shadow: none; text-shadow: 0 0 2px #4a2a05, 0 1px 1px #4a2a05, 0 0 4px #6b4108; }
+  html body .gtile .gtile__role { z-index: 2; top: 22%; left: 3.5%; width: 21%; height: auto; aspect-ratio: 1; font-size: 0; background: center / contain no-repeat; border: 0; box-shadow: none; }
+  html body .gtile[data-role="cavalry"] .gtile__role { background-image: url('/assets/ui/v2/kit/role-cavalry.webp'); }
+  html body .gtile[data-role="infantry"] .gtile__role { background-image: url('/assets/ui/v2/kit/role-infantry.webp'); }
+  html body .gtile[data-role="archer"] .gtile__role { background-image: url('/assets/ui/v2/kit/role-archer.webp'); }
+  html body .gtile[data-role="strategist"] .gtile__role { background-image: url('/assets/ui/v2/kit/role-strategist.webp'); }
+  html body .gtile .gtile__realm { position: absolute; z-index: 2; top: -1.5%; right: 1.5%; width: 27%; aspect-ratio: 110 / 108; background: center top / contain no-repeat; pointer-events: none; }
+  html body .gtile[data-realm="shu"] .gtile__realm { background-image: url('/assets/ui/v2/kit/banner-shu.webp'); }
+  html body .gtile[data-realm="wei"] .gtile__realm { background-image: url('/assets/ui/v2/kit/banner-wei.webp'); }
+  html body .gtile[data-realm="wu"] .gtile__realm { background-image: url('/assets/ui/v2/kit/banner-wu.webp'); }
+  html body .gtile[data-realm="qun"] .gtile__realm { background-image: url('/assets/ui/v2/kit/banner-qun.webp'); }
+  html body .gtile .gtile__badge { z-index: 3; top: 3%; right: auto; left: 50%; transform: translateX(-50%); padding: 1px 5px; font-size: 9.5cqw; line-height: 1.2; }
+  html body .gtile .gtile__foot { z-index: 2; left: 3.2%; right: 3.2%; bottom: 2.6%; display: grid; gap: 0; padding: 0; background: none; }
+  html body .gtile .gtile__line { justify-content: space-between; height: 15cqw; padding: 0 5%; font-size: 10.5cqw; color: #fff; background: linear-gradient(180deg, rgba(8, 6, 6, .55), rgba(8, 6, 6, .92)); border-top: 1px solid rgba(0, 0, 0, .6); box-shadow: 0 1px 0 #d4af37; }
+  html body .gtile .gtile__line b { font-weight: 900; text-shadow: 0 1px 1px #000; }
+  html body .gtile .gtile__stars { font-size: 9.5cqw; letter-spacing: -.5px; color: #f6c445; text-shadow: 0 0 2px rgba(0, 0, 0, .8); }
+  html body .gtile .gtile__stars i { color: #6d6a66; }
+  html body .gtile .gtile__foot strong { padding: 2.5cqw 2px 3cqw; font-size: 12.5cqw; font-weight: 900; line-height: 1.1; color: #f8e9c4; border-top: 0; background: linear-gradient(180deg, rgba(14, 10, 8, .96), rgba(6, 4, 3, .98)); text-shadow: 0 1px 1px #000; }
+  html body .gtile.is-locked .gtile__art { filter: grayscale(.9) brightness(.45); }
+
+  /* ── 아래 줄: 투구 메달 · 출전 전투력 · 편성 · 장비 · 도감 ── */
+  html body .app-shell .mscreen-foot { position: relative; height: 40px; padding: 0 0 0 46px; gap: 6px; border-top: 0; font-size: 13px; color: #e8dcc0; background: linear-gradient(180deg, rgba(14, 12, 12, .93), rgba(6, 5, 5, .96)); border: 1px solid rgba(212, 175, 55, .6); border-radius: 4px 20px 20px 4px; box-shadow: 0 -1px 0 rgba(0, 0, 0, .6); }
+  html body .mscreen-foot__helm { position: absolute; left: -2px; top: 50%; width: 44px; height: 44px; transform: translateY(-50%); background: url('/assets/ui/v2/kit/helmet.webp') center / contain no-repeat; }
+  html body .app-shell .mscreen-foot > span { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+  html body .app-shell .mscreen-foot > span b { font-size: 19px; font-weight: 900; color: #f6cf6a; text-shadow: 0 1px 1px #000; }
+  html body .app-shell .mscreen-foot > span em { font-style: normal; padding-left: 8px; margin-left: 2px; border-left: 1px solid rgba(212, 175, 55, .5); color: #d9cba8; font-size: 12px; }
+  html body .app-shell .mscreen-foot__btn { height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13.5px; color: #f3e3bd; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; }
+  html body .app-shell .mscreen-foot__btn .gi, html body .app-shell .mscreen-foot__btn svg { width: 17px; height: 17px; color: #f0c35a; }
+  html body .app-shell .mscreen-foot__btn:last-child { margin-right: 3px; }
+
+  /* ── 편성 ── */
+  html body .app-shell .main-content .squad-tab { color: #e8dcc0; background: none; border: 9px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark-dragon.webp') 30 fill / 9px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .squad-tab strong { color: #f8e9c4; }
+  html body .app-shell .main-content .squad-tab.is-active { border-image-source: url('/assets/ui/v2/kit/btn-dark.webp'); filter: drop-shadow(0 0 4px rgba(255, 190, 70, .9)); }
+  html body .app-shell .main-content .squad-tab.is-active strong { color: #f6cf6a; }
+  html body .app-shell .main-content .page-section--formation > .formation-screen { background: none; border: 0 solid transparent; border-width: 40px 16px 14px; border-image: url('/assets/ui/v2/kit/panel-formation.webp') 80 34 30 fill / 40px 16px 14px / 0 stretch; box-shadow: none; border-radius: 0; padding: 0 2px 2px; }
+  html body .app-shell .main-content .page-section--formation > .formation-screen .formation-screen-head { margin: -34px 0 6px; min-height: 30px; }
+  html body .app-shell .main-content .page-section--formation .formation-slot { background: none; border: 0 solid transparent; border-width: 12px; border-image: url('/assets/ui/v2/kit/panel-square.webp') 40 fill / 12px / 0 stretch; border-radius: 0; box-shadow: none; padding: 0; }
+  html body .app-shell .main-content .page-section--formation .formation-slot--filled { --accent: transparent; }
+  html body .app-shell .main-content .page-section--formation .formation-slot-index { color: #f3d98a; font-weight: 800; }
+  html body .app-shell .main-content .page-section--formation .formation-portrait { position: relative; border: 0; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .page-section--formation .formation-portrait::after { content: ''; position: absolute; inset: -6% -9% -9%; background: url('/assets/ui/v2/kit/portrait-frame.webp') 0 0 / 100% 100% no-repeat; pointer-events: none; }
+  html body .app-shell .main-content .page-section--formation .auto-actions .action-button { background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; color: #f3e3bd; box-shadow: none; border-radius: 0; }
+  html body .app-shell .main-content .page-section--formation .auto-actions .action-button--primary { border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); color: #2b1a06; text-shadow: 0 1px 0 rgba(255, 244, 210, .7); }
+  html body .app-shell .main-content .page-section--formation .formation-readiness { color: #5ff0c0; background: rgba(6, 30, 26, .85); border: 1px solid #3fd6a6; border-radius: 3px; box-shadow: 0 0 6px rgba(63, 214, 166, .45); }
+  html body .app-shell .main-content .page-section--formation .formation-bench-card { background: none; border: 0 solid transparent; border-width: 6px 10px; border-image: url('/assets/ui/v2/kit/panel-thin.webp') 18 30 fill / 6px 10px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .page-section--formation .formation-bench-portrait { border: 1.5px solid #e2b94a; border-radius: 2px; box-shadow: 0 0 5px rgba(255, 190, 70, .5); }
+  html body .app-shell .main-content .page-section--formation .formation-bench-card.is-assigned .formation-bench-portrait { border-color: #3fd6c6; box-shadow: 0 0 5px rgba(63, 214, 198, .6); }
+  html body .app-shell .main-content .page-section--formation .formation-bench-card > b { color: #f6cf6a; }
+  html body .app-shell .main-content .page-section--formation .mini-action--deploy { background: none; border: 6px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 6px / 0 stretch; color: #f3e3bd; border-radius: 0; }
+  html body .app-shell .main-content .page-section--formation .formation-bench-head h3 { color: #f8e9c4; }
+
+  /* ── 모집 ── */
+  html body .app-shell .main-content .page-section--msum { background: radial-gradient(ellipse at 55% 35%, rgba(70, 40, 30, .55), rgba(10, 6, 4, .2) 75%); border-radius: 0; }
+  html body .msum-banner { border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+  html body .msum-banner::after { content: ''; position: absolute; inset: -2px; background: url('/assets/ui/v2/kit/banner-frame.webp') 0 0 / 100% 100% no-repeat; pointer-events: none; }
+  html body .msum-banner.is-active { box-shadow: none; }
+  html body .msum-banner.is-active::after { inset: -4px; background-image: url('/assets/ui/v2/kit/banner-frame-on.webp'); }
+  html body .msum-banner strong { font-size: 21px; color: #fff3d6; text-shadow: 0 2px 2px #000, 0 0 6px #000; }
+  html body .msum-banner small { padding: 1px 8px; font-size: 12px; color: #9ff0c0; background: rgba(4, 20, 18, .85); border: 1px solid rgba(212, 175, 55, .6); border-radius: 2px; }
+  html body .msum-center h2 { font-family: 'Gowun Batang', serif; font-size: 48px; font-weight: 700; letter-spacing: .04em; color: #f6d77a; background: linear-gradient(180deg, #fff6d0 0%, #f6d77a 40%, #c38a2a 75%, #8a5a18 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; filter: drop-shadow(0 2px 0 #2a1204) drop-shadow(0 0 8px rgba(0, 0, 0, .9)); }
+  html body .msum-center .msum-sub { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #f2e4c6; }
+  html body .msum-center .msum-sub::before, html body .msum-center .msum-sub::after { content: ''; width: 46px; height: 1px; background: linear-gradient(90deg, transparent, #d4af37); }
+  html body .msum-center .msum-sub::after { transform: scaleX(-1); }
+  html body .msum-btn { min-width: 190px; height: 58px; color: #2b1a06; background: none; border: 0 solid transparent; border-width: 12px 34px; border-image: url('/assets/ui/v2/kit/btn-gold-dragon.webp') 40 100 fill / 12px 34px / 0 stretch; border-radius: 0; box-shadow: none; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .7)); padding: 0; }
+  html body .msum-btn--gold { background: none; filter: drop-shadow(0 0 5px rgba(255, 200, 90, .7)) drop-shadow(0 3px 6px rgba(0, 0, 0, .7)); }
+  html body .msum-btn span { font-size: 19px; }
+  html body .msum-free { display: inline-flex; align-items: center; gap: 4px; padding: 0 22px; height: 28px; font-size: 12.5px; color: #eee2c6; border: 0 solid transparent; border-width: 6px 16px; border-image: url('/assets/ui/v2/kit/btn-hex.webp') 16 40 fill / 6px 16px / 0 stretch; }
+  html body .msum-free b { min-width: 26px; padding: 0 4px; text-align: center; color: #f6cf6a; background: #0b0a0a; border: 1px solid rgba(212, 175, 55, .5); border-radius: 2px; }
+  html body .msum-icon span { width: 48px; height: 48px; font-size: 0; color: transparent; background: center / contain no-repeat; border: 0; box-shadow: none; }
+  html body .msum-icon--help span { background-image: url('/assets/ui/v2/kit/round-help.webp'); }
+  html body .msum-icon--log span { background-image: url('/assets/ui/v2/kit/round-log.webp'); }
+  html body .msum-icon--codex span { background-image: url('/assets/ui/v2/kit/round-codex.webp'); }
+  html body .msum-icon small { margin-top: -6px; padding: 0 8px; font-size: 11.5px; color: #fff; background: linear-gradient(180deg, #1b1714, #0b0908); border: 1px solid rgba(212, 175, 55, .7); border-radius: 2px; }
+}

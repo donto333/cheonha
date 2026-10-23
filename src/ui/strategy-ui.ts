@@ -7,6 +7,7 @@ import { RAID_REWARDS, raidWeekKey } from '../../server/raid.mjs'
 import { EQUIPMENT_PRESET_SLOTS, EQUIPMENT_STORAGE_WARN, bulkDismantlePreview, dismantlableCount, dismantleYield, equipmentOwners, presetItemIds } from '../game/equipment-manage'
 import { TUTORIAL_REWARD, TUTORIAL_STEPS, nextTutorialStep, tutorialFinished, DAILY_BONUS, DAILY_BONUS_ID, MISSIONS, dailyBonusReady, ensureMissions, missionStatus, rewardText, seoulDay, type MissionDef } from '../game/missions'
 import { nextAttendanceDay } from '../../server/attendance.mjs'
+import { generalRealm, REALM_LABEL, type Realm } from '../game/general-factions'
 import { packageBonus, shopNeeds, shopPackages, type ShopPackage, type ShopResource } from '../game/shop'
 import { effectsSetting, muteSetting, musicSetting, qualitySetting, setEffectsSetting, setMusicSetting, setMuteSetting, setQualitySetting, setSfxSetting, sfxSetting, type EffectsSetting, type QualitySetting, type SoundLevel } from '../game/settings'
 import { sound } from '../engine/sound'
@@ -510,7 +511,16 @@ export class StrategyUI {
   private cityDamageRankingCityId = ''
   private rosterSort: RosterSort = 'power'
   private rosterSortDescending = true
-  private rosterFilter: 'all' | '5' | '4' | Role = 'all'
+  private rosterFilter: 'all' | '5' | '4' | Role | Realm = 'all'
+  /** 장수 거르기(진영 · 등급 · 병과) */
+  private rosterMatch(general: General): boolean {
+    const f = this.rosterFilter
+    if (f === 'all') return true
+    if (f === '5') return general.grade === 5
+    if (f === '4') return general.grade === 4
+    if (f === 'shu' || f === 'wei' || f === 'wu' || f === 'qun') return generalRealm(general.id) === f
+    return general.role === f
+  }
   private codexFilter: 'all' | 'owned' | 'missing' | '5' | '4' | Role = 'all'
   private codexQuery = ''
   /** 출전 편성 · 대기 무장 찾기(이름 · 칭호 · 병종 · 진영 · 등급 · 스킬) */
@@ -680,6 +690,7 @@ export class StrategyUI {
     resetUiPowerMemo()
     // 효과 줄임 설정을 CSS에서도 알 수 있게(카드 오라 등 반복 효과를 멈춘다)
     document.documentElement.dataset.fx = effectsSetting()
+    document.documentElement.dataset.realm = ({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' } as Record<string, string>)[state.faction] ?? 'none'
     this.coachSection = nextTutorialStep(state)?.section ?? null
     // 금화 내역: 지난 화면 이후 금화가 바뀌었으면 그때의 안내 문구와 함께 남긴다
     if (this.goldSeen !== null && this.goldSeen !== state.gold) trackGoldChange(state, this.goldSeen, this.noticeSeen !== state.lastNotice ? state.lastNotice : '')
@@ -1632,7 +1643,7 @@ export class StrategyUI {
     // 참고 게임처럼: 왼쪽 붉은 제목판 · 탭, 오른쪽 재화 · 종료(본영으로)
     const en = isEnglish()
     const title = `<button class="hub-tabs__title" data-action="section" data-section="overview" aria-label="본영으로" data-no-tr><span class="hub-tabs__back-arrow">‹</span>${en ? hub.en : hub.ko}</button>`
-    const res = `<div class="hub-tabs__res"><button type="button" class="hub-tabs__chip" data-action="gold-log">${icon('gold')}<b>${formatNumber(state.gold)}</b></button><span class="hub-tabs__chip">${icon('honor')}<b>${compactNumber(state.honor)}</b></span><span class="hub-tabs__chip">${icon('silver')}<b>${compactNumber(state.silver)}</b></span></div>`
+    const res = `<div class="hub-tabs__res"><button type="button" class="hub-tabs__chip hub-tabs__chip--gold" data-action="gold-log">${icon('gold')}<b>${formatNumber(state.gold)}</b></button><button type="button" class="hub-tabs__chip hub-tabs__chip--honor" data-action="section" data-section="shop">${icon('honor')}<b>${compactNumber(state.honor)}</b></button><button type="button" class="hub-tabs__chip hub-tabs__chip--silver" data-action="section" data-section="shop">${icon('silver')}<b>${compactNumber(state.silver)}</b></button></div>`
     const exit = `<button class="hub-tabs__exit" data-action="section" data-section="overview" aria-label="본영으로">✕</button>`
     return `<div class="hub-tabs hub-tabs--${hub.id}" role="tablist">${title}<div class="hub-tabs__tabs">${summonTabs || tabs}${balance}</div>${res}${exit}</div>`
   }
@@ -1859,18 +1870,18 @@ export class StrategyUI {
     const freeDraws = state.missions?.freeDraws ?? 0
     const banner = (tab: 'generals' | 'equipment', art: string, title: string, sub: string) => `<button class="msum-banner${active === tab ? ' is-active' : ''}" data-action="summon-tab" data-summon-tab="${tab}" style="background-image:url('${assetUrl(art)}')"><strong>${title}</strong><small>${sub}</small></button>`
     const banners = `<nav class="msum-banners">${banner('generals', '/assets/ui/recruit-montage.webp', en ? 'Generals' : '무장 모집', `${state.generals.length} / ${allGenerals().length}`)}${banner('equipment', '/assets/ui/forge-montage.webp', en ? 'Gear' : '장비 뽑기', `${en ? 'Owned' : '보유'} ${equipmentInventoryCount(state)}`)}</nav>`
-    const title = gear ? (en ? 'Master Arms' : '명장의 병기') : (en ? 'Call of the Jade' : '옥패의 부름')
+    const title = gear ? (en ? 'Master Arms' : '명장의 병기') : (en ? 'Call of Heroes' : '무장의 부름')
     const sub = gear ? '무기 · 갑옷 · 장신구를 뽑습니다. 장착 · 강화는 장비 관리에서.' : '중복 무장은 성급으로 바뀝니다 · 현금 결제 없음'
     const buttons = gear
       ? `<button class="msum-btn" data-action="equipment-draw" data-count="1"><span>1회 뽑기</span><b>${freeDraws >= 1 ? '무료권' : this.honorCost(equipmentDrawCost(1))}</b></button><button class="msum-btn msum-btn--gold" data-action="equipment-draw" data-count="10"><span>10회 뽑기</span><b>${freeDraws >= 10 ? '무료권' : this.honorCost(equipmentDrawCost(10))}</b></button>`
       : `<button class="msum-btn" data-action="recruit" data-count="1"><span>1회 모집</span><b>${freeRecruits >= 1 ? '무료권' : this.honorCost(recruitCost(state, 1))}</b></button><button class="msum-btn msum-btn--gold" data-action="recruit" data-count="10"><span>${this.freeRecruit ? '무료 10회' : '10회 모집'}</span><b>${this.freeRecruit ? '5등급 1명 확정' : freeRecruits >= 10 ? '무료권' : this.honorCost(recruitCost(state, 10))}</b></button>`
     const free = gear ? freeDraws : freeRecruits
-    const note = free > 0 ? `<p class="msum-free">무료 ${gear ? '뽑기' : '모집'}권 <b>${free}회</b> 남음</p>` : ''
-    const side = `<div class="msum-side"><button class="msum-icon" data-action="summon-rates"><span>?</span><small>확률</small></button><button class="msum-icon" data-action="draw-log" data-kind="${gear ? 'equip' : 'recruit'}"><span>≡</span><small>기록</small></button><button class="msum-icon" data-action="section" data-section="${gear ? 'equipment' : 'codex'}"><span>${gear ? '⚔' : '册'}</span><small>${gear ? '장비' : '도감'}</small></button></div>`
+    const note = `<p class="msum-free">무료 ${gear ? '뽑기' : '모집'}권 <b>${free}</b>회 남음</p>`
+    const side = `<div class="msum-side"><button class="msum-icon msum-icon--help" data-action="summon-rates"><span>?</span><small>확률</small></button><button class="msum-icon msum-icon--log" data-action="draw-log" data-kind="${gear ? 'equip' : 'recruit'}"><span>≡</span><small>기록</small></button><button class="msum-icon msum-icon--codex" data-action="section" data-section="${gear ? 'equipment' : 'codex'}"><span>${gear ? '⚔' : '册'}</span><small>${gear ? '장비' : '도감'}</small></button></div>`
     const recruitRates = ([5, 4, 3, 2, 1] as const).map(grade => `<li><span class="grade-dot" style="--grade:${GRADE_META[grade].color}"></span>${grade}등급 ${GRADE_META[grade].label}<b>${GRADE_META[grade].rate}</b></li>`).join('')
     const gearRates = ([['legendary', '5%'], ['unique', '12%'], ['rare', '28%'], ['normal', '55%']] as Array<[EquipmentGrade, string]>).map(([grade, rate]) => `<li><span class="grade-dot" style="--grade:${EQUIPMENT_GRADE_META[grade].color}"></span>${EQUIPMENT_GRADE_META[grade].label}<b>${rate}</b></li>`).join('')
     const rates = this.summonRatesOpen ? `<div class="msum-rates" role="dialog"><div class="msum-rates__backdrop" data-action="summon-rates"></div><div class="msum-rates__card"><strong>${gear ? '뽑기' : '모집'} 확률 · 1회 기준</strong><ul>${gear ? gearRates : recruitRates}</ul><small>모든 유저가 같은 확률입니다.</small></div></div>` : ''
-    return `<section class="page-section page-section--summoning page-section--msum"><div class="msum-art" style="background-image:url('${assetUrl(gear ? '/assets/ui/forge-montage.webp' : '/assets/ui/recruit-montage.webp')}')" aria-hidden="true"></div>${banners}<div class="msum-center"><h2>${title}</h2><p>${sub}</p><div class="msum-actions">${buttons}</div>${note}</div>${side}${rates}</section>`
+    return `<section class="page-section page-section--summoning page-section--msum"><div class="msum-art" style="background-image:url('${assetUrl(gear ? '/assets/ui/forge-montage.webp' : '/assets/ui/recruit-montage.webp')}')" aria-hidden="true"></div>${banners}<div class="msum-center"><h2>${title}</h2><p class="msum-sub">${sub}</p><div class="msum-actions">${buttons}</div>${note}</div>${side}${rates}</section>`
   }
 
   private summoningSection(state: StrategyState): string {
@@ -1916,9 +1927,10 @@ export class StrategyUI {
   /** 가로 휴대폰 무장 타일(참고 게임의 무장 목록 카드): 초상화 · 등급 · 병과 · 레벨 · 성급 · 이름 */
   private generalTile(general: General, kind: 'roster' | 'codex', options: { locked?: boolean; badge?: string } = {}): string {
     const meta = GRADE_META[general.grade]
-    const role = ({ 기병: '騎', 보병: '步', 궁병: '弓', 책사: '策' } as Record<string, string>)[general.role] ?? ''
+    const roleKey = ({ 기병: 'cavalry', 보병: 'infantry', 궁병: 'archer', 책사: 'strategist' } as Record<string, string>)[general.role] ?? 'infantry'
+    const realm = generalRealm(general.id)
     const stars = options.locked ? '' : `<span class="gtile__stars">${'★'.repeat(general.stars)}<i>${'★'.repeat(Math.max(0, 5 - general.stars))}</i></span>`
-    return `<button class="gtile${options.locked ? ' is-locked' : ''}" data-action="general-detail" data-kind="${kind}" data-id="${general.id}" style="--grade:${meta?.color ?? '#a9b1b8'}"><span class="gtile__art" style="background-image:url('${this.portraitAsset(general)}')"></span><span class="gtile__grade" data-no-tr>${general.grade}</span><span class="gtile__role" data-no-tr title="${general.role}">${role}</span>${options.badge ? `<span class="gtile__badge">${escapeHtml(options.badge)}</span>` : ''}<span class="gtile__foot"><span class="gtile__line"><b>${options.locked ? (isEnglish() ? 'Not owned' : '미영입') : `Lv.${general.level}`}</b>${stars}</span><strong>${escapeHtml(general.name)}</strong></span></button>`
+    return `<button class="gtile gtile--g${general.grade}${options.locked ? ' is-locked' : ''}" data-action="general-detail" data-kind="${kind}" data-id="${general.id}" data-realm="${realm}" data-role="${roleKey}" style="--grade:${meta?.color ?? '#a9b1b8'}"><span class="gtile__art" style="background-image:url('${this.portraitAsset(general)}')"></span><span class="gtile__frame" aria-hidden="true"></span><span class="gtile__grade" data-no-tr>${general.grade}</span><span class="gtile__role" data-no-tr title="${general.role}"></span><span class="gtile__realm" title="${REALM_LABEL[realm]}"></span>${options.badge ? `<span class="gtile__badge">${escapeHtml(options.badge)}</span>` : ''}<span class="gtile__foot"><span class="gtile__line"><b>${options.locked ? (isEnglish() ? 'Not owned' : '미영입') : `Lv.${general.level}`}</b>${stars}</span><strong>${escapeHtml(general.name)}</strong></span></button>`
   }
 
   /** 상세 창(무장 카드 · 도감 카드를 크게) */
@@ -1943,19 +1955,17 @@ export class StrategyUI {
   /** 가로 휴대폰 보유 무장: 타일 6장씩 · 아래 버튼 줄 */
   private mobileRoster(state: StrategyState): string {
     const sortOptions: Array<[RosterSort, string]> = [['power', '전투력'], ['level', '레벨'], ['grade', '등급'], ['name', '이름'], ['role', '병과']]
-    const match = (general: General) => this.rosterFilter === 'all' ? true : this.rosterFilter === '5' ? general.grade === 5 : this.rosterFilter === '4' ? general.grade === 4 : general.role === this.rosterFilter
+    const match = (general: General) => this.rosterMatch(general)
     const squadOf = new Map<string, string>()
     ;[0, 1, 2].forEach(squad => (squad === 0 ? state.formation : squadIds(state, squad)).forEach(id => { if (id) squadOf.set(id, SQUAD_LABELS[squad]) }))
     const deployedFirst = [...state.formation, ...squadIds(state, 1), ...squadIds(state, 2)].map(id => state.generals.find(general => general.id === id)).filter((general): general is General => Boolean(general))
     const rest = this.sortedOwnedGenerals(state).filter(general => !squadOf.has(general.id))
     const list = [...deployedFirst, ...rest].filter(match)
-    const filters: Array<[typeof this.rosterFilter, string, number]> = [
-      ['all', '전체', state.generals.length], ['5', '천명', state.generals.filter(g => g.grade === 5).length], ['4', '명장', state.generals.filter(g => g.grade === 4).length],
-      ...(['기병', '보병', '궁병', '책사'] as Role[]).map(role => [role, role, state.generals.filter(g => g.role === role).length] as [Role, string, number]),
-    ]
-    const toolbar = `<div class="mroster-bar"><div class="filter-tabs">${filters.map(([id, label, count]) => `<button class="filter-tab ${this.rosterFilter === id ? 'is-active' : ''}" data-action="roster-filter" data-filter="${id}">${label} <b>${count}</b></button>`).join('')}</div><label class="mroster-sort">정렬 <select data-action="roster-sort">${sortOptions.map(([value, label]) => `<option value="${value}" ${this.rosterSort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label><button class="sort-direction" data-action="roster-sort-direction" title="정렬 방향">${this.rosterSortDescending ? '↓' : '↑'}</button></div>`
+    const realmCount = (realm: Realm) => state.generals.filter(g => generalRealm(g.id) === realm).length
+    const filters: Array<[typeof this.rosterFilter, string, number]> = [['all', '전체', state.generals.length], ...(['shu', 'wei', 'wu', 'qun'] as Realm[]).map(realm => [realm, REALM_LABEL[realm], realmCount(realm)] as [Realm, string, number])]
+    const toolbar = `<div class="mroster-bar"><div class="filter-tabs filter-tabs--realm">${filters.map(([id, label, count]) => `<button class="filter-tab filter-tab--${id} ${this.rosterFilter === id ? 'is-active' : ''}" data-action="roster-filter" data-filter="${id}"><i class="filter-tab__ico" aria-hidden="true"></i>${label} <b>${count}</b></button>`).join('')}</div><label class="mroster-sort"><i class="mroster-sort__helm" aria-hidden="true"></i>정렬 <select data-action="roster-sort">${sortOptions.map(([value, label]) => `<option value="${value}" ${this.rosterSort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label><button class="sort-direction" data-action="roster-sort-direction" title="정렬 방향">${this.rosterSortDescending ? '↓' : '↑'}</button></div>`
     const grid = list.length ? `<div class="gtile-grid">${list.map(general => this.generalTile(general, 'roster', { badge: squadOf.get(general.id) })).join('')}</div>` : '<div class="roster-empty">이 조건에 맞는 무장이 없습니다.</div>'
-    const foot = `<div class="mscreen-foot"><span>출전 전투력 <b>${formatNumber(totalPower(state))}</b> · 은전 ${formatNumber(state.silver)} · 병서 ${formatNumber(state.manuals)}</span><button class="mscreen-foot__btn" data-action="section" data-section="formation">편성</button><button class="mscreen-foot__btn" data-action="section" data-section="equipment">장비</button><button class="mscreen-foot__btn" data-action="section" data-section="codex">도감 <b>${state.generals.length}/${allGenerals().length}</b></button></div>`
+    const foot = `<div class="mscreen-foot"><i class="mscreen-foot__helm" aria-hidden="true"></i><span>출전 전투력 <b>${formatNumber(totalPower(state))}</b><em>은전 ${formatNumber(state.silver)} · 병서 ${formatNumber(state.manuals)}</em></span><button class="mscreen-foot__btn" data-action="section" data-section="formation">${icon('formation')}편성</button><button class="mscreen-foot__btn" data-action="section" data-section="equipment">${icon('equipment')}장비</button><button class="mscreen-foot__btn" data-action="section" data-section="codex">${icon('codex')}도감 <b>${state.generals.length}/${allGenerals().length}</b></button></div>`
     return `<section class="page-section page-section--roster page-section--mroster">${toolbar}${grid}${foot}</section>${this.generalDetailPanel(state)}`
   }
 
@@ -1976,7 +1986,7 @@ export class StrategyUI {
   private rosterSection(state: StrategyState): string {
     if (isPhoneLandscape()) return this.mobileRoster(state)
     const sortOptions: Array<[RosterSort, string]> = [['power', '전투력'], ['level', '레벨'], ['grade', '등급'], ['name', '이름'], ['role', '병과']]
-    const match = (general: General) => this.rosterFilter === 'all' ? true : this.rosterFilter === '5' ? general.grade === 5 : this.rosterFilter === '4' ? general.grade === 4 : general.role === this.rosterFilter
+    const match = (general: General) => this.rosterMatch(general)
     // 출전 무장은 좌·중·우 순서로 맨 앞에 고정, 나머지는 고른 정렬
     const deployed = state.formation.map(id => state.generals.find(general => general.id === id)).filter((general): general is General => Boolean(general) && match(general!))
     // 2군·3군도 따로 묶어 보여 준다(편성 순서대로), 대기는 어느 군에도 없는 무장
