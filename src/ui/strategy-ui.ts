@@ -580,6 +580,8 @@ export class StrategyUI {
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
     window.addEventListener('keydown', event => {
       if (event.key === 'Escape' && this.territoryMap.fullscreen) this.territoryMap.setFullscreen(false)
+      // 영토 도시 검색: Enter로 첫 결과 고르기
+      if (event.key === 'Enter' && (event.target as HTMLElement | null)?.matches?.('[data-terr-search-input]')) { event.preventDefault(); this.root.querySelector<HTMLElement>('[data-terr-search] .terr-search__row:not([hidden])')?.click() }
       // 전투 중 V 키: 시점 바꾸기(글 입력 중에는 무시)
       if ((event.key === 'v' || event.key === 'V' || event.key === 'ㅍ') && !event.ctrlKey && !event.metaKey && !event.altKey && this.latestBattle?.active && !(event.target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable]')) this.cycleBattleView()
     })
@@ -2272,7 +2274,7 @@ export class StrategyUI {
     const incomeWait = incomeCooldownRemaining(state)
     const incomeLabel = incomeWait ? `오늘 수확 완료 · ${Math.ceil(incomeWait / 3600000)}시간 후` : '오늘의 내정 수확'
     const wanderer = isWanderer(state)
-    return `<section class="page-section page-section--territory${this.citySheetOpen ? ' is-sheet-open' : ''}"><div class="section-heading section-heading--compact"><div><span class="eyebrow">육성</span><h1>영토 · 내정</h1><p class="heading-copy">내정을 키운 군세로 전선을 열고, 성벽을 무너뜨려 천하를 점령하십시오.</p>${this.operatorNote('공성 · 점령 · 수비병 · 도시 피해 순위가 영토전에 반영되지 않습니다.')}</div><div class="territory-heading-actions"><button class="action-button action-button--outline" data-action="territory-rules">영토전 설명 <span>?</span></button><button class="action-button action-button--outline" data-action="territory-refresh">영토 새로고침 <span>↻</span></button>${wanderer ? '' : `<button class="action-button action-button--primary" data-action="collect-income">${incomeLabel} <span>✦</span></button>`}</div></div>${this.seasonCard(state)}<div class="conquest-overview glass-card">${wanderer ? `<div><span class="eyebrow">재야 · 중립 진영</span><h3>천하 약탈</h3><p>본성 없이 어느 도시든 공성합니다. 이기면 성벽을 깎고 그 성 하루 생산량의 ${Math.round(WANDERER_PLUNDER_RATE * 100)}%를 약탈합니다(하루 ${wandererDailyPlunder(state)}회, 오늘 ${wandererPlunderLeft(state)}회 남음). 성벽을 0으로 무너뜨리면 그 성의 내정 건물이 초기화되고, 성벽은 ${Math.round(RAZE_REBUILD_MS / 3600000)}시간 뒤 다시 세워집니다. 점령 · 내정 · 최종 세력전은 할 수 없고, 낙양만은 세 진영과 같은 규칙입니다.</p></div>` : `<div><span class="eyebrow">공략 전선</span><h3>영토 점령전</h3><p>출정할 때마다 식량·은전·철을 소모합니다. 공성 진전을 100%까지 쌓으면 ${state.faction}의 전선이 됩니다.</p>${this.influenceNote(state)}</div>`}<div class="conquest-overview-stats"><span><b>${owned}</b><small>아군 도시</small></span><span><b>${contested}</b><small>남은 전선</small></span><span><b>${formatNumber(conquestPower(state))}</b><small>출정 전투력</small></span><span><b>${formatNumber(state.factionWarScore)}</b><small>세력전 공헌도</small></span></div></div><div class="territory-layout"><div class="glass-card territory-map"><div class="card-header"><div><span class="eyebrow">삼국 영토</span><h3>천하 영토</h3></div><button class="sync-label sync-label--button" data-action="territory-refresh" data-territory-sync>${this.territorySyncText}</button></div>${this.mapViewport(state)}<div class="map-legend"><span><i class="legend-dot legend-dot--ally"></i>${state.faction} 영토</span><span><i class="legend-dot legend-dot--neutral"></i>중립</span><span><i class="legend-dot legend-dot--enemy"></i>타 세력</span><span><i class="legend-line"></i>연결 전선</span></div>${this.mobileCitySelector(state)}</div>${selected ? this.cityManagementCard(selected, income, state) : ''}</div></section>`
+    return `<section class="page-section page-section--territory${this.citySheetOpen ? ' is-sheet-open' : ''}"><div class="section-heading section-heading--compact"><div><span class="eyebrow">육성</span><h1>영토 · 내정</h1><p class="heading-copy">내정을 키운 군세로 전선을 열고, 성벽을 무너뜨려 천하를 점령하십시오.</p>${this.operatorNote('공성 · 점령 · 수비병 · 도시 피해 순위가 영토전에 반영되지 않습니다.')}</div><div class="territory-heading-actions"><button class="action-button action-button--outline" data-action="territory-rules">영토전 설명 <span>?</span></button><button class="action-button action-button--outline" data-action="territory-refresh">영토 새로고침 <span>↻</span></button>${wanderer ? '' : `<button class="action-button action-button--primary" data-action="collect-income">${incomeLabel} <span>✦</span></button>`}</div></div>${this.seasonCard(state)}<div class="conquest-overview glass-card">${this.territorySearch(state)}${wanderer ? `<div><span class="eyebrow">재야 · 중립 진영</span><h3>천하 약탈</h3><p>본성 없이 어느 도시든 공성합니다. 이기면 성벽을 깎고 그 성 하루 생산량의 ${Math.round(WANDERER_PLUNDER_RATE * 100)}%를 약탈합니다(하루 ${wandererDailyPlunder(state)}회, 오늘 ${wandererPlunderLeft(state)}회 남음). 성벽을 0으로 무너뜨리면 그 성의 내정 건물이 초기화되고, 성벽은 ${Math.round(RAZE_REBUILD_MS / 3600000)}시간 뒤 다시 세워집니다. 점령 · 내정 · 최종 세력전은 할 수 없고, 낙양만은 세 진영과 같은 규칙입니다.</p></div>` : `<div><span class="eyebrow">공략 전선</span><h3>영토 점령전</h3><p>출정할 때마다 식량·은전·철을 소모합니다. 공성 진전을 100%까지 쌓으면 ${state.faction}의 전선이 됩니다.</p>${this.influenceNote(state)}</div>`}<div class="conquest-overview-stats"><span><b>${owned}</b><small>아군 도시</small></span><span><b>${contested}</b><small>남은 전선</small></span><span><b>${formatNumber(conquestPower(state))}</b><small>출정 전투력</small></span><span><b>${formatNumber(state.factionWarScore)}</b><small>세력전 공헌도</small></span></div></div><div class="territory-layout"><div class="glass-card territory-map"><div class="card-header"><div><span class="eyebrow">삼국 영토</span><h3>천하 영토</h3></div><button class="sync-label sync-label--button" data-action="territory-refresh" data-territory-sync>${this.territorySyncText}</button></div>${this.mapViewport(state)}<div class="map-legend"><span><i class="legend-dot legend-dot--ally"></i>${state.faction} 영토</span><span><i class="legend-dot legend-dot--neutral"></i>중립</span><span><i class="legend-dot legend-dot--enemy"></i>타 세력</span><span><i class="legend-line"></i>연결 전선</span></div>${this.mobileCitySelector(state)}</div>${selected ? this.cityManagementCard(selected, income, state) : ''}</div></section>`
   }
 
   /** 천하 시즌(서버) */
@@ -2385,6 +2387,7 @@ export class StrategyUI {
     }
     this.territoryMap.attach(viewport, this.mapCities(state), state.selectedCityId, homeCityId(state.faction))
     this.applyCityFinder()
+    this.applyTerritorySearch()
   }
 
   private mobileCitySelector(state: StrategyState): string {
@@ -2399,6 +2402,32 @@ export class StrategyUI {
     const chips = (['all', 'front', 'ally', 'enemy', 'neutral'] as CityFilter[]).map(key => `<button type="button" class="city-filter-chip city-filter-chip--${key}" data-action="city-filter" data-filter="${key}">${labels[key]} <b>${counts[key]}</b></button>`).join('')
     const list = rows.map(({ city, group }) => `<button type="button" class="city-finder-row is-${group} ${state.selectedCityId === city.id ? 'is-selected' : ''}" data-action="city-find" data-city="${city.id}" data-group="${group}" data-name="${escapeHtml(city.name)}"><span class="city-finder-dot"></span><strong>${escapeHtml(city.name)}</strong><small>${groupLabel[group]} · ${escapeHtml(city.owner)}</small><em>Lv.${city.level}</em></button>`).join('')
     return `<div class="mobile-city-selector city-finder" data-city-finder><div class="city-finder-head"><span class="eyebrow">도시 찾기</span><small data-city-finder-count>${rows.length}개 도시</small></div><input class="city-finder-search" type="search" placeholder="도시 이름 검색" value="${escapeHtml(this.cityQuery)}" data-city-search enterkeyhint="search"><div class="city-finder-filters">${chips}</div><div class="city-finder-list">${list}</div><p class="city-finder-empty" data-city-finder-empty hidden>조건에 맞는 도시가 없습니다.</p></div>`
+  }
+
+  /** 영토 화면 위 줄의 도시 검색(휴대폰 가로): 이름을 치면 맞는 도시가 아래로 뜨고, 누르면 지도가 그 도시로 간다 */
+  private territoryQuery = ''
+  private territorySearch(state: StrategyState): string {
+    const rows = state.cities
+      .map(city => ({ city, group: this.cityGroup(city, state) }))
+      .sort((a, b) => a.city.name.localeCompare(b.city.name, 'ko'))
+      .map(({ city, group }) => `<button type="button" class="terr-search__row is-${group}" data-action="city-find" data-city="${city.id}" data-name="${escapeHtml(city.name)}" hidden><span class="city-finder-dot"></span><strong>${escapeHtml(city.name)}</strong><small>${escapeHtml(city.owner ?? '중립')} · Lv.${city.level}</small></button>`).join('')
+    return `<div class="terr-search" data-terr-search><span class="terr-search__icon" aria-hidden="true">⌕</span><input class="terr-search__input" type="search" placeholder="도시 이름 검색" value="${escapeHtml(this.territoryQuery)}" data-terr-search-input enterkeyhint="search" autocomplete="off"><div class="terr-search__list" data-terr-search-list hidden>${rows}<p class="terr-search__empty" data-terr-search-empty hidden>맞는 도시가 없습니다.</p></div></div>`
+  }
+
+  private applyTerritorySearch(): void {
+    const box = this.root.querySelector<HTMLElement>('[data-terr-search]')
+    if (!box) return
+    const query = this.territoryQuery.trim()
+    const list = box.querySelector<HTMLElement>('[data-terr-search-list]')
+    let shown = 0
+    box.querySelectorAll<HTMLElement>('.terr-search__row').forEach(row => {
+      const visible = Boolean(query) && (row.dataset.name ?? '').includes(query) && shown < 8
+      row.hidden = !visible
+      if (visible) shown += 1
+    })
+    if (list) list.hidden = !query
+    const empty = box.querySelector<HTMLElement>('[data-terr-search-empty]')
+    if (empty) empty.hidden = !query || shown > 0
   }
 
   /** 검색어·필터를 목록에 바로 반영한다(화면 전체를 다시 그리지 않음). */
@@ -2432,6 +2461,7 @@ export class StrategyUI {
       if (note) note.textContent = changed ? `바꾼 칸 ${changed}개 · 저장을 눌러 반영하십시오` : '바꾼 칸만 저장됩니다.'
       return
     }
+    if (input.matches('[data-terr-search-input]')) { this.territoryQuery = input.value; this.applyTerritorySearch(); return }
     if (!input.matches('[data-city-search]')) return
     this.cityQuery = input.value
     this.applyCityFinder()
@@ -3653,12 +3683,13 @@ export class StrategyUI {
     }
     else if (action === 'city-find') {
       const id = button.dataset.city ?? ''
+      if (button.closest('[data-terr-search]')) { this.territoryQuery = ''; (document.activeElement as HTMLElement | null)?.blur?.() }
       this.citySheetOpen = true
       this.territoryMap.queueFocus(id)
       if (this.territoryMap.fullscreen) this.territoryMap.setFullscreen(false)
       this.callbacks.onCitySelect(id)
       this.callbacks.onCityDamageRankingRefresh(id)
-      this.root.querySelector('[data-map-viewport]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (!isPhoneLandscape()) this.root.querySelector('[data-map-viewport]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
     else if (action === 'city-filter') { this.cityFilter = (button.dataset.filter as CityFilter) || 'all'; this.applyCityFinder() }
     else if (action === 'city-sheet-close') {

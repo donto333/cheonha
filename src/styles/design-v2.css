@@ -293,3 +293,21 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .page-section--territory .city-sheet-bar { display: none; }
   html body .page-section--territory .city-management { position: static; inset: auto; z-index: auto; max-height: none; margin: 0; padding: 8px 10px; border-radius: 3px; border: 1px solid rgba(212, 175, 55, .35); transform: none; visibility: visible; transition: none; box-shadow: none; }
 }
+/* 영토: 위 줄 도시 검색 */
+html body .terr-search { display: none; }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--territory .conquest-overview { justify-content: space-between; overflow: visible; position: relative; z-index: 6; }
+  html body .page-section--territory .terr-search { position: relative; display: flex; align-items: center; flex: 0 1 260px; min-width: 150px; height: 30px; }
+  html body .terr-search__icon { position: absolute; left: 9px; top: 50%; transform: translateY(-52%); font-size: 17px; color: var(--v2-gold); pointer-events: none; }
+  html body .terr-search__input { width: 100%; height: 30px; padding: 0 10px 0 30px; font-size: 13px; color: var(--v2-ink); background: rgba(10, 6, 3, .7); border: 1px solid rgba(212, 175, 55, .5); border-radius: 15px; outline: none; }
+  html body .terr-search__input:focus { border-color: var(--v2-gold-hi); box-shadow: 0 0 0 2px rgba(212, 175, 55, .25); }
+  html body .terr-search__list { position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; width: 100%; min-width: 220px; max-height: 260px; overflow-y: auto; padding: 4px; background: linear-gradient(180deg, #33251b, #1d140d); border: 1px solid var(--v2-gold-deep); border-radius: 4px; box-shadow: 0 8px 20px rgba(0, 0, 0, .6); }
+  html body .terr-search__row { display: grid; grid-template-columns: 8px 1fr auto; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 0 8px; text-align: left; background: none; border: 0; border-bottom: 1px solid rgba(212, 175, 55, .12); color: var(--v2-ink); }
+  html body .terr-search__row[hidden] { display: none; }
+  html body .terr-search__row:active, html body .terr-search__row:hover { background: rgba(212, 175, 55, .15); }
+  html body .terr-search__row strong { font-size: 13.5px; }
+  html body .terr-search__row small { font-size: 11px; color: var(--v2-ink-soft); }
+  html body .terr-search__row .city-finder-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot, #f0c26a); }
+  html body .terr-search__row.is-ally { --dot: #4fcf98; } html body .terr-search__row.is-front { --dot: #ff9b4a; } html body .terr-search__row.is-enemy { --dot: #e5533f; }
+  html body .terr-search__empty { margin: 6px 8px; font-size: 12px; color: var(--v2-ink-soft); }
+}
