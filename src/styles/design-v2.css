@@ -805,3 +805,10 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-story { height: 58px; min-height: 58px; flex-shrink: 0; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { min-height: 46px; }
 }
+@media (orientation: landscape) and (max-height: 380px) {
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail { padding: 4px 10px; row-gap: 2px; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-story { height: 42px; min-height: 42px; padding: 3px 8px; line-height: 1.45; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > h2 { font-size: 18px; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-main__actions .action-button { min-height: 34px; height: 34px; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { min-height: 0; padding: 3px 8px; }
+}
