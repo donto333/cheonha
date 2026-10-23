@@ -231,7 +231,7 @@ export function guildSection(state: StrategyState, ui: GuildUiState): string {
   const head = `<div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>연맹</h1><p class="heading-copy">같은 진영 지휘관과 연맹을 맺어 함께 키우고, 함께 싸우십시오.</p></div><button class="ghost-button" data-action="guild-refresh">새로고침 ↻</button></div>`
   if (ui.locked) return `<section class="page-section page-section--guild">${head}<div class="glass-card guild-locked"><strong>연맹을 이용할 수 없습니다</strong><p>${esc(ui.locked)}</p></div></section>`
   const me = ui.me
-  if (!me) return `<section class="page-section page-section--guild">${head}<div class="guild-empty">${ui.loading ? '연맹 정보를 불러오는 중입니다…' : '연맹 정보를 불러오지 못했습니다. 새로고침을 눌러 주십시오.'}</div></section>`
+  if (!me) return `<section class="page-section page-section--guild">${head}<div class="guild-empty v2-empty">${ui.loading ? '<i class="v2-empty__art"></i><strong>연맹 정보를 불러오는 중입니다…</strong>' : '<i class="v2-empty__art"></i><strong>연맹 정보를 불러오지 못했습니다</strong><p>연맹은 서버 계정(회원 또는 아이디를 정한 게스트)으로 접속하면 이용할 수 있습니다.</p><button class="action-button action-button--primary" data-action="guild-refresh">다시 불러오기</button>'}</div></section>`
   if (!me.guild || !me.member) return `<section class="page-section page-section--guild">${head}${pendingCard(me)}${noGuild(state, ui, me)}${royalTab(state, ui.royal, true)}</section>`
   const guild = me.guild
   const tabs: Array<[GuildTab, string]> = [['info', '정보'], ['members', '연맹원'], ['contribute', '기여'], ['tech', '기술'], ['shop', '상점'], ['royal', '왕궁'], ['talk', '소통']]

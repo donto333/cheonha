@@ -191,6 +191,11 @@ try {
         await shot(`${label}-end`)
       }
     }
+    // 쪽 넘기기: 도감 2쪽
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'codex'; g.ui.render(g.state) })
+    await sleep(500)
+    const nextPage = page.locator('[data-action="pager"][data-dir="1"]')
+    if (await nextPage.count()) { await nextPage.first().evaluate(b => b.click()); await shot('98j-codex-page2') }
     // 무장 상세 창
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })
     if (await page.locator('.gtile').count()) { await page.locator('.gtile').first().evaluate(b => b.click()); await shot('94-roster-detail'); await page.locator('[data-action="general-detail-close"]').first().evaluate(b => b.click()) }

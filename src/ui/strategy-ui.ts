@@ -8,6 +8,7 @@ import { EQUIPMENT_PRESET_SLOTS, EQUIPMENT_STORAGE_WARN, bulkDismantlePreview, d
 import { TUTORIAL_REWARD, TUTORIAL_STEPS, nextTutorialStep, tutorialFinished, DAILY_BONUS, DAILY_BONUS_ID, MISSIONS, dailyBonusReady, ensureMissions, missionStatus, rewardText, seoulDay, type MissionDef } from '../game/missions'
 import { nextAttendanceDay } from '../../server/attendance.mjs'
 import { generalRealm, REALM_LABEL, type Realm } from '../game/general-factions'
+import { applyPagers, resetPage, turnPage } from './pager'
 import { packageBonus, shopNeeds, shopPackages, type ShopPackage, type ShopResource } from '../game/shop'
 import { effectsSetting, muteSetting, musicSetting, qualitySetting, setEffectsSetting, setMusicSetting, setMuteSetting, setQualitySetting, setSfxSetting, sfxSetting, type EffectsSetting, type QualitySetting, type SoundLevel } from '../game/settings'
 import { sound } from '../engine/sound'
@@ -596,6 +597,9 @@ export class StrategyUI {
     root.addEventListener('pointerdown', this.handleUnitPress)
     // 가로 휴대폰 화면으로 들어가거나 나오면(회전 · 창 크기) 본영 배치가 달라지므로 다시 그린다
     window.matchMedia?.(PHONE_LANDSCAPE)?.addEventListener?.('change', () => { if (this.renderedState) this.render(this.renderedState) })
+    // 창 크기가 바뀌면 쪽 나누기 다시
+    let pagerTimer = 0
+    window.addEventListener('resize', () => { window.clearTimeout(pagerTimer); pagerTimer = window.setTimeout(() => applyPagers(this.root, isPhoneLandscape()), 150) })
     // 새 디자인 큰 그림이 준비돼 있으면 CSS가 그 그림을 쓴다(docs/ART_ASSETS.md)
     probeArt('/assets/ui/v2/lobby-city.webp', 'has-lobby-city')
     probeArt('/assets/ui/v2/screen-bg.webp', 'has-screen-bg')
@@ -731,6 +735,9 @@ export class StrategyUI {
     // 본영 움직이는 배경(영상 파일이 있을 때만)
     mountBgVideo(this.root.querySelector('.page-section--v2 .ml-bg'), 'lobby', 'has-lobby-video')
     if (kept) this.restoreView(kept)
+    // 휴대폰 가로: 긴 목록은 쪽 넘기기(다른 메뉴로 오면 첫 쪽부터)
+    if (!sameSection) resetPage()
+    window.requestAnimationFrame(() => applyPagers(this.root, isPhoneLandscape()))
     ensureIconSprite()
     // 시나리오 목록에 들어오면 고른(다음에 깰) 시나리오가 보이게 스크롤
     if (enteringScenario) window.requestAnimationFrame(() => this.root.querySelector('.scenario-card.is-selected')?.scrollIntoView({ block: 'center' }))
@@ -2026,6 +2033,7 @@ export class StrategyUI {
     })
     const empty = this.root.querySelector<HTMLElement>('[data-codex-empty]')
     if (empty) empty.hidden = shown > 0
+    resetPage('gtile'); applyPagers(this.root, isPhoneLandscape())
   }
 
   private codexSection(state: StrategyState): string {
@@ -3094,6 +3102,7 @@ export class StrategyUI {
     })
     const none = this.root.querySelector<HTMLElement>('[data-formation-noresult]')
     if (none) { none.hidden = shown > 0; const q = none.querySelector('[data-formation-query]'); if (q) q.textContent = this.formationQuery.trim() }
+    resetPage('bench'); applyPagers(this.root, isPhoneLandscape())
   }
 
   private formationBenchCard(general: General, squad = 0, state?: StrategyState): string {
@@ -3167,7 +3176,7 @@ export class StrategyUI {
       <div class="scenario-stepper"><button class="action-button action-button--outline" data-action="scenario-select" data-scenario-id="${prev?.id ?? ''}" ${prev ? '' : 'disabled'}>← 이전</button><div><strong>${index + 1} / ${SCENARIOS.length}</strong><small>제${chapterNo}장 ${chapterPos}/${inChapter.length}단계</small></div><button class="action-button action-button--outline" data-action="scenario-select" data-scenario-id="${after?.id ?? ''}" ${nextLocked ? 'disabled' : ''} title="${nextLocked && after ? '이번 단계를 깨면 열립니다' : ''}">${nextLocked && after ? '🔒 다음' : '다음 →'}</button></div>
       <article class="scenario-detail scenario-main glass-card ${selectedCleared ? 'is-cleared' : 'is-current'}"><span class="pill ${hard ? 'pill--ember' : 'pill--jade'}">${selected?.year ?? ''} · ${escapeHtml(selected?.era ?? '')}${hard ? ' · 어려움' : ''}</span>${selectedCleared ? `<span class="scenario-main__done">완료 ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</span>` : '<span class="scenario-main__done is-new">이번 단계</span>'}<h2>${escapeHtml(selected?.title ?? '')}</h2><p class="scenario-story">${escapeHtml(selected?.story ?? '')}</p>${ruleBox}<div class="scenario-deck"><span class="eyebrow">추천 편성</span>${selected ? this.recommendedDeck(state, selected.deck) : '—'}</div><div class="scenario-deck scenario-enemy"><span class="eyebrow">적군 · 평균 Lv.${selected ? scenarioEnemyLevelFor(selected, difficulty) : 1}</span><strong>${selected ? scenarioEnemyIds(selected, state.faction).map(id => escapeHtml(templateGeneral(id)?.name ?? id)).join(' · ') : '—'}</strong><small class="scenario-stars">${selected ? `최고 기록 ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}` : ''}</small></div><div class="scenario-reward"><span class="eyebrow">${hard ? '어려움 최초 클리어 보상' : '최초 클리어 보상'}${selectedCleared ? ' · 획득 완료' : ''}</span><p>${rewardText}</p><small>식량 +${formatNumber(reward?.grain ?? 0)} · 목재 +${formatNumber(reward?.wood ?? 0)} · 철 +${formatNumber(reward?.iron ?? 0)} · 영향력 +${formatNumber(reward?.influence ?? 0)}</small></div>
         <div class="scenario-main__actions">${selectedCleared && next && next.id !== selected?.id ? `<button class="action-button action-button--primary" data-action="scenario-select" data-scenario-id="${next.id}">다음 단계로 (${next.year} ${escapeHtml(next.title)}) →</button>` : ''}<button class="action-button ${selectedCleared && next && next.id !== selected?.id ? 'action-button--outline' : 'action-button--primary'} scenario-start-button" data-action="scenario-start" data-scenario-id="${selected?.id ?? ''}" data-difficulty="${difficulty}" ${blocked ? 'disabled' : ''}>${startLabel} <span>→</span></button></div></article>
-      <details class="scenario-all glass-card" ${this.scenarioListOpen ? 'open' : ''}><summary data-action="scenario-list-toggle">전체 시나리오 목록 <small>${cleared}/${SCENARIOS.length} 클리어 · 다시 전투할 단계를 고르십시오</small></summary><div class="scenario-mini-list">${list}</div></details></section>`
+      <details class="scenario-all glass-card" ${this.scenarioListOpen || isPhoneLandscape() ? 'open' : ''}><summary data-action="scenario-list-toggle">전체 시나리오 목록 <small>${cleared}/${SCENARIOS.length} 클리어 · 다시 전투할 단계를 고르십시오</small></summary><div class="scenario-mini-list">${list}</div></details></section>`
   }
 
 
@@ -3606,7 +3615,7 @@ export class StrategyUI {
 
   private rankRows(): string {
     const rows = this.ranks
-    if (!rows.length) return '<div class="rank-empty">아직 순위 기록이 없습니다.<br><small>로그인한 지휘관이 전투를 치르면 이곳에 순위가 표시됩니다.</small></div>'
+    if (!rows.length) return '<div class="rank-empty v2-empty"><i class="v2-empty__art"></i><strong>아직 순위 기록이 없습니다</strong><p>로그인한 지휘관이 전투를 치르면 이곳에 순위가 표시됩니다.</p><button class="action-button action-button--primary" data-action="section" data-section="battle">전투하러 가기</button></div>'
     return rows.map(entry => `<div class="rank-row"><span class="rank-number rank-number--${entry.rank}">${entry.rank.toString().padStart(2, '0')}</span><span class="rank-avatar">${entry.displayName.slice(0, 1)}</span><strong>${entry.displayName}${royalBadge(this.guildUi.royal, { name: entry.displayName })}</strong><span class="rank-score">${formatNumber(entry.score)}</span></div>`).join('')
   }
 
@@ -3662,6 +3671,8 @@ export class StrategyUI {
     }
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
+    if (action === 'pager') { turnPage(this.root, button.dataset.pager ?? '', Number(button.dataset.dir ?? 1)); return }
+    if (/-(filter|sort|sort-direction|tab)$/.test(action)) resetPage()
     if (action === 'updates-more') { this.updatesShown += 10; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'update-toggle') { button.classList.toggle('is-open'); return }
     if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null; this.lobbyPanel = null; this.equipmentDetailId = null; this.shopLogOpen = false }

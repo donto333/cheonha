@@ -700,3 +700,83 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--shop .starter-pack-head h2 { display: inline; margin: 0 8px 0 0; font-size: 14px; }
   html body .app-shell .main-content .page-section--shop .starter-pack-head p { display: inline; margin: 0; font-size: 11.5px; }
 }
+
+/* ════════ 쪽 넘기기(src/ui/pager.ts) ════════ */
+.is-paged-out { display: none !important; }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .is-paged { position: relative; overflow: hidden !important; padding-bottom: 30px !important; }
+  html body .mpager { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; display: flex; align-items: center; justify-content: center; gap: 10px; z-index: 2; grid-column: 1 / -1; pointer-events: none; }
+  html body .mpager > * { pointer-events: auto; }
+  html body .mpager__btn { width: 54px; height: 26px; display: grid; place-items: center; padding: 0; font-size: 12px; color: #f3d98a; background: none; border: 6px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 6px / 0 stretch; }
+  html body .mpager__btn:disabled { opacity: .35; }
+  html body .mpager__btn:not(:disabled):active { transform: translateY(1px); filter: brightness(1.2); }
+  html body .mpager__num { min-width: 52px; padding: 2px 10px; text-align: center; font-size: 12.5px; font-weight: 800; color: #e8dcc0; background: rgba(6, 5, 5, .85); border: 1px solid rgba(212, 175, 55, .5); border-radius: 12px; }
+  html body .mpager__num b { color: #f6cf6a; }
+}
+
+/* ════════ 전투 · 시나리오(휴대폰 가로): 왼쪽 단계 목록 · 가운데 단계 카드 · 아래 출전 ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--scenario { display: grid; height: var(--frame-h); grid-template-columns: 236px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "toggle stepper" "list stepper" "list detail"; gap: 6px 10px; overflow: hidden; }
+  html body .page-section--scenario > * { margin: 0; min-width: 0; }
+  html body .page-section--scenario > .scenario-difficulty { grid-area: toggle; display: grid; grid-template-columns: 1fr 1fr; }
+  html body .page-section--scenario > .scenario-progress { display: none; }
+  html body .page-section--scenario > .scenario-stepper { grid-area: stepper; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0; }
+  html body .page-section--scenario > .scenario-stepper .action-button { min-height: 32px; height: 32px; padding: 0 14px; }
+  html body .page-section--scenario > .scenario-stepper strong { font-size: 16px; color: #f6cf6a; }
+  html body .page-section--scenario > .scenario-stepper small { margin-left: 6px; font-size: 12px; color: #d9cba8; }
+  html body .page-section--scenario > .scenario-stepper > div { display: flex; align-items: baseline; }
+  html body .page-section--scenario > .scenario-all { grid-area: list; display: flex; flex-direction: column; min-height: 0; padding: 4px; background: linear-gradient(180deg, rgba(14, 11, 9, .94), rgba(6, 5, 4, .96)); border: 1px solid rgba(212, 175, 55, .5); border-radius: 3px; }
+  html body .page-section--scenario > .scenario-all > summary { display: none; }
+  html body .page-section--scenario .scenario-mini-list { flex: 1 1 auto; min-height: 0; max-height: none; padding: 0 2px; gap: 0; align-content: start; }
+  html body .page-section--scenario .scenario-mini-head { padding: 3px 4px 1px; font-size: 12.5px; }
+  html body .page-section--scenario .scenario-mini { margin-top: 3px; padding: 4px 8px; grid-template-columns: 34px minmax(0, 1fr) auto; }
+  html body .page-section--scenario .scenario-mini.is-selected { border-color: #e9c76a; background: rgba(233, 199, 106, .16); box-shadow: inset 3px 0 0 #e9c76a; }
+  /* 단계 카드: 왼쪽 이야기 · 오른쪽 적군 · 추천 편성 · 보상, 아래 출전 단추 */
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail { grid-area: detail; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto auto; column-gap: 14px; row-gap: 4px; align-content: start; padding: 10px 14px; overflow: hidden; background: none; border: 0 solid transparent; border-width: 10px; border-image: url('/assets/ui/v2/kit/panel-square.webp') 40 fill / 10px / 0 stretch; }
+  html body .page-section--scenario > .scenario-detail > .pill { grid-column: 1; justify-self: start; }
+  html body .page-section--scenario > .scenario-detail > .scenario-main__done { grid-column: 2; justify-self: end; grid-row: 1; }
+  html body .page-section--scenario > .scenario-detail > h2 { grid-column: 1; margin: 2px 0 0; font-size: 21px; font-family: 'Gowun Batang', serif; color: #f6d77a; }
+  html body .page-section--scenario > .scenario-detail > .scenario-story { grid-column: 1; grid-row: 3 / span 2; margin: 0; padding: 6px 10px; font-size: 12.5px; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; }
+  html body .page-section--scenario > .scenario-detail > .scenario-rule { grid-column: 1; }
+  html body .page-section--scenario > .scenario-detail > .scenario-deck, html body .page-section--scenario > .scenario-detail > .scenario-reward { grid-column: 2; margin: 0; padding: 5px 8px; font-size: 12px; background: rgba(6, 5, 4, .6); border: 1px solid rgba(212, 175, 55, .3); border-radius: 3px; }
+  html body .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { grid-row: 3; align-self: start; }
+  html body .page-section--scenario > .scenario-detail > .scenario-enemy { grid-row: 2; }
+  html body .page-section--scenario > .scenario-detail > .scenario-reward { grid-row: 4; align-self: start; }
+  html body .page-section--scenario > .scenario-detail .scenario-recommend { margin: 2px 0 0; padding: 0; display: grid; gap: 1px; }
+  html body .page-section--scenario > .scenario-detail .scenario-recommend li { font-size: 12px; }
+  html body .page-section--scenario > .scenario-detail > .scenario-reward p, html body .page-section--scenario > .scenario-detail > .scenario-reward small { margin: 1px 0 0; font-size: 12px; }
+  html body .page-section--scenario > .scenario-detail > .scenario-main__actions { grid-column: 1 / -1; grid-row: 5; display: flex; gap: 8px; justify-content: flex-end; margin: 4px 0 0; }
+  html body .page-section--scenario > .scenario-detail > .scenario-main__actions .action-button { min-height: 40px; height: 40px; min-width: 220px; font-size: 15px; }
+}
+
+/* ════════ 장비(휴대폰 가로): 착용 칸 · 장비 카드 · 거르기 탭을 도안 스타일로 ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--equipment-simple > .equip-picker { background: none; border: 0; box-shadow: none; padding: 0; }
+  html body .app-shell .main-content .page-section--equipment-simple .equip-chip { color: #f3e6c6; }
+  html body .app-shell .main-content .page-section--equipment-simple .equip-chip__face { border: 1.5px solid #e2b94a; border-radius: 3px; }
+  html body .app-shell .main-content .page-section--equipment-simple .equipment-slots { background: none; border: 0 solid transparent; border-width: 10px; border-image: url('/assets/ui/v2/kit/panel-square.webp') 40 fill / 10px / 0 stretch; border-radius: 0; box-shadow: none; padding: 4px 6px; }
+  html body .app-shell .main-content .page-section--equipment-simple .equipment-slot { background: none; border: 0 solid transparent; border-width: 8px; border-image: url('/assets/ui/v2/kit/stage-box.webp') 40 fill / 8px / 0 stretch; border-radius: 0; box-shadow: none; color: #e8dcc0; }
+  html body .app-shell .main-content .page-section--equipment-simple .equipment-slot.is-equipped, html body .app-shell .main-content .page-section--equipment-simple .equipment-slot.is-filled { border-image-source: url('/assets/ui/v2/kit/stage-box-on.webp'); }
+  html body .app-shell .main-content .page-section--equipment-simple > .equipment-layout > div:last-child { padding: 6px 8px; background: linear-gradient(180deg, rgba(14, 11, 9, .94), rgba(6, 5, 4, .96)); border: 1px solid rgba(212, 175, 55, .5); border-radius: 3px; }
+  html body .app-shell .main-content .page-section--equipment-simple .eqtile { border: 0; border-radius: 2px; background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--grade), transparent 60%), rgba(10, 8, 7, .96) 72%); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--grade), #d4af37 35%), inset 0 0 0 3px rgba(0, 0, 0, .6), 0 2px 4px rgba(0, 0, 0, .6); }
+  html body .app-shell .main-content .page-section--equipment-simple .eqtile.is-equipped { box-shadow: inset 0 0 0 2px #4fe0c4, 0 0 6px rgba(79, 224, 196, .6); }
+  html body .app-shell .main-content .page-section--equipment-simple .eqtile small { color: #f3e6c6; }
+  html body .app-shell .main-content .page-section--equipment-simple .equipment-type-filter button, html body .app-shell .main-content .page-section--equipment-simple [class*="type-tabs"] button { color: #eee2c6; background: none; border: 6px solid transparent; border-image: url('/assets/ui/v2/kit/tab-dark.webp') 20 30 fill / 6px 8px / 0 stretch; border-radius: 0; }
+  html body .app-shell .main-content .page-section--equipment-simple .equipment-type-filter button.is-active, html body .app-shell .main-content .page-section--equipment-simple [class*="type-tabs"] button.is-active { color: #fff; border-image-source: url('/assets/ui/v2/kit/tab-red.webp'); }
+}
+
+/* ════════ 4. 글자 최소 크기 · 5. 누름 반응 · 6. 빈 화면 안내 ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 4. 메뉴 화면은 zoom .8이 걸려 있어, 글자를 실제 화면 기준 약 10px 이상으로(화면 칸 안 기준 12px) */
+  html body .app-shell .main-content .page-section .eyebrow { font-size: 12px; }
+  html body .app-shell .main-content .page-section .formation-tags span, html body .app-shell .main-content .page-section .research-node p, html body .app-shell .main-content .page-section .scenario-mini span, html body .app-shell .main-content .page-section .scenario-mini em, html body .app-shell .main-content .page-section .shop-row__head small, html body .app-shell .main-content .page-section .eqtile em, html body .app-shell .main-content .page-section .eqtile small { font-size: 12px; }
+  html body .app-shell .main-content .page-section .formation-bench-card .formation-tags { transform: none; }
+  /* 5. 누름 반응: 모든 단추가 살짝 눌리고 밝아진다 */
+  html body .app-shell button:not(:disabled):active, html body .app-shell [data-action]:not(button):active { transform: translateY(1px) scale(.985); filter: brightness(1.15); transition: transform .05s, filter .05s; }
+  html body .app-shell button { transition: transform .12s, filter .12s; -webkit-tap-highlight-color: transparent; }
+  /* 6. 빈 화면 안내: 그림 + 다음 행동 */
+  html body .app-shell .main-content .v2-empty { display: grid; justify-items: center; gap: 8px; padding: 18px 12px; text-align: center; color: #e8dcc0; }
+  html body .app-shell .main-content .v2-empty__art { width: 72px; height: 72px; background: url('/assets/ui/v2/kit/card-back.webp') center / contain no-repeat; opacity: .9; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .7)); }
+  html body .app-shell .main-content .v2-empty strong { font-size: 15px; color: #f6d77a; }
+  html body .app-shell .main-content .v2-empty p { margin: 0; font-size: 12.5px; color: #cbbd99; }
+}
