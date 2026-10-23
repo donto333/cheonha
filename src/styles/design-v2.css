@@ -92,6 +92,8 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .page-section--v2[data-realm="wei"] { --realm-bg: url('/assets/ui/v2/lobby/bg-wei.webp'); }
   html body .page-section--v2[data-realm="shu"] { --realm-bg: url('/assets/ui/v2/lobby/bg-shu.webp'); }
   html body .page-section--v2[data-realm="wu"] { --realm-bg: url('/assets/ui/v2/lobby/bg-wu.webp'); }
+  /* 진영 배경이 있으면 네모난 초상 그림은 빼고 풍경을 온전히 보여 준다(대표 무장은 왼쪽 위 프로필에) */
+  html body .page-section--v2:not([data-realm="none"]) .ml-hero { display: none; }
 
   /* ════════ 위 줄: 프로필(용 틀 초상 + 진영 깃발) · 재화 칩 · 메달 아이콘 ════════ */
   html body .v2-topbar { position: absolute; z-index: 4; top: 3px; left: 0; right: 0; height: 62px; display: flex; align-items: flex-start; gap: 8px; padding: 0 calc(6px + var(--safe-r)) 0 calc(4px + var(--safe-l)); background: linear-gradient(180deg, rgba(10, 6, 3, .7), transparent); }
