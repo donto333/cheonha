@@ -1,0 +1,123 @@
+/*
+ * 내정 보강(2026.10.23): 연구 예약 · 심화 연구 · 연맹 도움 · 관직 화면
+ * 다른 화면 규칙과 겹치지 않게 새 이름(office-*, research-queue 등)만 쓴다. 휴대폰 가로는 맨 아래 묶음.
+ */
+
+/* ── 연구: 예약 · 도움 · 심화 ───────────────────────────── */
+.research-queue { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 12.5px; color: var(--cream-soft); }
+.research-queue > span { flex: 1 1 auto; min-width: 0; }
+.research-queue small { margin-left: 4px; color: #9d907d; }
+.research-queue.is-empty { color: #8f826c; font-size: 12px; }
+.research-queue .mini-action { flex: 0 0 auto; }
+.research-queued { color: var(--gold); font-size: 12px; font-weight: 700; }
+.research-node.is-queued { border-color: rgba(240, 194, 106, .55); box-shadow: inset 0 0 0 1px rgba(240, 194, 106, .2); }
+.research-help-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.research-help, .building-help {
+  display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 10px; font-size: 12px; font-weight: 700;
+  color: #bfeedd; background: rgba(79, 207, 152, .14); box-shadow: inset 0 0 0 1px rgba(79, 207, 152, .35);
+}
+.research-node--mastery { border-color: rgba(240, 194, 106, .45); background: linear-gradient(140deg, rgba(120, 84, 28, .34), rgba(34, 19, 11, .64)); }
+.research-node--mastery .research-tier { color: #3a1d08; background: var(--gold); border-color: transparent; }
+.research-mastery-bar { display: block; height: 5px; margin-top: 6px; border-radius: 3px; overflow: hidden; background: rgba(255, 255, 255, .08); }
+.research-mastery-bar i { display: block; height: 100%; background: linear-gradient(90deg, #c9933f, var(--gold-hi)); }
+.mres-speed { color: var(--jade); font-weight: 700; }
+
+/* ── 관직 ───────────────────────────────────────────────── */
+.page-section--office { display: flex; flex-direction: column; gap: 10px; }
+.office-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.office-post {
+  position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 10px;
+  border: 1px solid rgba(240, 194, 106, .35); border-radius: 6px;
+  background: linear-gradient(180deg, rgba(58, 36, 20, .88), rgba(26, 14, 8, .92));
+  box-shadow: var(--panel-edge), 0 4px 12px rgba(0, 0, 0, .35);
+}
+.office-post__head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding-bottom: 5px; border-bottom: 1px solid rgba(240, 194, 106, .22); }
+.office-post__head strong { font-size: 16px; color: var(--gold-hi); letter-spacing: .04em; white-space: nowrap; }
+.office-post__head small { font-size: 11px; color: #a99b82; text-align: right; }
+.office-post__face { align-self: center; padding: 0; border: 0; background: none; cursor: pointer; }
+.office-face {
+  position: relative; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%;
+  background: #2a160b center 16% / cover no-repeat;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--grade, #c9933f), #000 20%), 0 0 0 4px rgba(240, 194, 106, .35), 0 4px 10px rgba(0, 0, 0, .6);
+}
+.office-face--empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; color: var(--gold); background: radial-gradient(circle at 40% 35%, #3b2a1c, #150b05); box-shadow: inset 0 0 0 2px #5a4330, 0 0 0 3px rgba(240, 194, 106, .18); }
+.office-face--empty b { font-size: 30px; line-height: 1; }
+.office-face--empty small { font-size: 11px; color: #cdb88f; }
+.office-face__grade {
+  position: absolute; left: -2px; top: -2px; min-width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%;
+  font-style: normal; font-size: 12px; font-weight: 900; color: #fff; background: color-mix(in srgb, var(--grade, #c9933f), #000 25%); box-shadow: 0 0 0 1.5px var(--gold);
+}
+.office-post__name { display: grid; text-align: center; }
+.office-post__name strong { font-size: 15px; color: #fff4dd; }
+.office-post__name small { font-size: 11px; color: #bfae8e; }
+.office-post__name em { font-style: normal; color: var(--jade); }
+.office-city {
+  align-self: center; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px;
+  border: 1px solid rgba(240, 194, 106, .55); background: rgba(20, 10, 4, .6); color: var(--gold-hi); font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.office-city small { color: #bfae8e; font-weight: 600; }
+.office-city i { font-style: normal; font-size: 10px; color: var(--gold); }
+.office-effects { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.office-effects li { display: flex; justify-content: space-between; gap: 6px; font-size: 11.5px; color: #cdbd9e; }
+.office-effects li b { color: #bfeedd; font-weight: 700; text-align: right; }
+.office-post__warn { margin: 0; font-size: 11.5px; color: #ff9a7a; }
+.office-post.is-off { border-color: rgba(255, 154, 122, .45); }
+.office-post.is-off .office-effects li b { color: #8f826c; text-decoration: line-through; }
+.office-post__foot { display: flex; gap: 6px; margin-top: auto; }
+.office-post__foot .mini-action { flex: 1 1 0; justify-content: center; }
+.office-post__empty { margin: 0; font-size: 12px; line-height: 1.45; color: #a99b82; text-align: center; }
+.office-post__cta { flex: 0 0 auto; align-self: stretch; height: 36px; margin-top: auto; justify-content: center; }
+.office-post__note { margin: 2px 0 0; font-size: 10.5px; color: #8f826c; text-align: center; }
+.office-post.is-locked { opacity: .62; }
+.office-post__lock { flex: 1 1 auto; display: grid; place-items: center; align-content: center; gap: 6px; text-align: center; color: #a99b82; font-size: 12px; }
+.office-post__lock b { font-size: 24px; }
+.office-foot { margin: 0; font-size: 12px; line-height: 1.5; color: #a99b82; }
+
+/* 무장 · 도시 고르기 창 */
+.office-picker__body { width: min(900px, 100%); padding: 14px; border: 1px solid rgba(240, 194, 106, .5); border-radius: 6px; background: linear-gradient(180deg, #3a2414, #1c0f07); }
+.office-picker__head { display: grid; gap: 2px; margin: 0 44px 10px 0; }
+.office-picker__head strong { font-size: 17px; color: var(--gold-hi); }
+.office-picker__head small { font-size: 12px; color: #bfae8e; }
+.office-picker__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.office-pick { display: flex; align-items: flex-start; gap: 10px; padding: 8px; text-align: left; color: inherit; border: 1px solid rgba(240, 194, 106, .25); border-radius: 5px; background: rgba(20, 10, 4, .55); cursor: pointer; }
+.office-pick:active { transform: scale(.98); }
+.office-pick .office-face { flex: 0 0 auto; width: 56px; height: 56px; }
+.office-pick__copy { display: grid; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.office-pick__copy strong { font-size: 14px; color: #fff4dd; }
+.office-pick__copy strong small { font-size: 11px; font-weight: 600; color: #bfae8e; }
+.office-pick__badge, .office-pick__nation { justify-self: start; padding: 1px 6px; border-radius: 8px; font-style: normal; font-size: 10.5px; font-weight: 800; }
+.office-pick__badge { color: #3a1d08; background: var(--gold); }
+.office-pick__nation { color: #0d2a1d; background: var(--jade); }
+.office-pick.is-current { border-color: var(--jade); opacity: .8; cursor: default; }
+.office-citylist { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.office-cityrow { display: grid; gap: 2px; padding: 8px 10px; text-align: left; color: inherit; border: 1px solid rgba(240, 194, 106, .25); border-radius: 5px; background: rgba(20, 10, 4, .55); cursor: pointer; }
+.office-cityrow strong { font-size: 15px; color: #fff4dd; }
+.office-cityrow small { color: #bfae8e; }
+.office-cityrow em { font-style: normal; font-size: 11.5px; color: var(--jade); }
+.office-cityrow.is-current { border-color: var(--jade); cursor: default; }
+.office-picker__none { color: #bfae8e; }
+
+@media (max-width: 860px) { .office-board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ── 휴대폰 가로: 한 화면에 ──────────────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--office { height: var(--frame-h); gap: 8px; }
+  html body .page-section--office .office-board { flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  html body .page-section--office .office-post { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  html body .page-section--office .office-foot { padding-left: 64px; }
+  html body .office-picker__body { max-height: 100%; overflow: auto; }
+  html body .office-picker__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html body .office-citylist { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* 연구: 진행 중 칸을 한 줄로 낮게 — 아래 단계 트리에 자리를 더 준다 */
+  html body .mres-main .research-active { grid-template-columns: minmax(0, 1.5fr) minmax(0, .8fr) auto; align-items: center; gap: 10px; }
+  html body .mres-main .research-active__actions { grid-template-columns: auto; gap: 5px; }
+  html body .mres-main .research-active__actions .mini-action { min-height: 30px; padding: 0 10px; }
+  html body .mres-tier--mastery .mres-tier__label { background: linear-gradient(180deg, #ffe7a8, #c9933f); }
+}
+
+/* 연맹 도움 목록(연맹 → 정보) */
+.guild-helps li { display: flex; align-items: center; gap: 8px; }
+.guild-helps li > span { flex: 1 1 auto; min-width: 0; display: grid; }
+.guild-helps li em { font-style: normal; font-weight: 800; color: var(--jade); }
+.guild-helps li i { font-style: normal; font-size: 11.5px; color: #a99b82; }
+.guild-helps li.is-mine { opacity: .85; }

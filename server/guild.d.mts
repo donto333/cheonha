@@ -1,6 +1,6 @@
 export type GuildRole = 'leader' | 'deputy' | 'elite' | 'member'
 export type GuildTechId = 'harvest' | 'siege' | 'garrison' | 'raid' | 'build' | 'supply' | 'duel'
-export type GuildContributionKind = 'donateSilver' | 'donateResources' | 'donateGold' | 'siege' | 'targetSiege' | 'defense' | 'raid' | 'attendance'
+export type GuildContributionKind = 'donateSilver' | 'donateResources' | 'donateGold' | 'siege' | 'targetSiege' | 'defense' | 'raid' | 'attendance' | 'help'
 export interface GuildEmblem { color: number; pattern: number }
 export interface GuildTarget { cityId: string; cityName: string; weekKey: string; setBy: string; done?: boolean }
 export interface GuildView {
@@ -12,9 +12,12 @@ export interface GuildMemberView { userId: number; name: string; role: GuildRole
 export interface GuildRequestView { id: number; userId: number; name: string; power: number; maxLevel: number; createdAt: number }
 export interface GuildInviteView { id: number; guildId: number; guildName: string; emblem: GuildEmblem; level: number; from: string }
 export interface GuildPendingReward { id: string; label: string; gold?: number; manuals?: number; honor?: number }
+/** 연맹 도움 요청(연구 · 공사): helped = 받은 도움 수, mine = 내 요청, done = 내가 이미 도움 */
+export interface GuildHelpView { id: number; userId: number; name: string; key: string; job: string; label: string; endsAt: number; helped: number; max: number; mine: boolean; done: boolean }
 export interface GuildMe {
   guild: GuildView | null; member: GuildMemberView | null; members?: GuildMemberView[]; requests?: GuildRequestView[]
   pending: GuildPendingReward[]; points: number; rejoinAt: number; invites: GuildInviteView[]; applications: number[]; usage: Record<string, number>
+  helps?: GuildHelpView[]
 }
 export interface GuildLog { id: number; guildId: number; at: number; text: string }
 export interface GuildChatMessage { id: number; guildId: number; userId: number; name: string; role?: GuildRole; text: string; at: number }
@@ -61,6 +64,11 @@ export declare const GUILD_CHAT_INTERVAL_MS: number
 export declare const GUILD_NOTICE_MAX: number
 export declare const GUILD_CONTRIBUTIONS: Record<GuildContributionKind, GuildContributionRule>
 export declare const GUILD_DONATIONS: GuildContributionKind[]
+export declare const GUILD_HELP_MAX: number
+export declare const GUILD_HELP_CUT: number
+export declare const GUILD_HELP_MIN_MS: number
+export declare const GUILD_HELP_OPEN_MAX: number
+export declare function guildHelpCut(remainingMs: number): number
 export declare const GUILD_TECHS: Record<GuildTechId, GuildTechRule>
 export declare const GUILD_TECH_IDS: GuildTechId[]
 export declare const GUILD_BONUS_CAP: number
@@ -101,6 +109,10 @@ export interface GuildService {
   updateSettings(userId: number, input: { notice?: string; joinMode?: 'open' | 'approval'; minLevel?: number; color?: number; pattern?: number }): Promise<{ ok: true }>
   donate(userId: number, kind: GuildContributionKind): Promise<{ ok: true; cost: NonNullable<GuildContributionRule['cost']>; points: number }>
   research(userId: number, techId: GuildTechId): Promise<{ ok: true }>
+  helps(userId: number): Promise<GuildHelpView[]>
+  requestHelp(userId: number, input: { key: string; job: string; label?: string; endsAt: number }): Promise<{ ok: true; id: number; helped: number }>
+  closeHelp(userId: number, key?: string): Promise<{ ok: true }>
+  help(userId: number, requestId?: number): Promise<{ ok: true; helped: number; points: number }>
   buy(userId: number, itemId: string): Promise<{ ok: true; grant: GuildGrant; ledger: { fragments: number; stones: number }; points: number }>
   setTarget(userId: number, cityId: string, cityName?: string): Promise<{ ok: true }>
   claim(userId: number): Promise<{ ok: true; gold: number; manuals: number; honor: number; items: GuildPendingReward[] }>

@@ -1,5 +1,6 @@
 import type { MissionState } from './missions'
 import { createResearch, formatDuration, normalizeResearch, researchMods, researchCostText, rushCost, startResearch } from './research'
+import { cityGovernor, type OfficeState } from './offices'
 import cityRoutes from '../../server/city-routes.json'
 import { COMMAND_BUFF_GRADE, COMMAND_BUFF_SEC, GENERAL_SKILLS, GROWTH_OWN_SHARE, GROWTH_PROFILE, GROWTH_STATS, levelBudget, starBudget, type GrowthStat, SKILL_MORALE_CAP, SKILL_TYPE_META, activeSkillName, baseMoraleDamage, bondFor, bondSkillOverride, isAwakened, skillCooldownFor, skillDefFor, type SkillType } from './skills'
 import { neutralRaidPower, resolveNeutralRaid } from '../../server/neutral-raid.mjs'
@@ -10,7 +11,7 @@ import { capBonus, guildMods, guildWallMultiplier, type GuildSnapshot } from './
 import { ATTENDANCE_DAYS, attendanceReward, nextAttendanceDay } from '../../server/attendance.mjs'
 import { seoulDay } from './missions'
 import { locale } from '../i18n/lang'
-export type Section = 'overview' | 'recruit' | 'roster' | 'codex' | 'formation' | 'equipment' | 'territory' | 'research' | 'battle' | 'duel' | 'raid' | 'shop' | 'rank' | 'board' | 'guild' | 'updates' | 'account' | 'admin'
+export type Section = 'overview' | 'recruit' | 'roster' | 'codex' | 'formation' | 'equipment' | 'territory' | 'research' | 'office' | 'battle' | 'duel' | 'raid' | 'shop' | 'rank' | 'board' | 'guild' | 'updates' | 'account' | 'admin'
 export type Role = '기병' | '궁병' | '책사' | '보병'
 export type Grade = 1 | 2 | 3 | 4 | 5
 export type ResourceKey = 'grain' | 'silver' | 'wood' | 'iron' | 'influence'
@@ -55,6 +56,8 @@ export interface CityBuilding {
   /** 공사 중이면 시작 · 완공 시각(완공되면 level +1) */
   startedAt?: number
   endsAt?: number
+  /** 연맹 도움 요청(공사 중일 때): 서버 요청 번호 · 일 구분 · 반영한 도움 수 */
+  help?: { id: number; job: string; applied: number }
 }
 
 export interface City {
@@ -204,7 +207,8 @@ export interface ResearchNode {
   id: string
   name: string
   branch: '부국' | '강병' | '지략' | '제패' | '인재' | '약탈' | '유격'
-  tier: 1 | 2 | 3 | 4 | 5 | 6
+  /** 1~6단계, 7 = 심화(6단계를 마치면 Lv.1~20 반복 연구) */
+  tier: 1 | 2 | 3 | 4 | 5 | 6 | 7
   description: string
   cost: Partial<Record<ResourceKey, number>>
   /** 갈림길: 같은 단계의 a/b 중 하나만 */
@@ -215,6 +219,12 @@ export interface ResearchNode {
   endsAt?: number
   prerequisite?: string
   unlocked: boolean
+  /** 심화: 마친 레벨(0~20) */
+  level?: number
+  /** 예약(비용은 예약할 때 냈다): 지금 연구가 끝나면 바로 시작 */
+  queued?: boolean
+  /** 연맹 도움 요청(진행 중일 때): 서버 요청 번호 · 일 구분 · 반영한 도움 수 */
+  help?: { id: number; job: string; applied: number }
 }
 
 export interface Equipment {
@@ -316,6 +326,8 @@ export interface StrategyState {
   duelDayKey: string
   prelaunchGoldDayKey: string
   scenarioCleared: string[]
+  /** 관직(내정 → 관직): 태학 박사 · 태수 · 재야 두목. 저장은 연구 저장 끝에 덧붙인다(research.ts packResearchSave) */
+  offices?: OfficeState
 }
 
 export const INCOME_COOLDOWN_MS = 24 * 60 * 60 * 1000
@@ -645,7 +657,8 @@ export function deployCityGarrison(state: StrategyState, cityId: string): CityGa
   const generalIds = deployedIds(state.formation).slice(0, 3)
   if (!generalIds.length) return { ok: false, message: '먼저 출전 진형에 무장을 편성하십시오.', count: city.garrisons?.length ?? 0 }
   const generals = generalIds.map(id => findGeneral(state, id)).filter((general): general is General => Boolean(general))
-  const power = Math.round(generals.reduce((total, general) => total + combatPower(general), 0) * (1 + researchMods(state).newGarrison))
+  // 둔병제 · 금성탕지(연구) + 관직 태수(통솔): 이 도시에 새로 세우는 수비대 전력
+  const power = Math.round(generals.reduce((total, general) => total + combatPower(general), 0) * (1 + researchMods(state).newGarrison + (cityGovernor(state, city.id)?.bonus.leadership ?? 0)))
   const averageLevel = Math.round(generals.reduce((total, general) => total + general.level, 0) / generals.length)
   city.garrisons ??= []
   const deck = generals.map(general => ({ id: general.id, level: general.level, stars: general.stars }))
@@ -1111,6 +1124,8 @@ export function createInitialState(): StrategyState {
     cities: createCities(), selectedCityId: 'chengdu', research: createResearch(), lastConquest: null, luoyangBoxes: 0, lastLuoyangReward: undefined, luoyangRewardWeekKey: undefined, lastIncomeCollectedAt: undefined, lastConquestAt: undefined, lastDefenseAt: undefined, lastFactionBattleAt: undefined, factionWarScore: 0,
     equipmentInventory, equipmentLoadouts, equipmentPresets: {}, reserveSquads: [[], []], raidLocal: undefined, selectedEquipmentGeneralId: starterIds[0], lastEquipmentDraw: [], mythicFragments: 0, mythicStones: 0, duelAttemptsToday: 0, duelDayKey: dayKey(), prelaunchGoldDayKey: '', scenarioCleared: [],
   }
+  // 관직: 새로 시작하면(계정 바꾸기 포함) 비운다
+  state.offices = undefined
   ensurePrelaunchDailyGold(state)
   ensureCityGarrisons(state)
   return state
@@ -2084,14 +2099,20 @@ export function cityWallCapacity(city: City): number {
 function wallDamageFromPower(power: number): number {
   return Math.max(1, Math.min(CITY_DEFENSE_BY_LEVEL[5], Math.trunc(power)))
 }
+/** 관직 태수(무력): 공성할 도시와 맞닿은 아군 도시 태수 가운데 가장 큰 성벽 피해 보너스 */
+export function frontierSiegeBonus(state: StrategyState, cityId: string): number {
+  return Math.max(0, ...(CITY_ADJACENCY[cityId] ?? []).map(id => cityGovernor(state, id)?.bonus.martial ?? 0))
+}
 
 export function cityIncome(city: City, state?: StrategyState): Resources {
   if (city.owner !== (state?.faction ?? '촉한')) return { grain: 0, silver: 0, wood: 0, iron: 0, influence: 0 }
   const base = cityYield(city, state)
   // 연맹 기술 '둔전': 수확량 +2%/단계
   const harvest = state ? 1 + guildMods(state).harvest : 1
-  if (harvest === 1) return base
-  return { grain: Math.round(base.grain * harvest), silver: Math.round(base.silver * harvest), wood: Math.round(base.wood * harvest), iron: Math.round(base.iron * harvest), influence: Math.round(base.influence * harvest) }
+  // 관직 태수(모략): 그 도시 은전 · 영향력 수확
+  const civic = state ? 1 + (cityGovernor(state, city.id)?.bonus.stratagem ?? 0) : 1
+  if (harvest === 1 && civic === 1) return base
+  return { grain: Math.round(base.grain * harvest), silver: Math.round(base.silver * harvest * civic), wood: Math.round(base.wood * harvest), iron: Math.round(base.iron * harvest), influence: Math.round(base.influence * harvest * civic) }
 }
 
 /** 도시 하루 생산량(주인과 상관없이 단계 · 번영도 · 건물 · 연구 기준) */
@@ -2303,7 +2324,7 @@ export function launchConquest(state: StrategyState, cityId: string, now = Date.
   // Repeated failed assaults weaken the wall; once it reaches the breach threshold,
   // even a low-power roster can finally break the current garrison.
   const won = advantage >= 0.72 || city.defense <= cityWallCapacity(city) * 0.55
-  const damage = Math.round(wallDamageFromPower(power) * (1 + researchMods(state).siegeDamage))
+  const damage = Math.round(wallDamageFromPower(power) * (1 + researchMods(state).siegeDamage + frontierSiegeBonus(state, city.id)))
   if (isWanderer(state) && city.id !== LUOYANG_ID) {
     // 재야 약탈은 공성 전투(3D)를 이겨야 확정된다(resolveConquestBattle)
     void won; void damage
@@ -2372,7 +2393,7 @@ export function resolveConquestBattle(state: StrategyState, cityId: string, batt
   const defeated = Math.max(0, Math.min(defenseLine.length, city.defendersDefeated ?? 0))
   const underdog = underdogBuff(state)
   // 연맹: 공성 기계 + 이번 주 목표 도시(+10%)
-  const damage = Math.round(wallDamageFromPower(conquestPower(state)) * (1 + researchMods(state).siegeDamage) * (underdog?.wall ?? 1) * guildWallMultiplier(state, city.id))
+  const damage = Math.round(wallDamageFromPower(conquestPower(state)) * (1 + researchMods(state).siegeDamage + frontierSiegeBonus(state, city.id)) * (underdog?.wall ?? 1) * guildWallMultiplier(state, city.id))
   city.defendersDefeated = Math.min(defenseLine.length, defeated + 1)
   if (isWanderer(state) && city.id !== LUOYANG_ID) {
     state.lastConquestAt = now
@@ -2458,10 +2479,12 @@ export function buildingCost(building: CityBuilding, state?: StrategyState): Par
 
 /** 내정 건물 공사 시간(분): 현재 단계 → 다음 단계. 1→2 10분 · 2→3 30분 · 3→4 1시간 30분 · 4→5 4시간 */
 export const BUILD_MINUTES = [10, 30, 90, 240] as const
-export function buildingDurationMs(building: Pick<CityBuilding, 'level'>, state?: { guild?: GuildSnapshot | null }): number {
+export function buildingDurationMs(building: Pick<CityBuilding, 'level'>, state?: { guild?: GuildSnapshot | null }, city?: Pick<City, 'id'>): number {
   // 연맹 기술 '축성': 공사 시간 −3%/단계
   const cut = state ? guildMods(state).buildCut : 0
-  return Math.round((BUILD_MINUTES[Math.max(0, building.level - 1)] ?? BUILD_MINUTES[BUILD_MINUTES.length - 1]) * 60_000 * (1 - cut))
+  // 관직 태수(속도): 그 도시 공사 시간 단축
+  const swift = state && city && 'cities' in state ? cityGovernor(state as StrategyState, city.id)?.bonus.speed ?? 0 : 0
+  return Math.round((BUILD_MINUTES[Math.max(0, building.level - 1)] ?? BUILD_MINUTES[BUILD_MINUTES.length - 1]) * 60_000 * (1 - cut - swift))
 }
 /** 도시마다 공사는 한 번에 하나 */
 export function cityConstruction(city: City): CityBuilding | undefined {
@@ -2482,9 +2505,10 @@ export function upgradeBuilding(state: StrategyState, cityId: string, buildingId
   if (busy) return { ok: false, message: busy.id === building.id ? `${building.name}은(는) 이미 공사 중입니다.` : `${city.name}에서는 ${busy.name} 공사가 진행 중입니다. 도시마다 한 번에 하나씩 지을 수 있습니다.` }
   const cost = buildingCost(building, state)
   if (!spendResources(state, cost)) return { ok: false, message: `내정 자원이 부족합니다. 은전 ${formatNumber(cost.silver ?? 0)} · 목재 ${formatNumber(cost.wood ?? 0)} · 철 ${formatNumber(cost.iron ?? 0)} 필요` }
-  const duration = buildingDurationMs(building, state)
+  const duration = buildingDurationMs(building, state, city)
   building.startedAt = now
   building.endsAt = now + duration
+  building.help = undefined
   state.selectedCityId = city.id
   state.lastNotice = `${city.name} · ${building.name} ${building.level + 1}단계 공사 시작 · ${formatDuration(duration)} 후 완공`
   return { ok: true, message: state.lastNotice }
@@ -2494,8 +2518,10 @@ function completeBuilding(city: City, building: CityBuilding): void {
   building.level = Math.min(building.maxLevel, building.level + 1)
   building.startedAt = undefined
   building.endsAt = undefined
+  building.help = undefined
   city.prosperity = Math.min(100, city.prosperity + (building.kind === 'agriculture' || building.kind === 'commerce' ? 4 : 2))
-  if (building.kind === 'barracks') city.defense = Math.min(100, city.defense + 7)
+  // 정예 병영: 성벽 방어도를 최대치의 7% 고친다(최대치를 넘지 않는다). 예전 0~100 기준 코드가 성벽을 100으로 잘라 버리던 것을 고침(2026.10.23)
+  if (building.kind === 'barracks') { const max = cityWallCapacity(city); city.defense = Math.min(max, Math.max(city.defense, Math.round(city.defense + max * 0.07))) }
 }
 
 /** 시간이 다 된 공사를 완공한다(아군 도시만). 완공된 '도시 · 건물' 이름 목록 */
@@ -2523,6 +2549,7 @@ export function cancelBuilding(state: StrategyState, cityId: string): { ok: bool
   state.resources = { ...state.resources, silver: state.silver, wood: state.resources.wood + (cost.wood ?? 0), iron: state.resources.iron + (cost.iron ?? 0) }
   building.startedAt = undefined
   building.endsAt = undefined
+  building.help = undefined
   state.lastNotice = `${city.name} · ${building.name} 공사 취소 · 자원을 모두 돌려받았습니다.`
   return { ok: true, message: state.lastNotice }
 }

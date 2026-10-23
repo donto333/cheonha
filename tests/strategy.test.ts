@@ -217,11 +217,13 @@ describe('commander attributes', () => {
     }
   })
 
-  it('starts with 56 timed technologies: five branches per faction plus the two wanderer-only branches', () => {
+  it('starts with 56 timed technologies (five branches per faction plus the two wanderer-only branches) and one mastery per branch', () => {
     const state = createInitialState()
-    expect(state.research).toHaveLength(56)
-    expect(new Set(state.research.map(node => node.id)).size).toBe(56)
-    expect(state.research.filter(node => node.branch === '부국')).toHaveLength(8)
+    expect(state.research).toHaveLength(63)
+    expect(new Set(state.research.map(node => node.id)).size).toBe(63)
+    expect(state.research.filter(node => node.tier <= 6)).toHaveLength(56)
+    expect(state.research.filter(node => node.branch === '부국' && node.tier <= 6)).toHaveLength(8)
+    expect(state.research.filter(node => node.tier === 7).map(node => node.id).sort()).toEqual(['army-m', 'econ-m', 'loot-m', 'raid-m', 'realm-m', 'strat-m', 'talent-m'])
     expect(state.research.every(node => node.durationMs > 0)).toBe(true)
   })
 
@@ -229,7 +231,7 @@ describe('commander attributes', () => {
     const state = createInitialState()
     state.research = state.research.slice(0, 8)
     ensureResearchRoster(state)
-    expect(state.research).toHaveLength(56)
+    expect(state.research).toHaveLength(63)
     expect(state.research.some(node => node.id === 'talent-6b')).toBe(true)
   })
 

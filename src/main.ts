@@ -1,4 +1,5 @@
-import { cancelResearch, researchMods, rushResearch, settleResearch } from './game/research'
+import { activeResearch, applyHelpCount, cancelQueuedResearch, cancelResearch, helpJob, packResearchSave, researchLabel, researchMods, rushResearch, settleResearch, type HelpTarget } from './game/research'
+import { appointOffice, dismissOffice, setGovernorCity, type OfficePost } from './game/offices'
 import './styles/fonts.css'
 import './styles/main.css'
 import './styles/theme-color.css'
@@ -7,6 +8,7 @@ import './styles/territory-map.css'
 import './styles/mobile-type.css'
 import './styles/mobile-landscape.css'
 import './styles/design-v2.css'
+import './styles/domestic.css'
 import { enableLandscapeLock } from './platform/orientation'
 import { SocialPanel } from './ui/social'
 import { ManusAuth } from '../manus-auth.js'
@@ -87,7 +89,7 @@ import {
 } from './game/strategy'
 import { applyCombo } from './game/formation-advice'
 import { guildMods } from './game/guild'
-import type { GuildChatMessage, GuildLog, GuildMe, GuildRanking, GuildView, RoyalInfo } from '../server/guild.mjs'
+import type { GuildChatMessage, GuildHelpView, GuildLog, GuildMe, GuildRanking, GuildView, RoyalInfo } from '../server/guild.mjs'
 import type { GuildBoardPost } from './ui/guild-ui'
 import { StrategyUI, recordPurchase, type AdminBotRow, type SeasonInfo, type RaidView, type RaidInfoView, type LuoyangHistory, type AccountView, type AdminBoardState, type AuthView, type BoardPost, type CityDamageRanking, type DuelOpponent, type GameAccountView, type AdminGameEdit } from './ui/strategy-ui'
 import { HARD_RULE_INFO, SCENARIOS, clearedScenarioCount, firstClearReward, hardClearReward, hardUnlocked, markHardCleared, recordHardStars, recordScenarioStars, scenarioById, scenarioEnemyIds, scenarioEnemyLevelFor, scenarioEnemyStars, scenarioHardRule, type ScenarioDefinition, type ScenarioDifficulty } from './game/scenarios'
@@ -205,7 +207,7 @@ function persistLocalGame(): void {
       generals: state.generals,
       formation: state.formation,
       cities: state.cities,
-      research: state.research,
+      research: packResearchSave(state),
       selectedCityId: state.selectedCityId,
       lastIncomeCollectedAt: state.lastIncomeCollectedAt,
       lastConquestAt: state.lastConquestAt,
@@ -1112,6 +1114,66 @@ const GUILD_LOCKED = '연맹은 서버 계정(회원 또는 아이디를 정한 
 let guildChatTimer = 0
 let guildChatCache: GuildChatMessage[] = []
 let guildChatLastId = 0
+// ── 연맹 도움(2026.10.23): 진행 중인 연구 · 공사에 도움을 청하고, 받은 도움만큼 남은 시간을 줄인다 ──
+/** 도움을 청한 내 일(진행 중인 연구 · 공사)과 서버 요청 key */
+function helpTargets(): Array<{ key: string; target: HelpTarget }> {
+  const out: Array<{ key: string; target: HelpTarget }> = []
+  const research = activeResearch(state)
+  if (research?.help) out.push({ key: 'research', target: research })
+  for (const city of state.cities) for (const building of city.buildings) if (building.help && building.endsAt !== undefined) out.push({ key: `build:${city.id}`, target: building })
+  return out
+}
+/** 도움 요청을 보내는 중(그사이 받은 목록의 새 요청을 '끝난 일'로 닫지 않게) */
+let helpRequesting = false
+async function requestGuildHelp(kind: 'research' | 'build', cityId?: string): Promise<void> {
+  const call = guildBackend()
+  if (!call || !state.guild) { ui.notify('연맹에 가입하면 연맹원에게 도움을 청할 수 있습니다.', 'ember'); return }
+  const city = cityId ? state.cities.find(item => item.id === cityId) : undefined
+  const building = city?.buildings.find(item => item.endsAt !== undefined)
+  const research = kind === 'research' ? activeResearch(state) : null
+  const target: (HelpTarget & { startedAt?: number }) | null | undefined = kind === 'research' ? research : building
+  if (!target || target.endsAt === undefined) { ui.notify('진행 중인 일이 없습니다.', 'ember'); return }
+  const key = kind === 'research' ? 'research' : `build:${city!.id}`
+  const job = helpJob(kind === 'research' ? research!.id : `${city!.id}-${building!.id}`, target.startedAt)
+  const label = kind === 'research' ? researchLabel(research!, true) : `${city!.name} ${building!.name} ${building!.level + 1}단계`
+  helpRequesting = true
+  try {
+    const result = await call('helpRequest', { key, job, label, endsAt: target.endsAt }) as { id: number; helped: number }
+    target.help = { id: result.id, job, applied: target.help?.job === job ? target.help.applied : 0 }
+    applyHelpCount(target, result.helped)
+    ui.notify('연맹원에게 도움을 청했습니다. 도움을 받을 때마다 남은 시간이 줄어듭니다(최대 10번).', 'jade')
+    ui.render(state)
+    queueAccountSave()
+    void syncGuildHelps().then(() => { if (state.section === 'research' || state.section === 'territory') ui.render(state) })
+  } catch (error) { ui.notify(error instanceof Error ? error.message : '도움을 청하지 못했습니다.', 'ember') } finally { helpRequesting = false }
+}
+let guildHelpBusy = false
+/** 연맹 도움 목록을 받아: 내 요청의 도움을 반영하고, 끝난 일의 요청은 닫고, 도울 수 있는 요청을 화면에 보인다 */
+async function syncGuildHelps(): Promise<void> {
+  const call = guildBackend()
+  if (!call || !state.guild || guildHelpBusy) return
+  guildHelpBusy = true
+  try {
+    const list = await call('helps') as GuildHelpView[]
+    const targets = helpTargets()
+    let cut = 0
+    for (const item of list.filter(entry => entry.mine)) {
+      const found = targets.find(entry => entry.key === item.key)
+      if (!found || found.target.help?.job !== item.job) { if (!helpRequesting) void call('helpClose', { key: item.key }).catch(() => {}); continue }
+      cut += applyHelpCount(found.target, item.helped)
+    }
+    const me = ui.guildMe
+    if (me) ui.setGuildUi({ me: { ...me, helps: list } })
+    if (cut > 0) {
+      ui.notify(`연맹원의 도움 · 남은 시간 −${Math.max(1, Math.round(cut / 60_000))}분`, 'jade')
+      queueAccountSave()
+      if (state.section === 'research' || state.section === 'territory') ui.render(state)
+    }
+  } catch { /* 다음에 다시 */ } finally { guildHelpBusy = false }
+}
+// 1분마다(화면이 보일 때 · 연맹원만) 도움을 받아 온다
+window.setInterval(() => { if (!document.hidden && state.guild) void syncGuildHelps() }, 60_000)
+
 /** 내 연맹을 서버에서 받아 화면 · 보너스(state.guild)에 반영 */
 async function refreshGuild(options: { list?: boolean } = {}): Promise<GuildMe | null> {
   const call = guildBackend()
@@ -1123,6 +1185,8 @@ async function refreshGuild(options: { list?: boolean } = {}): Promise<GuildMe |
     const changed = JSON.stringify(state.guild ?? null) !== JSON.stringify(guild)
     state.guild = guild
     if (changed) persistLocalGame()
+    // 연맹 도움: 받은 도움 반영 · 끝난 요청 닫기
+    if (guild) void syncGuildHelps()
     const patch: Parameters<typeof ui.setGuildUi>[0] = { me, loading: false }
     if (!guild && (options.list ?? true) && state.section === 'guild') patch.list = await call('list', { query: '' }) as GuildView[]
     ui.setGuildUi(patch)
@@ -1365,6 +1429,13 @@ async function guildAction(action: string, data: Record<string, string>): Promis
         break
       }
       case 'research': await call('research', { techId: data.tech }); ui.notify('연맹 기술을 연구했습니다.', 'jade'); break
+      case 'help': {
+        const result = await call('help', data.requestId ? { requestId: num(data.requestId) } : {}) as { helped: number; points: number }
+        ui.notify(`연맹원 ${result.helped}명을 도왔습니다${result.points ? ` · 기여 +${result.points}` : ' · 오늘 도움 기여는 다 받았습니다'}`, 'jade')
+        playSfx('reward')
+        void syncGuildHelps()
+        return
+      }
       case 'buy': {
         const result = await call('buy', { itemId: data.item }) as { grant: Record<string, number>; ledger: { fragments: number; stones: number } }
         const grant = result.grant ?? {}
@@ -1787,13 +1858,13 @@ const ui = new StrategyUI(root, {
     ui.render(state)
     ui.notify(result.message, result.ok ? 'jade' : 'ember')
     if (result.ok) playSfx('build')
-    if (result.ok) queueAccountSave(true)
+    if (result.ok) { queueAccountSave(true); void syncGuildHelps() }
   },
   onBuildingCancel: cityId => {
     const result = cancelBuilding(state, cityId)
     ui.render(state)
     ui.notify(result.message, result.ok ? 'jade' : 'ember')
-    if (result.ok) queueAccountSave()
+    if (result.ok) { queueAccountSave(); void syncGuildHelps() }
   },
   onResearch: id => {
     const result = unlockResearch(state, id)
@@ -1827,7 +1898,25 @@ const ui = new StrategyUI(root, {
     ui.render(state)
     ui.notify(result.message, result.ok ? 'jade' : 'ember')
     if (result.ok) playSfx('close')
-    if (result.ok) queueAccountSave()
+    if (result.ok) { queueAccountSave(); void syncGuildHelps() }
+  },
+  onResearchQueueCancel: () => {
+    const result = cancelQueuedResearch(state)
+    ui.render(state)
+    ui.notify(result.message, result.ok ? 'jade' : 'ember')
+    if (result.ok) { playSfx('close'); queueAccountSave() }
+  },
+  onHelpRequest: (kind, cityId) => { void requestGuildHelp(kind, cityId) },
+  onOffice: (action, data) => {
+    const post = (data.post === 'governor' || data.post === 'chief' ? data.post : 'scholar') as OfficePost
+    const slot = Math.max(0, Math.trunc(Number(data.slot) || 0))
+    const result = action === 'appoint' ? appointOffice(state, post, slot, data.generalId ?? '')
+      : action === 'dismiss' ? dismissOffice(state, post, slot)
+      : action === 'city' ? setGovernorCity(state, slot, data.cityId ?? '')
+      : { ok: false, message: '알 수 없는 관직 명령입니다.' }
+    ui.render(state)
+    ui.notify(result.message, result.ok ? 'jade' : 'ember')
+    if (result.ok) { playSfx('formation'); queueAccountSave() }
   },
   onResearchRush: () => {
     const result = rushResearch(state)
@@ -1835,7 +1924,7 @@ const ui = new StrategyUI(root, {
     ui.render(state)
     ui.notify(result.message, result.ok ? 'jade' : 'ember')
     if (result.ok) playSfx('research')
-    if (result.ok) queueAccountSave(true)
+    if (result.ok) { queueAccountSave(true); void syncGuildHelps() }
   },
   onScenarioStart: (id, difficulty = 'normal') => {
     const scenario = scenarioById(id)
@@ -2381,9 +2470,10 @@ window.setInterval(() => {
   const finished = settleResearch(state)
   if (finished.length) {
     mission('researchDone', finished.length)
-    notifyResearchDone(finished.map(node => node.name))
-    ui.notify(`연구 완료 · ${finished.map(node => node.name).join(' · ')}`, 'jade')
+    notifyResearchDone(finished.map(node => researchLabel(node)))
+    ui.notify(`연구 완료 · ${finished.map(node => researchLabel(node)).join(' · ')}`, 'jade')
     queueAccountSave(true)
+    void syncGuildHelps()
     if (state.section === 'research' || state.section === 'territory') ui.render(state)
     return
   }
@@ -2392,6 +2482,7 @@ window.setInterval(() => {
   if (built.length) {
     ui.notify(`내정 완공 · ${built.join(' · ')}`, 'jade')
     queueAccountSave(true)
+    void syncGuildHelps()
     if (state.section === 'territory') ui.render(state)
   } else if (state.section === 'territory') ui.updateBuildTimers()
   if (state.section === 'research') ui.updateResearchTimer(state)
@@ -2675,6 +2766,7 @@ async function refreshAccount(): Promise<void> {
         if (!(Array.isArray(game.generals) && game.generals.length)) {
           const ledger = { gold: state.gold, mythicFragments: state.mythicFragments, mythicStones: state.mythicStones }
           restoreLocalGame(GUEST_GAME_SAVE_KEY)
+          syncResearchRoster()
           Object.assign(state, ledger)
           state.prelaunchGoldDayKey = ''
           localSaveDirty = true
@@ -2741,7 +2833,7 @@ function accountStatePayload() {
     generalData: JSON.stringify(state.generals),
     formationData: JSON.stringify(state.formation),
     citiesData: JSON.stringify(state.cities),
-    researchData: JSON.stringify(state.research),
+    researchData: JSON.stringify(packResearchSave(state)),
     selectedCityId: state.selectedCityId,
     incomeCollectedAt: state.lastIncomeCollectedAt === undefined ? null : String(state.lastIncomeCollectedAt),
     conquestAt: state.lastConquestAt === undefined ? null : String(state.lastConquestAt),

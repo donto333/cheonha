@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { battleResearch, cancelResearch, normalizeResearch, researchMods, researchStatus, rushCost, rushResearch, settleResearch, startResearch, RESEARCH_MINUTES } from '../src/game/research'
+import { battleResearch, cancelResearch, normalizeResearch, researchMods, researchStatus, rushCost, rushResearch, settleResearch, startResearch, RESEARCH_MINUTES, masteryMinutes } from '../src/game/research'
 import { createInitialState, recruitCost, type StrategyState } from '../src/game/strategy'
 
 function rich(): StrategyState {
@@ -21,20 +21,30 @@ describe('timed research', () => {
   it('uses longer research times for higher tiers', () => {
     expect(RESEARCH_MINUTES).toEqual([5, 20, 60, 120, 240, 480])
     const state = createInitialState()
-    for (const node of state.research) expect(node.durationMs).toBe(RESEARCH_MINUTES[node.tier - 1] * 60_000)
+    for (const node of state.research) expect(node.durationMs).toBe(node.tier === 7 ? masteryMinutes(1) * 60_000 : RESEARCH_MINUTES[node.tier - 1] * 60_000)
   })
 
-  it('charges on start, finishes only after the timer, and allows one at a time', () => {
+  it('charges on start, finishes only after the timer, and runs one at a time (a second start becomes a reservation)', () => {
     const state = rich()
     const before = state.resources.influence
     expect(startResearch(state, 'econ-1', 1000).ok).toBe(true)
     expect(state.resources.influence).toBe(before - 600)
-    expect(startResearch(state, 'army-1', 1000).ok).toBe(false)
     expect(researchStatus(state, state.research.find(node => node.id === 'army-1')!)).toBe('busy')
+    // 진행 중에 다른 연구를 고르면 예약(비용은 예약할 때), 예약은 하나만
+    const reserve = startResearch(state, 'army-1', 1000)
+    expect(reserve.ok).toBe(true)
+    expect(reserve.queued).toBe(true)
+    expect(state.resources.influence).toBe(before - 1200)
+    expect(researchStatus(state, state.research.find(node => node.id === 'army-1')!)).toBe('queued')
+    expect(startResearch(state, 'strat-1', 1000).ok).toBe(false)
     expect(settleResearch(state, 1000 + 5 * 60_000 - 1)).toHaveLength(0)
     expect(settleResearch(state, 1000 + 5 * 60_000)).toHaveLength(1)
     expect(researchMods(state).grain).toBeCloseTo(0.15)
-    expect(startResearch(state, 'army-1', 400_000).ok).toBe(true)
+    // 앞 연구가 끝난 그 순간부터 예약한 연구가 돈다
+    const army = state.research.find(node => node.id === 'army-1')!
+    expect(army.queued).toBeUndefined()
+    expect(army.startedAt).toBe(1000 + 5 * 60_000)
+    expect(army.endsAt).toBe(1000 + 10 * 60_000)
   })
 
   it('refunds everything on cancel', () => {
@@ -96,7 +106,7 @@ describe('timed research', () => {
     const refund = normalizeResearch(state)
     expect(refund).toEqual({ influence: 300, grain: 500 })
     expect(state.resources.influence).toBe(influence + 300)
-    expect(state.research).toHaveLength(56)
+    expect(state.research).toHaveLength(63)
     expect(state.research.find(node => node.id === 'strat-1')!.endsAt).toBe(5 * 60_000)
     expect(normalizeResearch(state)).toBeNull()
   })
@@ -113,8 +123,8 @@ describe('재야(중립 진영) 전용 연구', () => {
     expect(branchActive(state, '부국')).toBe(false)
     expect(startResearch(state, 'econ-1', 0).ok).toBe(false)
     expect(startResearch(state, 'loot-1', 0).ok).toBe(true)
-    // 두 분야 모두 6단계 · 갈림길 2개(8개)
-    for (const branch of ['약탈', '유격']) expect(state.research.filter(node => node.branch === branch)).toHaveLength(8)
+    // 두 분야 모두 6단계 · 갈림길 2개(8개) + 심화 1개
+    for (const branch of ['약탈', '유격']) expect(state.research.filter(node => node.branch === branch)).toHaveLength(9)
   })
   it('진영에 맞지 않는 분야의 연구는 효과가 없다', () => {
     const state = rich()

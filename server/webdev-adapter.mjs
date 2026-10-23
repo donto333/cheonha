@@ -1732,6 +1732,7 @@ const mysqlGuildRepo = {
   async getRequest(id) { const db = await guildDb(); const rows = await db.select().from(guildRequestsTable).where(eq(guildRequestsTable.id, id)).limit(1); const row = rows[0]; return row ? { ...(parseStateJson(row.data) ?? {}), id: row.id, guildId: row.guildId, userId: row.userId, kind: row.kind, createdAt: Number(row.createdAt) } : null; },
   async insertRequest(item) { const db = await guildDb(); const { guildId, userId, kind, createdAt, ...rest } = item; const [result] = await db.insert(guildRequestsTable).values({ guildId, userId, kind, createdAt, data: JSON.stringify(rest) }); return Number(result.insertId); },
   async deleteRequest(id) { const db = await guildDb(); await db.delete(guildRequestsTable).where(eq(guildRequestsTable.id, id)); },
+  async updateRequest(item) { const db = await guildDb(); const { id, guildId: _guildId, userId: _userId, kind: _kind, createdAt: _createdAt, ...rest } = item; await db.update(guildRequestsTable).set({ data: JSON.stringify(rest) }).where(eq(guildRequestsTable.id, id)); },
   async addLog(guildId, at, text) { const db = await guildDb(); await db.insert(guildLogsTable).values({ guildId, at, text: String(text).slice(0, 255) }); },
   async listLogs(guildId, limit) { const db = await guildDb(); return db.select().from(guildLogsTable).where(eq(guildLogsTable.guildId, guildId)).orderBy(desc(guildLogsTable.id)).limit(limit); },
   async addChat(message) {

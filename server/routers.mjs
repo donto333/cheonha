@@ -158,6 +158,11 @@ export const gameRouter = router({
     settings: protectedProcedure.input(z.object({ notice: z.string().max(200).optional(), joinMode: z.enum(['open', 'approval']).optional(), minLevel: z.number().int().min(1).max(60).optional(), color: z.number().int().min(0).max(31).optional(), pattern: z.number().int().min(0).max(31).optional() }).strict()).mutation(({ ctx, input }) => guildService.updateSettings(ctx.user.id, input)),
     donate: protectedProcedure.input(z.object({ kind: z.enum(['donateSilver', 'donateResources', 'donateGold']) }).strict()).mutation(({ ctx, input }) => guildService.donate(ctx.user.id, input.kind)),
     research: protectedProcedure.input(z.object({ techId: z.enum(['harvest', 'siege', 'garrison', 'raid', 'build', 'supply', 'duel']) }).strict()).mutation(({ ctx, input }) => guildService.research(ctx.user.id, input.techId)),
+    // 연맹 도움(2026.10.23): 연구 · 공사 남은 시간 줄이기
+    helps: protectedProcedure.query(({ ctx }) => guildService.helps(ctx.user.id)),
+    helpRequest: protectedProcedure.input(z.object({ key: z.string().trim().min(1).max(40), job: z.string().max(64), label: z.string().trim().max(40).optional(), endsAt: z.number().int().min(0) }).strict()).mutation(({ ctx, input }) => guildService.requestHelp(ctx.user.id, input)),
+    helpClose: protectedProcedure.input(z.object({ key: z.string().trim().max(40).optional() }).strict()).mutation(({ ctx, input }) => guildService.closeHelp(ctx.user.id, input.key)),
+    help: protectedProcedure.input(z.object({ requestId: z.number().int().positive().optional() }).strict()).mutation(({ ctx, input }) => guildService.help(ctx.user.id, input.requestId)),
     buy: protectedProcedure.input(z.object({ itemId: z.string().max(16) }).strict()).mutation(({ ctx, input }) => guildService.buy(ctx.user.id, input.itemId)),
     setTarget: protectedProcedure.input(z.object({ cityId: z.string().trim().min(2).max(32), cityName: z.string().trim().max(16).optional() }).strict()).mutation(({ ctx, input }) => guildService.setTarget(ctx.user.id, input.cityId, input.cityName)),
     claim: protectedProcedure.mutation(({ ctx }) => guildService.claim(ctx.user.id)),

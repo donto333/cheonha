@@ -12,7 +12,7 @@ const url = `http://127.0.0.1:${port}/`
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], { stdio: 'ignore' })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-const SECTIONS = ['overview', 'recruit', 'roster', 'codex', 'formation', 'equipment', 'territory', 'research', 'battle', 'duel', 'raid', 'shop', 'rank', 'board', 'guild', 'updates', 'account']
+const SECTIONS = ['overview', 'recruit', 'roster', 'codex', 'formation', 'equipment', 'territory', 'research', 'battle', 'duel', 'raid', 'shop', 'rank', 'board', 'guild', 'updates', 'account', 'office']
 // 가로 고정 게임: 일반 휴대폰 · 작은 휴대폰 가로 화면
 const VIEWS = [
   { name: 'land', viewport: { width: 844, height: 390 } },
@@ -146,6 +146,31 @@ try {
     // 영토 도시 검색
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'territory'; g.ui.render(g.state) })
     if (await page.locator('[data-terr-search-input]').count()) { await page.locator('[data-terr-search-input]').first().fill('양'); await shot('99-territory-search') }
+    // 내정: 연구(심화 · 예약 · 연구 시간 단축) · 관직(태학 박사 · 태수, 고르기 창) — 2026.10.23
+    try {
+      await page.evaluate(() => {
+        const g = window.__strategy, s = g.state
+        s.resources = { ...s.resources, grain: 2e6, silver: 2e6, wood: 2e6, iron: 2e6, influence: 2e6 }; s.silver = 2e6
+        for (const node of s.research) if (/^(econ|loot)-(1|2|3a|4|5|6a)$/.test(node.id)) node.unlocked = true
+        for (const id of ['econ-m', 'loot-m']) { const m = s.research.find(n => n.id === id); if (m) m.level = 3 }
+        const busy = new Set([...s.formation, ...(s.reserveSquads ?? []).flat()])
+        const free = s.generals.filter(x => !busy.has(x.id)).sort((a, b) => b.stratagem - a.stratagem)
+        const home = s.cities.find(c => c.owner === s.faction)
+        s.offices = { scholar: free[0]?.id ?? null, governors: free[1] && home && s.faction !== '재야' ? [{ generalId: free[1].id, cityId: home.id }] : [], chiefs: s.faction === '재야' && free[1] ? [free[1].id] : [] }
+        const now = Date.now()
+        const run = s.research.find(n => n.id === (s.faction === '재야' ? 'loot-m' : 'econ-m'))
+        if (run) { run.startedAt = now - 30 * 60_000; run.endsAt = now + 3.5 * 3600_000 }
+        const next = s.research.find(n => n.id === 'army-1'); if (next) next.queued = true
+        s.section = 'research'; g.ui.render(s)
+      })
+      await clearOverlays(); await shot('98c-research-mastery')
+      await page.evaluate(() => { const g = window.__strategy; g.state.section = 'office'; g.ui.render(g.state) })
+      await clearOverlays(); await shot('98d-office')
+      const pick = page.locator('[data-action="office-pick"]')
+      if (await pick.count()) { await pick.first().evaluate(b => b.click()); await shot('98e-office-picker'); await page.locator('[data-action="office-close"]').first().evaluate(b => b.click()) }
+      const cityPick = page.locator('[data-action="office-city-pick"]')
+      if (await cityPick.count()) { await cityPick.first().evaluate(b => b.click()); await shot('98f-office-city'); await page.locator('[data-action="office-close"]').first().evaluate(b => b.click()) }
+    } catch (error) { errors.push(`[${view.name}] domestic: ${error}`) }
     // 무장 상세 창
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })
     if (await page.locator('.gtile').count()) { await page.locator('.gtile').first().evaluate(b => b.click()); await shot('94-roster-detail'); await page.locator('[data-action="general-detail-close"]').first().evaluate(b => b.click()) }

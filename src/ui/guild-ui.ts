@@ -99,6 +99,15 @@ function header(guild: GuildView, me: GuildMe): string {
   return `<div class="guild-hero glass-card">${guildEmblem(guild.emblem, 'lg')}<div class="guild-hero__copy"><span class="eyebrow">${esc(guild.faction)} 진영 연맹</span><h2>${ugc(guild.name)} <em>Lv.${guild.level}</em></h2><div class="guild-exp"><i style="width:${expPct}%"></i></div><small>${guild.expToNext ? `경험치 ${formatNumber(guild.exp)} / ${formatNumber(guild.expToNext)}` : '최고 레벨'}</small></div><div class="guild-hero__stats"><span><b>${guild.members}/${guild.capacity}</b><small>인원</small></span><span><b>${formatNumber(guild.funds)}</b><small>연맹 자금</small></span><span><b>${formatNumber(me.points)}</b><small>내 기여 포인트</small></span><span><b>${esc(GUILD_ROLE_LABEL[member.role])}</b><small>내 직위</small></span></div>${guild.notice ? `<p class="guild-notice"><b>공지</b> ${ugc(guild.notice)}</p>` : ''}${guild.target ? `<p class="guild-target">⚑ 이번 주 공동 공성 목표 <b>${esc(guild.target.cityName)}</b> <small>${guild.target.done ? '점령 완료!' : '공성하면 성벽 방어도 차감 +10% · 기여 2배'}</small></p>` : ''}</div>`
 }
 
+/** 연맹 도움(2026.10.23): 연맹원의 연구 · 공사 도움 요청. 도우면 그 일의 남은 시간이 1%(최소 1분) 줄고 나는 기여 +2(하루 20번) */
+function helpCard(me: GuildMe): string {
+  const list = me.helps ?? []
+  const open = list.filter(item => !item.mine && !item.done && item.helped < item.max)
+  const left = (at: number) => { const minutes = Math.max(1, Math.round((at - Date.now()) / 60000)); return minutes >= 60 ? `${Math.floor(minutes / 60)}시간 ${minutes % 60}분` : `${minutes}분` }
+  const rows = list.map(item => `<li class="${item.mine ? 'is-mine' : item.done ? 'is-done' : ''}"><span><b>${ugc(item.name)}</b><small>${esc(item.label)} · ${left(item.endsAt)} 남음</small></span><em>${item.helped}/${item.max}</em>${item.mine ? '<i>내 요청</i>' : item.done || item.helped >= item.max ? '<i>도움 완료</i>' : `<button class="mini-action mini-action--deploy" data-action="guild-help" data-request-id="${item.id}">돕기</button>`}</li>`).join('')
+  return `<div class="glass-card guild-panel"><div class="card-header"><div><span class="eyebrow">연구 · 공사</span><h3>연맹 도움 ${open.length ? `<em>${open.length}</em>` : ''}</h3></div>${open.length > 1 ? '<button class="mini-action mini-action--deploy" data-action="guild-help">모두 돕기</button>' : ''}</div>${rows ? `<ul class="guild-requests guild-helps">${rows}</ul>` : '<p class="guild-hint">연맹원이 연구 · 공사에 도움을 청하면 여기에 보입니다. 도울 때마다 그 일의 남은 시간이 1%(최소 1분) 줄고, 나는 기여 +2를 받습니다(하루 20번).</p>'}</div>`
+}
+
 function infoTab(state: StrategyState, guild: GuildView, me: GuildMe): string {
   const role = me.member?.role
   const cities = state.cities.filter(city => city.owner !== state.faction && !['chengdu', 'ye', 'jianye', 'xiangyang'].includes(city.id)).sort((a, b) => a.name.localeCompare(b.name, 'ko'))
@@ -113,7 +122,7 @@ function infoTab(state: StrategyState, guild: GuildView, me: GuildMe): string {
     ? '<button class="ghost-button ghost-button--danger" data-action="guild-disband">연맹 해산</button>'
     : '<button class="ghost-button ghost-button--danger" data-action="guild-leave">연맹 탈퇴</button>'
   const rules = `<div class="glass-card guild-panel"><span class="eyebrow">규칙</span><h3>연맹 안내</h3><ul class="guild-rules"><li>같은 진영 지휘관끼리만 연맹을 만들고 가입합니다. 진영을 바꾸면 자동으로 탈퇴합니다.</li><li>인원은 Lv.1 20명에서 레벨마다 2명씩 늘어 Lv.10 38명입니다.</li><li>탈퇴 · 추방 뒤 24시간이 지나야 다시 가입할 수 있습니다. 기여 포인트는 남습니다.</li><li>연맹장이 7일 동안 접속하지 않으면 부연맹장 → 정예 → 기여 순으로 자동 위임됩니다.</li><li>매주 월요일 0시에 주간 기여 · 레이드 합산 순위를 정산해 1 · 2 · 3위와 상위 10% 연맹원(3일 이상 소속)에게 금화 · 병서를 줍니다.</li></ul>${leave}</div>`
-  return `<div class="guild-grid">${requests}${settings}${rules}</div>`
+  return `<div class="guild-grid">${helpCard(me)}${requests}${settings}${rules}</div>`
 }
 
 function membersTab(guild: GuildView, me: GuildMe): string {

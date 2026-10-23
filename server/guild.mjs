@@ -51,8 +51,21 @@ export const GUILD_CONTRIBUTIONS = {
   defense: { label: '수비전 성공', points: 15, exp: 15, funds: 0, limit: 10, period: 'day' },
   raid: { label: '주간 레이드 참여', points: 100, exp: 100, funds: 0, limit: 1, period: 'week' },
   attendance: { label: '출석', points: 10, exp: 10, funds: 0, limit: 1, period: 'day' },
+  help: { label: '연맹원 돕기', points: 2, exp: 2, funds: 0, limit: 20, period: 'day' },
 }
 export const GUILD_DONATIONS = ['donateSilver', 'donateResources', 'donateGold']
+
+// ── 연맹 도움(2026.10.23) ─────────────────────────────────────
+// 연맹원이 진행 중인 연구 · 공사에 '도움'을 청하면, 같은 연맹원이 한 번씩 도울 수 있다. 도움 한 번 = 남은 시간 1%(최소 1분),
+// 요청 하나에 10번까지. 시간을 줄이는 것은 게임(연구 · 공사의 주인)이 받은 도움 수를 보고 한다. 돕는 사람은 기여(하루 20번까지)를 받는다.
+export const GUILD_HELP_MAX = 10
+export const GUILD_HELP_CUT = 0.01
+export const GUILD_HELP_MIN_MS = 60 * 1000
+/** 한 사람이 한꺼번에 열어 둘 수 있는 도움 요청(연구 1 + 도시 공사) */
+export const GUILD_HELP_OPEN_MAX = 8
+/** 도움 한 번에 줄어드는 시간 */
+export function guildHelpCut(remainingMs) { return Math.max(GUILD_HELP_MIN_MS, Math.round(Math.max(0, Number(remainingMs) || 0) * GUILD_HELP_CUT)) }
+const HELP_KEY_RE = /^(research|build:[a-z0-9-]{2,32})$/
 
 // ── 연맹 기술 ──────────────────────────────────────────────
 /** 단계당 효과 · 최대 5단계. 단계 상한은 연맹 레벨에 묶인다(Lv.1·2 → 1단계, Lv.3·4 → 2, … Lv.9·10 → 5) */
@@ -193,6 +206,7 @@ export function createMemoryGuildRepo(accounts = new Map()) {
     async listRequests({ guildId, userId, kind } = {}) { return [...requests.values()].filter(item => (guildId == null || item.guildId === guildId) && (userId == null || item.userId === userId) && (!kind || item.kind === kind)).map(clone) },
     async getRequest(id) { return clone(requests.get(id) ?? null) },
     async insertRequest(item) { reqSeq += 1; requests.set(reqSeq, { ...clone(item), id: reqSeq }); return reqSeq },
+    async updateRequest(item) { if (requests.has(item.id)) requests.set(item.id, clone(item)) },
     async deleteRequest(id) { requests.delete(id) },
     async addLog(guildId, at, text) { logSeq += 1; logs.push({ id: logSeq, guildId, at, text }) },
     async listLogs(guildId, limit) { return logs.filter(item => item.guildId === guildId).slice(-limit).reverse().map(clone) },
@@ -249,6 +263,7 @@ export function createGuildService(repo, { now = () => Date.now(), territory = a
   function requireRole(member, minRole) { if (rank(member.role) > rank(minRole)) fail(`${GUILD_ROLE_LABEL[minRole]} 이상만 할 수 있습니다.`) }
 
   async function removeMember(member, guild, reason) {
+    for (const item of await repo.listRequests({ userId: member.userId, kind: 'help' })) await repo.deleteRequest(item.id)
     member.guildId = null
     member.role = 'member'
     member.leftAt = now()
@@ -314,6 +329,21 @@ export function createGuildService(repo, { now = () => Date.now(), territory = a
     const key = periodKey(period, now())
     const entry = member.ledger[kind]
     member.ledger[kind] = { key, count: (entry?.key === key ? entry.count : 0) + count }
+  }
+
+  /** 연맹의 열린 도움 요청(끝난 지 1시간이 넘은 것은 지운다) */
+  async function openHelps(guildId) {
+    const list = await repo.listRequests({ guildId, kind: 'help' })
+    const open = []
+    for (const item of list) {
+      if ((Number(item.endsAt) || 0) <= now()) { if (now() - (Number(item.endsAt) || 0) > HOUR) await repo.deleteRequest(item.id); continue }
+      open.push(item)
+    }
+    return open.sort((a, b) => (a.endsAt ?? 0) - (b.endsAt ?? 0))
+  }
+  function helpView(item, viewerId) {
+    const helpers = Array.isArray(item.helpers) ? item.helpers : []
+    return { id: item.id, userId: item.userId, name: item.name ?? '', key: item.key, job: item.job ?? '', label: item.label ?? '', endsAt: Number(item.endsAt) || 0, helped: helpers.length, max: GUILD_HELP_MAX, mine: item.userId === viewerId, done: helpers.includes(viewerId) }
   }
 
   async function joinGuild(member, guild, account) {
@@ -407,7 +437,8 @@ export function createGuildService(repo, { now = () => Date.now(), territory = a
       const fresh = await repo.getMember(userId) ?? member
       const members = await repo.listMembers(guild.id)
       const requests = rank(fresh.role) <= rank('elite') ? (await repo.listRequests({ guildId: guild.id, kind: 'apply' })).filter(item => now() - item.createdAt < GUILD_APPLY_EXPIRE_MS) : []
-      return { guild: guildView(guild, members.length), member: memberView(fresh), members: members.map(memberView).sort((a, b) => rank(a.role) - rank(b.role) || b.weekPoints - a.weekPoints), requests: requests.map(item => ({ id: item.id, userId: item.userId, name: item.name, power: item.power ?? 0, maxLevel: item.maxLevel ?? 0, createdAt: item.createdAt })), ...base }
+      const helps = (await openHelps(guild.id)).map(item => helpView(item, userId))
+      return { guild: guildView(guild, members.length), member: memberView(fresh), members: members.map(memberView).sort((a, b) => rank(a.role) - rank(b.role) || b.weekPoints - a.weekPoints), requests: requests.map(item => ({ id: item.id, userId: item.userId, name: item.name, power: item.power ?? 0, maxLevel: item.maxLevel ?? 0, createdAt: item.createdAt })), helps, ...base }
     }),
 
     /** 같은 진영 연맹 목록(이름 검색) */
@@ -596,6 +627,63 @@ export function createGuildService(repo, { now = () => Date.now(), territory = a
       await credit(member, guild, rule)
       await log(guild.id, `${member.name} ${rule.label}`)
       return { ok: true, cost: rule.cost, points: rule.points }
+    }),
+    /** 연맹 도움 목록(내 요청 포함): 게임이 1분마다 받아 내 연구 · 공사에 도움을 반영하고, 도울 수 있는 요청을 보여 준다 */
+    helps: userId => serial(async () => {
+      const account = await repo.account(userId)
+      if (!account) return []
+      const member = await memberOf(userId, account)
+      const guild = await guildOf(member)
+      if (!guild) return []
+      return (await openHelps(guild.id)).map(item => helpView(item, userId))
+    }),
+    /**
+     * 도움 요청 열기 · 고치기. key: 'research' 또는 'build:<도시>', job: 같은 일인지 가리는 값(바뀌면 도움 수를 새로 센다),
+     * endsAt: 끝나는 시각(목록 정렬 · 만료에 쓴다). 같은 key · job이면 받은 도움을 그대로 두고 시각 · 이름만 고친다.
+     */
+    requestHelp: (userId, input) => serial(async () => {
+      const { account, guild } = await requireGuild(userId)
+      const key = String(input?.key ?? '').trim()
+      if (!HELP_KEY_RE.test(key)) fail('도움을 청할 수 없는 일입니다.')
+      const job = String(input?.job ?? '').slice(0, 64)
+      const endsAt = Math.trunc(Number(input?.endsAt) || 0)
+      if (endsAt <= now() + GUILD_HELP_MIN_MS) fail('곧 끝나는 일에는 도움을 청할 수 없습니다.')
+      if (endsAt > now() + 2 * DAY) fail('끝나는 시각을 확인할 수 없습니다.')
+      const label = String(input?.label ?? '').trim().slice(0, 40) || (key === 'research' ? '기술 연구' : '내정 공사')
+      const mine = (await repo.listRequests({ userId, kind: 'help' })).filter(item => item.guildId === guild.id)
+      const same = mine.find(item => item.key === key)
+      if (same && same.job === job) {
+        same.endsAt = endsAt
+        same.label = label
+        await repo.updateRequest(same)
+        return { ok: true, id: same.id, helped: (same.helpers ?? []).length }
+      }
+      if (same) await repo.deleteRequest(same.id)
+      const open = mine.filter(item => item.id !== same?.id && (Number(item.endsAt) || 0) > now())
+      if (open.length >= GUILD_HELP_OPEN_MAX) fail(`도움 요청은 한꺼번에 ${GUILD_HELP_OPEN_MAX}개까지 열 수 있습니다.`)
+      const id = await repo.insertRequest({ guildId: guild.id, userId, kind: 'help', name: account.name, key, job, label, endsAt, helpers: [], createdAt: now() })
+      return { ok: true, id, helped: 0 }
+    }),
+    /** 도움 요청 닫기(연구 · 공사가 끝나거나 취소됐을 때). key가 없으면 내 요청을 모두 */
+    closeHelp: (userId, key) => serial(async () => {
+      for (const item of await repo.listRequests({ userId, kind: 'help' })) if (!key || item.key === key) await repo.deleteRequest(item.id)
+      return { ok: true }
+    }),
+    /** 연맹원 돕기: requestId가 없으면 도울 수 있는 요청을 모두. 도울 때마다 기여 +2(하루 20번까지) */
+    help: (userId, requestId) => serial(async () => {
+      const { member, guild } = await requireGuild(userId)
+      const open = (await openHelps(guild.id)).filter(item => (requestId == null || item.id === requestId) && item.userId !== userId && !(item.helpers ?? []).includes(userId) && (item.helpers ?? []).length < GUILD_HELP_MAX)
+      if (!open.length) fail(requestId == null ? '지금 도울 수 있는 요청이 없습니다.' : '도울 수 없는 요청입니다(이미 도왔거나 끝났습니다).')
+      const rule = GUILD_CONTRIBUTIONS.help
+      let credited = 0
+      for (const item of open) {
+        item.helpers = [...(item.helpers ?? []), userId]
+        await repo.updateRequest(item)
+        if (usage(member, 'help', rule.period) < rule.limit) { use(member, 'help', rule.period); credited += 1 }
+      }
+      if (credited) await credit(member, guild, { points: rule.points * credited, exp: rule.exp * credited, funds: 0 })
+      else await repo.putMember(member)
+      return { ok: true, helped: open.length, points: rule.points * credited }
     }),
     /** 연맹 기술 연구(부연맹장 이상, 연맹 자금) */
     research: (userId, techId) => serial(async () => {

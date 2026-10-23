@@ -234,3 +234,53 @@ describe('운영자 계정 삭제', () => {
   })
 })
 
+
+describe('연맹 도움(연구 · 공사)', () => {
+  it('요청 · 돕기 · 받은 도움 수 · 기여(하루 20번) · 같은 일이면 이어짐', async () => {
+    const { svc, tick, at } = world()
+    await svc.create(1, { name: '도원', joinMode: 'open' })
+    const guildId = (await svc.me(1)).guild!.id
+    await svc.apply(2, guildId); await svc.apply(3, guildId)
+    await expect(svc.requestHelp(1, { key: 'research', job: 'army-1:0', label: '오부 훈련', endsAt: at() + 30_000 })).rejects.toThrow('곧 끝나는')
+    await expect(svc.requestHelp(1, { key: 'hack', job: 'x', endsAt: at() + HOUR })).rejects.toThrow('청할 수 없는')
+    const request = await svc.requestHelp(1, { key: 'research', job: 'econ-m:0', label: '천하 창름 Lv.1', endsAt: at() + 4 * HOUR })
+    expect(request.helped).toBe(0)
+    await expect(svc.help(1, request.id)).rejects.toThrow('도울 수 없는')
+    expect((await svc.help(2, request.id)).points).toBe(2)
+    await expect(svc.help(2, request.id)).rejects.toThrow('이미 도왔거나')
+    // 모두 돕기
+    expect((await svc.help(3)).helped).toBe(1)
+    const mine = (await svc.helps(1)).find(item => item.mine)!
+    expect(mine).toMatchObject({ key: 'research', job: 'econ-m:0', helped: 2, max: 10, done: false })
+    expect((await svc.helps(2))[0]).toMatchObject({ mine: false, done: true })
+    expect((await svc.me(2)).helps?.[0].label).toBe('천하 창름 Lv.1')
+    // 같은 일(job)을 다시 열면 받은 도움이 이어지고, 다른 일이면 새로 센다
+    expect((await svc.requestHelp(1, { key: 'research', job: 'econ-m:0', label: '천하 창름 Lv.1', endsAt: at() + 3 * HOUR })).helped).toBe(2)
+    expect((await svc.requestHelp(1, { key: 'research', job: 'econ-m:99', label: '천하 창름 Lv.2', endsAt: at() + 3 * HOUR })).helped).toBe(0)
+    expect((await svc.helps(1)).filter(item => item.mine)).toHaveLength(1)
+    // 공사 요청도 함께, 닫으면 사라진다
+    await svc.requestHelp(1, { key: 'build:chengdu', job: 'farm:0', label: '성도 둔전 농장', endsAt: at() + HOUR })
+    expect((await svc.helps(2)).length).toBe(2)
+    await svc.closeHelp(1, 'build:chengdu')
+    expect((await svc.helps(2)).length).toBe(1)
+    // 끝난 요청은 목록에서 빠진다
+    tick(4 * HOUR)
+    expect(await svc.helps(2)).toEqual([])
+  })
+  it('기여는 하루 20번까지 · 연맹을 나가면 내 요청이 지워진다', async () => {
+    const { svc, at } = world()
+    await svc.create(1, { name: '도원', joinMode: 'open' })
+    const guildId = (await svc.me(1)).guild!.id
+    await svc.apply(2, guildId)
+    const before = (await svc.me(2)).points
+    for (let i = 0; i < 22; i += 1) {
+      const request = await svc.requestHelp(1, { key: 'research', job: `n${i}`, endsAt: at() + HOUR })
+      await svc.help(2, request.id)
+    }
+    expect((await svc.me(2)).points - before).toBe(40)
+    await svc.requestHelp(2, { key: 'research', job: 'm', endsAt: at() + HOUR })
+    expect((await svc.helps(1)).length).toBe(2)
+    await svc.leave(2)
+    expect((await svc.helps(1)).filter(item => !item.mine)).toHaveLength(0)
+  })
+})

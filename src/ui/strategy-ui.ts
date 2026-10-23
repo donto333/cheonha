@@ -10,7 +10,10 @@ import { nextAttendanceDay } from '../../server/attendance.mjs'
 import { packageBonus, shopNeeds, shopPackages, type ShopPackage, type ShopResource } from '../game/shop'
 import { effectsSetting, muteSetting, musicSetting, qualitySetting, setEffectsSetting, setMusicSetting, setMuteSetting, setQualitySetting, setSfxSetting, sfxSetting, type EffectsSetting, type QualitySetting, type SoundLevel } from '../game/settings'
 import { sound } from '../engine/sound'
-import { branchActive, researchBranchesFor, canPay, activeResearch, formatDuration, researchStatus, researchSummary, rushCost } from '../game/research'
+import { branchActive, researchBranchesFor, canPay, activeResearch, formatDuration, researchStatus, researchSummary, rushCost, queuedResearch, queueBlocker, isMastery, MASTERY_MAX, researchDurationFor, researchLabel, masteryEffectText, masteryValueText } from '../game/research'
+import { academyCut, percentText, scholarCut, scholarGeneral } from '../game/offices'
+import { emptyOfficeUi, officeSection, type OfficeUiState } from './office-ui'
+import { GUILD_HELP_MAX, type GuildMe } from '../../server/guild.mjs'
 import { ensureEquipmentState, DRAW_LOG_LIMIT, EARLY_RECRUIT_PULLS, isEventGeneral, currentCityGarrison, codexOrder, deployedIds, isFemaleGeneral, equipmentDrawCost, plunderTake, wandererDailyPlunder, factionInfluence, underdogBuff, type CityFaction, statsAt, STARTER_PACKS, starterPackBought, type StarterPack, LEVEL_RESET_GOLD, levelResetRefund, growthWeights, affordableUpgrades, upgradeCost, templateGeneral, MYTHIC_FRAGMENT_COST, dayKey, CITY_ADJACENCY, FACTION_CAPITALS, homeCityId, isWanderer, wandererPlunderLeft, WANDERER_DAILY_PLUNDER, WANDERER_PLUNDER_RATE, FACTION_CHANGE_COOLDOWN_MS, RAZE_REBUILD_MS, LEGENDARY_SPECIALTY_LEVEL, trackGoldChange, GOLD_LOG_LIMIT, PASSES, PASS_PAYMENT_ENABLED, passUntil, passGoldClaimedToday, cityOccupation, cityCaptureBanned, OCCUPY_MS, EQUIPMENT_GRADE_META, EQUIPMENT_SET_META, EQUIPMENT_TYPE_META, FACTION_WAR_GOLD_REWARD, FACTION_WAR_HONOR_COST, GOLD_PACKAGES, GOLD_PURCHASE_ENABLED, GRADE_META, MYTHIC_EVENT_EQUIPMENT, MYTHIC_SHOP_EQUIPMENT, capitalFactionForCity, cityWallCapacity, conquestEligibility, duelAttemptsRemaining, RESOURCE_META, allGenerals, equipmentInventoryCount, equipmentSetCounts, equipmentSpecialty, skillDetail, type City, type CityBuilding, type Grade, type Equipment, type EquipmentGrade, type EquipmentType, type Faction, type General, type Role, type ResearchNode, type Section, type StrategyState, buildingCost, buildingDurationMs, cityIncome, combatPower, conquestCost, conquestPower, equipmentBonus, equipmentCost, recruitCost, equipmentValue, formatNumber, incomeCooldownRemaining, researchCost, skillPower, skillRank, skillUnlockLevel, MAX_GENERAL_LEVEL, isMaxLevel } from '../game/strategy'
 import type { BattleOpponent, BattleSnapshot, UnitEffectChip } from '../game/arena'
 import { ATTENDANCE_REWARDS, type AttendanceReward } from '../../server/attendance.mjs'
@@ -100,7 +103,7 @@ const NAV_HUBS: NavHub[] = [
   { id: 'generals', ko: '장수', en: 'Generals', icon: 'roster', sections: ['roster', 'codex'] },
   { id: 'lineup', ko: '편성', en: 'Lineup', icon: 'formation', sections: ['formation', 'equipment'] },
   { id: 'recruit', ko: '모집', en: 'Recruit', icon: 'recruit', sections: ['recruit'] },
-  { id: 'domestic', ko: '내정', en: 'Domestic', icon: 'research', sections: ['research'] },
+  { id: 'domestic', ko: '내정', en: 'Domestic', icon: 'research', sections: ['research', 'office'] },
   { id: 'guild', ko: '연맹', en: 'Guild', icon: 'guild', sections: ['guild', 'board'] },
   { id: 'shop', ko: '상점', en: 'Shop', icon: 'shop', sections: ['shop'] },
   { id: 'notice', ko: '공지', en: 'Notice', icon: 'updates', sections: ['updates'] },
@@ -112,11 +115,11 @@ const NAV_HUBS: NavHub[] = [
 /** 가로 휴대폰(모바일 게임형 화면) 조건: CSS의 mobile-landscape.css와 같다 */
 const PHONE_LANDSCAPE = '(orientation: landscape) and (max-height: 500px)'
 const isPhoneLandscape = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.(PHONE_LANDSCAPE).matches)
-const HUB_TAB_NAMES: Partial<Record<Section, [string, string]>> = { roster: ['보유', 'Owned'], codex: ['도감', 'Codex'], formation: ['진형', 'Lineup'], equipment: ['장비', 'Gear'], research: ['연구', 'Research'], guild: ['연맹', 'Guild'], board: ['게시판', 'Board'], battle: ['시나리오', 'Scenario'], updates: ['업데이트', 'Updates'] }
+const HUB_TAB_NAMES: Partial<Record<Section, [string, string]>> = { roster: ['보유', 'Owned'], codex: ['도감', 'Codex'], formation: ['진형', 'Lineup'], equipment: ['장비', 'Gear'], research: ['연구', 'Research'], office: ['관직', 'Offices'], guild: ['연맹', 'Guild'], board: ['게시판', 'Board'], battle: ['시나리오', 'Scenario'], updates: ['업데이트', 'Updates'] }
 const hubOf = (section: Section): NavHub => NAV_HUBS.find(hub => hub.sections.includes(section)) ?? NAV_HUBS[0]
 /** 휴대폰에서 쓰는 짧은 메뉴 이름(한·영을 직접 고른다: ‘장비’ 같은 말이 사전에서 인물 이름으로 바뀌지 않게) */
 const SHORT_NAV: Record<string, [string, string]> = {
-  overview: ['본영', 'Base'], roster: ['무장', 'Generals'], codex: ['도감', 'Codex'], formation: ['편성', 'Lineup'], recruit: ['모집', 'Recruit'], equipment: ['장비', 'Gear'], research: ['연구', 'Research'], territory: ['영토', 'Territory'],
+  overview: ['본영', 'Base'], roster: ['무장', 'Generals'], codex: ['도감', 'Codex'], formation: ['편성', 'Lineup'], recruit: ['모집', 'Recruit'], equipment: ['장비', 'Gear'], research: ['연구', 'Research'], office: ['관직', 'Offices'], territory: ['영토', 'Territory'],
   battle: ['전투', 'Battle'], duel: ['대련', 'Duel'], raid: ['레이드', 'Raid'], rank: ['랭킹', 'Ranks'], board: ['게시판', 'Board'], guild: ['연맹', 'Guild'], shop: ['상점', 'Shop'], updates: ['소식', 'News'], account: ['계정', 'Account'], admin: ['관리', 'Admin'], balance: ['밸런스', 'Balance'],
 }
 /** 무장 사진 테두리·카드 강조색: 무장마다 다르던 색 대신 등급색으로 통일 */
@@ -323,6 +326,12 @@ export interface StrategyUiCallbacks {
   onBuildingCancel: (cityId: string) => void
   onResearch: (id: string) => void
   onResearchCancel: () => void
+  /** 연구 예약 취소(전액 환급) */
+  onResearchQueueCancel: () => void
+  /** 연맹 도움 요청: 진행 중인 연구 · 그 도시의 공사 */
+  onHelpRequest: (kind: 'research' | 'build', cityId?: string) => void
+  /** 관직: appoint(post · slot · generalId) · dismiss(post · slot) · city(slot · cityId) */
+  onOffice: (action: string, data: Record<string, string>) => void
   onMissionClaim: (id: string) => void
   /** 처음 시작 안내: 보상 받기(false) · 닫기(true) */
   onTutorial: (skip: boolean) => void
@@ -472,6 +481,8 @@ export class StrategyUI {
   private boardTab: BoardPost['board'] = '전체'
   /** 연맹 화면 상태 */
   private guildUi: GuildUiState = emptyGuildUi()
+  /** 관직 화면: 무장 · 도시 고르기 창 */
+  private officeUi: OfficeUiState = emptyOfficeUi()
   private duelOpponents: DuelOpponent[] = []
   private raidView: RaidView = { loading: false, info: null, ranking: [], message: '' }
   private duelMyPower = 0
@@ -655,7 +666,8 @@ export class StrategyUI {
     if (!remainingEl) return
     remainingEl.textContent = formatDuration(remaining)
     const bar = this.root.querySelector<HTMLElement>('[data-research-progress]')
-    if (bar) bar.style.width = `${Math.min(100, Math.max(0, (1 - remaining / active.durationMs) * 100)).toFixed(1)}%`
+    const total = Math.max(1, active.endsAt - (active.startedAt ?? active.endsAt - active.durationMs))
+    if (bar) bar.style.width = `${Math.min(100, Math.max(0, (1 - remaining / total) * 100)).toFixed(1)}%`
     const rush = this.root.querySelector<HTMLElement>('[data-research-rush]')
     if (rush) rush.textContent = `즉시 완료 · 금화 ${rushCost(remaining)}`
     const card = this.root.querySelector<HTMLElement>('.research-node.is-active .research-running')
@@ -1123,6 +1135,8 @@ export class StrategyUI {
     this.root.querySelector<HTMLFormElement>(`[data-guild-form="${kind}"]`)?.reset()
   }
   get guildTab(): GuildTab { return this.guildUi.tab }
+  /** 마지막으로 받은 내 연맹 정보(연맹 도움 목록을 덧붙일 때 쓴다) */
+  get guildMe(): GuildMe | null { return this.guildUi.me }
   get guildRankingKind(): GuildUiState['rankingKind'] { return this.guildUi.rankingKind }
 
   setBoardPosts(posts: BoardPost[], board: BoardPost['board']): void {
@@ -1546,6 +1560,7 @@ export class StrategyUI {
           ${this.navButton('recruit', icon('recruit'), '모집 · 장비', state.section, state.lastRecruit ? 'NEW' : '')}
           ${this.navButton('equipment', icon('equipment'), '장비 관리', state.section, `${equipmentInventoryCount(state)}`)}
           ${this.navButton('research', icon('research'), '기술 연구', state.section)}
+          ${this.navButton('office', icon('roster'), '관직', state.section)}
           ${this.navButton('territory', icon('territory'), '영토 · 내정', state.section, `${state.cities.filter(city => city.owner === state.faction).length}`)}
           ${this.navGroup('전투')}
           ${this.navButton('battle', icon('battle'), '시나리오', state.section)}
@@ -1642,6 +1657,7 @@ export class StrategyUI {
     if (state.section === 'formation') return this.formationSection(state)
     if (state.section === 'territory') return this.territorySection(state)
     if (state.section === 'research') return this.researchSection(state)
+    if (state.section === 'office') return officeSection(state, this.officeUi, { portrait: general => this.portraitAsset(general) })
     if (state.section === 'battle') return this.battleViewActive ? this.battleSection(state) : this.scenarioSection(state)
     if (state.section === 'duel') return this.duelSection(state)
     if (state.section === 'raid') return this.raidSection(state)
@@ -2529,7 +2545,7 @@ export class StrategyUI {
     const frontierNote = canManage ? '내정 핵심지 · 방어선 유지' : eligibility.allowed ? `접경 전선 · ${eligibility.reason}` : '원거리 전선 · 진군 경로 차단'
     // 가로 휴대폰: 도시 관리 칸을 행동 · 내정 · 기록 탭으로 나눠 한 번에 하나만 보인다
     const cityTabs = isPhoneLandscape() ? `<nav class="city-tabs">${([['act', canManage ? '수비' : '공성'], ['dev', '내정'], ['log', '기록']] as const).map(([id, label]) => `<button class="city-tabs__tab${this.cityTab === id ? ' is-active' : ''}" data-action="city-tab" data-tab="${id}">${label}</button>`).join('')}</nav>` : ''
-    return `<div class="glass-card city-management ${panelClass}" data-city-tab="${this.cityTab}">${cityTabs}<div class="city-sheet-bar"><span class="city-sheet-grip"></span><button class="city-sheet-close" data-action="city-sheet-close" aria-label="도시 정보 닫기">✕</button></div><div class="city-management-head"><div><span class="eyebrow">도시 관리 · ${city.region}</span><h2>${city.name}</h2><p>${city.region} · ${city.owner === state.faction ? '아군 직할령' : `${city.owner} 관할`}${city.guild ? ` · <span class="city-guild">연맹 <b data-no-tr>${escapeHtml(city.guild.name)}</b></span>` : ''}</p></div><div class="city-management-status"><span class="city-level">Lv.${city.level}</span>${capitalBadge}</div></div><div class="city-map-context"><span>인접 전선</span><strong>${frontierNote}</strong><small>인접 도시 ${eligibility.neighborNames.length ? eligibility.neighborNames.join(' · ') : '독립 성 · 연결 전선 없음'}</small></div><div class="city-metrics">${metrics.map(([label, value]) => `<div><span>${label}</span><i><b style="width:${Math.min(value, 100)}%"></b></i><em>${value}</em></div>`).join('')}</div><p class="wall-status">성벽 방어도 ${formatNumber(city.defense)} / ${formatNumber(wallCapacity)} · ${isWanderer(state) && city.id !== 'luoyang' ? '재야는 점령하지 않고 성벽을 깎아 약탈합니다.' : '성벽을 0으로 깨고 수비병을 모두 물리치면 점령할 수 있습니다.'}</p>${conquest}${city.id === 'luoyang' ? this.luoyangHistoryCard(state) : ''}${this.cityDamageRankingCard(city)}${this.battleLogCard(city)}<div class="city-yield"><div class="card-header"><div><span class="eyebrow">예상 수확</span><h3>도시 생산량</h3></div><span class="rate-note">${canManage ? '수확 1회 기준' : '점령 후 활성화'}</span></div><div class="yield-grid">${(['grain', 'silver', 'wood', 'iron', 'influence'] as const).map(key => `<span style="--resource-color:${RESOURCE_META[key].color}">${icon(key, 'gi--inline')} ${RESOURCE_META[key].label} +${formatNumber(income[key])}</span>`).join('')}</div></div><div class="building-list"><div class="card-header"><div><span class="eyebrow">건물</span><h3>내정 건물</h3></div><span class="rate-note">${canManage ? '건물마다 생산 특화' : '정찰 정보'}</span></div>${city.buildings.map(building => this.buildingRow(city, building, canManage)).join('')}</div>${canManage ? '<p class="management-tip">병영을 강화하면 성벽이 더 튼튼해지고 방어도 회복 한도가 오릅니다.</p>' : '<p class="management-tip management-tip--warn">성벽을 깨고 수비병을 모두 물리친 뒤, 마지막 세력전에서 이기면 점령합니다.</p>'}</div>`
+    return `<div class="glass-card city-management ${panelClass}" data-city-tab="${this.cityTab}">${cityTabs}<div class="city-sheet-bar"><span class="city-sheet-grip"></span><button class="city-sheet-close" data-action="city-sheet-close" aria-label="도시 정보 닫기">✕</button></div><div class="city-management-head"><div><span class="eyebrow">도시 관리 · ${city.region}</span><h2>${city.name}</h2><p>${city.region} · ${city.owner === state.faction ? '아군 직할령' : `${city.owner} 관할`}${city.guild ? ` · <span class="city-guild">연맹 <b data-no-tr>${escapeHtml(city.guild.name)}</b></span>` : ''}</p></div><div class="city-management-status"><span class="city-level">Lv.${city.level}</span>${capitalBadge}</div></div><div class="city-map-context"><span>인접 전선</span><strong>${frontierNote}</strong><small>인접 도시 ${eligibility.neighborNames.length ? eligibility.neighborNames.join(' · ') : '독립 성 · 연결 전선 없음'}</small></div><div class="city-metrics">${metrics.map(([label, value]) => `<div><span>${label}</span><i><b style="width:${Math.min(value, 100)}%"></b></i><em>${value}</em></div>`).join('')}</div><p class="wall-status">성벽 방어도 ${formatNumber(city.defense)} / ${formatNumber(wallCapacity)} · ${isWanderer(state) && city.id !== 'luoyang' ? '재야는 점령하지 않고 성벽을 깎아 약탈합니다.' : '성벽을 0으로 깨고 수비병을 모두 물리치면 점령할 수 있습니다.'}</p>${conquest}${city.id === 'luoyang' ? this.luoyangHistoryCard(state) : ''}${this.cityDamageRankingCard(city)}${this.battleLogCard(city)}<div class="city-yield"><div class="card-header"><div><span class="eyebrow">예상 수확</span><h3>도시 생산량</h3></div><span class="rate-note">${canManage ? '수확 1회 기준' : '점령 후 활성화'}</span></div><div class="yield-grid">${(['grain', 'silver', 'wood', 'iron', 'influence'] as const).map(key => `<span style="--resource-color:${RESOURCE_META[key].color}">${icon(key, 'gi--inline')} ${RESOURCE_META[key].label} +${formatNumber(income[key])}</span>`).join('')}</div></div><div class="building-list"><div class="card-header"><div><span class="eyebrow">건물</span><h3>내정 건물</h3></div><span class="rate-note">${canManage ? '건물마다 생산 특화' : '정찰 정보'}</span></div>${city.buildings.map(building => this.buildingRow(city, building, canManage)).join('')}</div>${canManage ? '<p class="management-tip">정예 병영 공사를 마치면 성벽 방어도를 최대치의 7%만큼 고칩니다.</p>' : '<p class="management-tip management-tip--warn">성벽을 깨고 수비병을 모두 물리친 뒤, 마지막 세력전에서 이기면 점령합니다.</p>'}</div>`
   }
 
   private cityDamageRankingCard(city: City): string {
@@ -2701,31 +2717,60 @@ export class StrategyUI {
     if (building.endsAt !== undefined) {
       const left = Math.max(0, building.endsAt - Date.now())
       const total = Math.max(1, building.endsAt - (building.startedAt ?? building.endsAt - 1))
-      return `<div class="building-row is-building"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name} <em class="building-next">→ ${building.level + 1}단계 공사 중</em></strong><small>남은 시간 <b data-build-left="${building.endsAt}">${formatDuration(left)}</b></small><span class="building-progress"><i data-build-bar="${building.endsAt}" data-build-total="${total}" style="width:${Math.min(100, (1 - left / total) * 100).toFixed(1)}%"></i></span></div><div class="building-actions"><button class="mini-action" data-action="building-rush" data-city="${city.id}" data-build-rush="${building.endsAt}" ${canManage ? '' : 'disabled'}>즉시 완공 · 금화 ${rushCost(left)}</button><button class="mini-action" data-action="building-cancel" data-city="${city.id}" ${canManage ? '' : 'disabled'}>취소</button></div></div>`
+      return `<div class="building-row is-building"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name} <em class="building-next">→ ${building.level + 1}단계 공사 중</em></strong><small>남은 시간 <b data-build-left="${building.endsAt}">${formatDuration(left)}</b></small><span class="building-progress"><i data-build-bar="${building.endsAt}" data-build-total="${total}" style="width:${Math.min(100, (1 - left / total) * 100).toFixed(1)}%"></i></span></div><div class="building-actions"><button class="mini-action" data-action="building-rush" data-city="${city.id}" data-build-rush="${building.endsAt}" ${canManage ? '' : 'disabled'}>즉시 완공 · 금화 ${rushCost(left)}</button><button class="mini-action" data-action="building-cancel" data-city="${city.id}" ${canManage ? '' : 'disabled'}>취소</button>${canManage && this.renderedState?.guild ? (building.help ? `<span class="building-help">연맹 도움 ${building.help.applied}/${GUILD_HELP_MAX}</span>` : `<button class="mini-action" data-action="building-help" data-city="${city.id}">도움 요청</button>`) : ''}</div></div>`
     }
     const waitOther = Boolean(busyBuilding && !maxed)
-    return `<div class="building-row"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name}</strong><small>${building.description}</small><span class="building-level">${'◆'.repeat(building.level)}${'◇'.repeat(building.maxLevel - building.level)}</span></div><button class="mini-action ${maxed ? 'is-maxed' : ''}" data-action="building-upgrade" data-city="${city.id}" data-building="${building.id}" ${!canManage || maxed || waitOther ? 'disabled' : ''} title="${waitOther ? '이 도시는 다른 건물을 짓는 중입니다' : ''}">${maxed ? '최고 단계' : waitOther ? `다른 공사 중 · ${costText}` : `강화 · ${formatDuration(buildingDurationMs(building, this.renderedState ?? undefined))} · ${costText}`}</button></div>`
+    return `<div class="building-row"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name}</strong><small>${building.description}</small><span class="building-level">${'◆'.repeat(building.level)}${'◇'.repeat(building.maxLevel - building.level)}</span></div><button class="mini-action ${maxed ? 'is-maxed' : ''}" data-action="building-upgrade" data-city="${city.id}" data-building="${building.id}" ${!canManage || maxed || waitOther ? 'disabled' : ''} title="${waitOther ? '이 도시는 다른 건물을 짓는 중입니다' : ''}">${maxed ? '최고 단계' : waitOther ? `다른 공사 중 · ${costText}` : `강화 · ${formatDuration(buildingDurationMs(building, this.renderedState ?? undefined, city))} · ${costText}`}</button></div>`
+  }
+
+  /** 연구 속도 안내: 태학 서원 · 태학 박사 단축(없으면 빈 글) */
+  private researchSpeedText(state: StrategyState): string {
+    const academy = academyCut(state)
+    const scholar = scholarCut(state)
+    if (!academy && !scholar) return ''
+    const scholarName = scholarGeneral(state)?.name
+    return `연구 시간 −${percentText(academy + scholar)}${academy ? ` · 태학 서원 −${percentText(academy)}` : ''}${scholar ? ` · 태학 박사${scholarName ? ` ${escapeHtml(scholarName)}` : ''} −${percentText(scholar)}` : ''}`
+  }
+
+  /** 연구 화면의 연맹 도움: 내 연구 도움 요청 · 받은 도움, 연맹원 돕기 */
+  private researchHelpBar(state: StrategyState, active: ResearchNode | null): string {
+    if (!state.guild) return ''
+    const helps = this.guildUi.me?.helps ?? []
+    const others = helps.filter(item => !item.mine && !item.done && item.helped < item.max).length
+    const mine = active?.help ? `<span class="research-help">연맹 도움 ${active.help.applied}/${GUILD_HELP_MAX}</span>`
+      : active ? '<button class="mini-action research-help-btn" data-action="research-help">연맹 도움 요청</button>' : ''
+    const give = others ? `<button class="mini-action mini-action--deploy research-help-btn" data-action="guild-help">연맹원 돕기 · ${others}건</button>` : ''
+    return mine || give ? `<div class="research-help-bar">${mine}${give}</div>` : ''
   }
 
   private researchSection(state: StrategyState): string {
     const now = Date.now()
     const active = activeResearch(state)
+    const queued = queuedResearch(state)
     const doneCount = state.research.filter(node => node.unlocked && branchActive(state, node.branch)).length
+    const masteryTotal = state.research.filter(node => isMastery(node) && branchActive(state, node.branch)).reduce((sum, node) => sum + (node.level ?? 0), 0)
     const effects = researchSummary(state)
+    const speed = this.researchSpeedText(state)
+    const stage = (node: ResearchNode) => isMastery(node) ? '심화' : `${node.tier}단계`
+    const queueLine = queued
+      ? `<div class="research-queue"><span>예약 · ${escapeHtml(researchLabel(queued, true))} <small>${formatDuration(researchDurationFor(state, queued))}</small></span><button class="mini-action" data-action="research-queue-cancel">예약 취소</button></div>`
+      : '<p class="research-queue is-empty">연구 중에 다른 연구를 고르면 예약됩니다(끝나면 바로 시작).</p>'
     const activePanel = active && active.endsAt !== undefined
       ? (() => {
         const remaining = Math.max(0, active.endsAt - now)
-        const progress = Math.min(100, Math.max(0, (1 - remaining / active.durationMs) * 100))
-        return `<div class="research-active glass-card is-running"><div class="research-active__copy"><span class="eyebrow">진행 중인 연구 · ${active.branch} ${active.tier}단계</span><h3>${active.name}</h3><p>${active.description}</p></div><div class="research-active__timer"><strong data-research-remaining>${formatDuration(remaining)}</strong><small>남음 · 전체 ${formatDuration(active.durationMs)}</small><div class="research-progress"><i data-research-progress style="width:${progress.toFixed(1)}%"></i></div></div><div class="research-active__actions"><button class="mini-action mini-action--rush" data-action="research-rush"><span data-research-rush>즉시 완료 · 금화 ${rushCost(remaining)}</span></button><button class="mini-action" data-action="research-cancel">연구 취소 (전액 환급)</button></div></div>`
+        const total = Math.max(1, active.endsAt - (active.startedAt ?? active.endsAt - active.durationMs))
+        const progress = Math.min(100, Math.max(0, (1 - remaining / total) * 100))
+        const body = isMastery(active) ? `끝나면 ${masteryEffectText(active.branch, (active.level ?? 0) + 1)}(지금 ${masteryValueText(active.branch, active.level ?? 0)})` : active.description
+        return `<div class="research-active glass-card is-running"><div class="research-active__copy"><span class="eyebrow">진행 중인 연구 · ${active.branch} ${stage(active)}</span><h3>${escapeHtml(researchLabel(active, true))}</h3><p>${escapeHtml(body)}</p>${queueLine}</div><div class="research-active__timer"><strong data-research-remaining>${formatDuration(remaining)}</strong><small>남음 · 전체 ${formatDuration(total)}</small><div class="research-progress"><i data-research-progress style="width:${progress.toFixed(1)}%"></i></div></div><div class="research-active__actions"><button class="mini-action mini-action--rush" data-action="research-rush"><span data-research-rush>즉시 완료 · 금화 ${rushCost(remaining)}</span></button><button class="mini-action" data-action="research-cancel">연구 취소 (전액 환급)</button>${this.researchHelpBar(state, active)}</div></div>`
       })()
       : (() => {
         const options = state.research.filter(node => branchActive(state, node.branch) && researchStatus(state, node) === 'available')
         const pick = options.filter(node => canPay(state, node.cost)).sort((a, b) => a.tier - b.tier || a.durationMs - b.durationMs)[0] ?? options.sort((a, b) => a.tier - b.tier)[0]
-        if (!pick) return `<div class="research-active glass-card is-idle"><div class="research-active__copy"><span class="eyebrow">연구소</span><h3>${doneCount >= 30 ? '모든 연구를 마쳤습니다' : '지금 시작할 수 있는 연구가 없습니다'}</h3></div></div>`
+        if (!pick) return `<div class="research-active glass-card is-idle"><div class="research-active__copy"><span class="eyebrow">연구소</span><h3>${doneCount >= 30 && masteryTotal >= MASTERY_MAX * 5 ? '모든 연구를 마쳤습니다' : '지금 시작할 수 있는 연구가 없습니다'}</h3></div>${this.researchHelpBar(state, null)}</div>`
         const affordable = canPay(state, pick.cost)
-        return `<div class="research-active glass-card is-idle"><div class="research-active__copy"><span class="eyebrow">연구소가 비어 있습니다 · 추천 연구</span><h3>${pick.branch} ${pick.tier}단계 · ${pick.name}</h3><p>${pick.description}</p></div><div class="research-active__timer"><strong>${formatDuration(pick.durationMs)}</strong><small class="${affordable ? '' : 'is-short'}">${researchCost(pick)}${affordable ? '' : ' · 자원 부족'}</small></div><div class="research-active__actions"><button class="mini-action mini-action--research" data-action="research" data-research="${pick.id}" ${affordable ? '' : 'disabled'}>추천 연구 시작 →</button></div></div>`
+        return `<div class="research-active glass-card is-idle"><div class="research-active__copy"><span class="eyebrow">연구소가 비어 있습니다 · 추천 연구</span><h3>${pick.branch} ${stage(pick)} · ${escapeHtml(researchLabel(pick, true))}</h3><p>${escapeHtml(isMastery(pick) ? masteryEffectText(pick.branch, (pick.level ?? 0) + 1) : pick.description)}</p></div><div class="research-active__timer"><strong>${formatDuration(researchDurationFor(state, pick))}</strong><small class="${affordable ? '' : 'is-short'}">${researchCost(pick)}${affordable ? '' : ' · 자원 부족'}</small></div><div class="research-active__actions"><button class="mini-action mini-action--research" data-action="research" data-research="${pick.id}" ${affordable ? '' : 'disabled'}>추천 연구 시작 →</button>${this.researchHelpBar(state, null)}</div></div>`
       })()
-    // 가로 휴대폰(참고 게임의 계급 화면처럼): 왼쪽 분야 목록, 가운데 고른 분야의 1~6단계를 선으로 이어 가로로
+    // 가로 휴대폰(참고 게임의 계급 화면처럼): 왼쪽 분야 목록, 가운데 고른 분야의 1~6단계 + 심화를 선으로 이어 가로로
     if (isPhoneLandscape()) {
       const branches = researchBranchesFor(state)
       const selected = branches.find(branch => branch.id === this.researchBranch) ?? branches[0]
@@ -2733,21 +2778,22 @@ export class StrategyUI {
       const list = branches.map(branch => {
         const nodes = state.research.filter(node => node.branch === branch.id)
         const done = new Set(nodes.filter(node => node.unlocked).map(node => node.tier)).size
+        const level = nodes.find(isMastery)?.level ?? 0
         const running = active && active.branch === branch.id
-        return `<button class="mres-branch${branch.id === selected.id ? ' is-active' : ''}${running ? ' is-running' : ''}" data-action="research-branch" data-branch="${branch.id}"><span class="mres-branch__icon">${icon(branchIcon(branch.prefix))}</span><span class="mres-branch__text"><strong>${branch.id}</strong><small>${done}/6${running ? ' · 연구 중' : ''}</small></span></button>`
+        return `<button class="mres-branch${branch.id === selected.id ? ' is-active' : ''}${running ? ' is-running' : ''}" data-action="research-branch" data-branch="${branch.id}"><span class="mres-branch__icon">${icon(branchIcon(branch.prefix))}</span><span class="mres-branch__text"><strong>${branch.id}</strong><small>${done}/6${level ? ` · 심화 ${level}` : ''}${running ? ' · 연구 중' : ''}</small></span></button>`
       }).join('')
       const nodes = state.research.filter(node => node.branch === selected.id)
-      const tiers = [1, 2, 3, 4, 5, 6].map(tier => {
+      const tiers = [1, 2, 3, 4, 5, 6, 7].map(tier => {
         const row = nodes.filter(node => node.tier === tier)
-        return `<div class="mres-tier"><span class="mres-tier__label">${tier}단계${row.length > 1 ? ' · 택1' : ''}</span>${row.map(node => this.researchCard(node, state, now)).join('')}</div>`
+        return `<div class="mres-tier${tier === 7 ? ' mres-tier--mastery' : ''}"><span class="mres-tier__label">${tier === 7 ? '심화' : `${tier}단계`}${row.length > 1 ? ' · 택1' : ''}</span>${row.map(node => this.researchCard(node, state, now)).join('')}</div>`
       }).join('<i class="mres-link" aria-hidden="true"></i>')
-      return `<section class="page-section page-section--research page-section--mres"><nav class="mres-branches">${list}</nav><div class="mres-main">${activePanel}<p class="mres-hint">${escapeHtml(selected.hint)}</p><div class="mres-tree">${tiers}</div></div></section>`
+      return `<section class="page-section page-section--research page-section--mres"><nav class="mres-branches">${list}</nav><div class="mres-main">${activePanel}<p class="mres-hint">${escapeHtml(selected.hint)}${speed ? ` · <b class="mres-speed">${speed}</b>` : ''}</p><div class="mres-tree">${tiers}</div></div></section>`
     }
     // 재야는 부국 · 제패 대신 재야 전용 약탈 · 유격 분야
     const columns = researchBranchesFor(state).map(branch => {
       const nodes = state.research.filter(node => node.branch === branch.id)
       const done = nodes.filter(node => node.unlocked).length
-      const tiers = [1, 2, 3, 4, 5, 6].map(tier => {
+      const tiers = [1, 2, 3, 4, 5, 6, 7].map(tier => {
         const row = nodes.filter(node => node.tier === tier)
         if (row.length > 1) return `<div class="research-choice"><span class="research-choice__label">${tier}단계 갈림길 · 둘 중 하나</span><div class="research-choice__pair">${row.map(node => this.researchCard(node, state, now)).join('<i class="research-choice__or">또는</i>')}</div></div>`
         return row.map(node => this.researchCard(node, state, now)).join('')
@@ -2755,18 +2801,30 @@ export class StrategyUI {
       return `<div class="glass-card research-branch research-branch--${branch.prefix}"><div class="research-branch-head"><span class="branch-rune">${icon(branch.prefix === 'econ' || branch.prefix === 'loot' ? 'grain' : branch.prefix === 'army' ? 'battle' : branch.prefix === 'strat' ? 'research' : branch.prefix === 'realm' || branch.prefix === 'raid' ? 'territory' : 'rank')}</span><div><span class="eyebrow">${branch.hint}</span><h3>${branch.id} · ${done}/6단계</h3></div></div><div class="research-nodes">${tiers}</div></div>`
     }).join('')
     const summary = `<details class="research-summary glass-card" ${effects.length ? 'open' : ''}><summary>적용 중인 연구 효과 · ${effects.length}개</summary>${effects.length ? `<ul>${effects.map(line => `<li>${escapeHtml(line)}</li>`).join('')}</ul>` : '<p>아직 완료한 연구가 없습니다.</p>'}</details>`
-    return `<section class="page-section page-section--research"><div class="section-heading section-heading--compact"><div><span class="eyebrow">육성</span><h1>기술 연구</h1><p class="heading-copy">다섯 분야를 6단계씩 연구합니다. 한 번에 하나씩, 단계가 오를수록 오래 걸리며(5분 → 8시간) 3·6단계는 둘 중 하나를 고릅니다.</p></div><div class="section-counter"><span>완료 단계</span><strong>${doneCount}<small> / 30</small></strong></div></div>${activePanel}<div class="research-grid research-grid--five">${columns}</div>${summary}</section>`
+    return `<section class="page-section page-section--research"><div class="section-heading section-heading--compact"><div><span class="eyebrow">육성</span><h1>기술 연구</h1><p class="heading-copy">다섯 분야를 6단계씩 연구합니다. 한 번에 하나씩, 단계가 오를수록 오래 걸리며(5분 → 8시간) 3·6단계는 둘 중 하나를 고릅니다. 6단계를 마치면 심화를 Lv.${MASTERY_MAX}까지 올리고, 연구 중에는 다음 연구를 예약할 수 있습니다.${speed ? ` ${speed}.` : ''}</p></div><div class="section-counter"><span>완료 단계${masteryTotal ? ` · 심화 ${masteryTotal}` : ''}</span><strong>${doneCount}<small> / 30</small></strong></div></div>${activePanel}<div class="research-grid research-grid--five">${columns}</div>${summary}</section>`
   }
 
   private researchCard(node: ResearchNode, state: StrategyState, now: number): string {
     const status = researchStatus(state, node)
-    const footer = status === 'done' ? '<span class="research-check">✓ 적용 중</span>'
+    const mastery = isMastery(node)
+    const level = node.level ?? 0
+    // 진행 중인 연구가 끝난 뒤 시작할 수 있으면 예약 버튼
+    const queueable = (status === 'busy' || status === 'locked' || status === 'switch') && queueBlocker(state, node) === null
+    const action = (label: string) => `<button class="mini-action mini-action--research" data-action="research" data-research="${node.id}">${label} <span>→</span></button>`
+    const footer = status === 'done' ? `<span class="research-check">✓ ${mastery ? `최고 레벨 Lv.${MASTERY_MAX}` : '적용 중'}</span>`
       : status === 'active' ? `<span class="research-running">연구 중 · ${formatDuration(Math.max(0, (node.endsAt ?? now) - now))}</span>`
-      : status === 'locked' ? `<span class="research-lock">${node.tier - 1}단계 완료 필요</span>`
+      : status === 'queued' ? '<span class="research-queued">예약됨 · 앞 연구가 끝나면 시작</span>'
+      : queueable ? action('예약')
+      : status === 'locked' ? `<span class="research-lock">${mastery ? '6단계 완료 필요' : `${node.tier - 1}단계 완료 필요`}</span>`
       : status === 'busy' ? '<span class="research-lock">다른 연구 진행 중</span>'
-      : `<button class="mini-action mini-action--research" data-action="research" data-research="${node.id}">${status === 'switch' ? '이쪽으로 바꾸기' : '연구 시작'} <span>→</span></button>`
-    return `<article class="research-node is-${status}"><div class="research-node-top"><span class="research-tier">${node.tier}단계${node.choice ? ` · ${node.choice === 'a' ? '갑' : '을'}` : ''}</span><span class="research-time">${formatDuration(node.durationMs)}</span></div><h4>${node.name}</h4><p>${node.description}</p><div class="research-node-footer"><span class="research-cost ${status === 'available' && !canPay(state, node.cost) ? 'is-short' : ''}">${researchCost(node)}</span>${footer}</div>${status === 'switch' ? '<small class="research-switch-note">바꾸면 같은 단계의 다른 연구 효과는 사라집니다.</small>' : ''}</article>`
+      : action(status === 'switch' ? '이쪽으로 바꾸기' : mastery ? (level ? `Lv.${level + 1} 연구` : '심화 시작') : '연구 시작')
+    const time = status === 'done' ? formatDuration(node.durationMs) : formatDuration(researchDurationFor(state, node))
+    const tierLabel = mastery ? `심화 Lv.${level}/${MASTERY_MAX}` : `${node.tier}단계${node.choice ? ` · ${node.choice === 'a' ? '갑' : '을'}` : ''}`
+    const body = mastery ? `${level ? `지금 ${masteryEffectText(node.branch, level)}` : `레벨마다 ${masteryEffectText(node.branch, 1)}`}${level && level < MASTERY_MAX ? ` → Lv.${level + 1} ${masteryValueText(node.branch, level + 1)}` : ''}` : node.description
+    const pips = mastery ? `<span class="research-mastery-bar"><i style="width:${(level / MASTERY_MAX * 100).toFixed(1)}%"></i></span>` : ''
+    return `<article class="research-node is-${status}${mastery ? ' research-node--mastery' : ''}"><div class="research-node-top"><span class="research-tier">${tierLabel}</span><span class="research-time">${time}</span></div><h4>${escapeHtml(node.name)}</h4><p>${escapeHtml(body)}</p>${pips}<div class="research-node-footer"><span class="research-cost ${(status === 'available' || queueable) && !canPay(state, node.cost) ? 'is-short' : ''}">${status === 'done' ? '' : researchCost(node)}</span>${footer}</div>${status === 'switch' ? '<small class="research-switch-note">바꾸면 같은 단계의 다른 연구 효과는 사라집니다.</small>' : ''}</article>`
   }
+
 
 
   private portraitAsset(general: General): string {
@@ -3411,6 +3469,7 @@ export class StrategyUI {
   private updatesSection(): string {
     // 지금까지의 업데이트를 주제별로 요약(새 항목은 맨 위에 더한다)
     const completed = [
+    ['2026.10.23', '내정 보강 · 관직', '기술 연구에 심화를 넣었습니다. 분야 6단계를 마치면 그 분야 심화를 Lv.20까지 올립니다(Lv.1 4시간 → Lv.17부터 12시간, 레벨마다 효과가 쌓임 · 부국 모든 수확 +1%, 강병 최대 병력 +0.5%, 지략 전술 명령 비용 −0.5%, 제패 수비대 전력 +0.5%, 인재 레벨업 비용 −1%, 약탈 약탈량 +1%, 유격 약탈 공성 피해 +1%). 연구 중에 다른 연구를 고르면 예약되어 지금 연구가 끝나는 순간 바로 시작합니다(비용은 예약할 때, 취소하면 전액 환급). 아군 도시 태학 서원 단계 합 5당 연구 시간이 1%(최대 15%) 줄고, 연맹원에게 연구 · 공사 도움을 청하면 도움 한 번에 남은 시간이 1%(최소 1분, 최대 10번) 줄어듭니다. 내정에 관직 탭을 열었습니다: 출전하지 않는 무장을 태학 박사(모략 → 연구 시간), 태수(맡은 도시의 새 수비대 · 은전 · 영향력 · 맞닿은 적 도시 공성 · 공사 시간), 재야는 두목(약탈 횟수 · 약탈량 · 약탈 공성 · 재출정)으로 앉히고, 같은 나라 무장이면 효과가 1.2배입니다. 정예 병영을 지으면 성벽이 100으로 떨어지던 오류도 고쳐, 이제 성벽을 최대치의 7%만큼 고칩니다.', '완료', 'jade'],
     ['2026.10.23', '휴대폰 가로 화면 · 본영 메뉴 새 배치', '본영(메인) 메뉴를 다시 배치했습니다. 왼쪽 위 유저 프로필, 왼쪽에 공지 · 이벤트 · 임무 · 랭킹, 가운데 위 재화, 아래 줄에 장수 · 편성 · 모집 · 내정 · 연맹 · 상점 그림 카드와 전투 · 영토 점령전 버튼, 오른쪽 위 출석 · 채팅 · 설정 · 소리 메달, 오른쪽에 1 · 2 · 3군 덱 정보 · 임무 정보 · 시나리오 정보 판입니다. 틀 · 메달 · 카드 그림은 새 디자인 도안(용머리 금테 · 붉은 술)을 그대로 썼습니다. 모집 화면은 무장 모집 · 장비 뽑기 탭, 전투 화면은 시나리오 · 대련 · 레이드 탭으로 묶였습니다. 편성의 자동 편성 버튼은 진형 칸 머리로, 영토는 지도를 크게 보여 주고 위 줄에 도시 검색을 두었습니다. 무장 획득 연출 · 작전 결과 창은 한 화면에 들어오게 가로 배치로 바꾸고, 전투 시점 단추는 화면 오른쪽 아래로 옮겼습니다.'],
     ['2026.10.22', '속공 인연 6종 조정 · 스킬 위력 상한', '스킬 한 번의 사기 피해 상한(40)이 스킬 위력 버프가 걸린 동안(속공 인연의 초반 효과 · 공격 강화 · 용의 위세 · 연환의 분노 · 간파)에는 50까지 열립니다. 속공 인연 6종의 전투 시작 20초 효과는 아군 공격 +80% · 스킬 위력 +100%(기존 스킬 +80%)가 되고, 이 동안 스킬 상한 50이 적용됩니다. 속공 덱은 버티기 · 유틸 덱에 강하고, 스킬 연계 · 디버프 덱에 약합니다.', '완료', 'jade'],
     ['2026.10.22', '고순 천명 · 진궁 명장', '고순이 5등급(천명)이 되었습니다. 능력치가 천명 수준으로 오르고, 5성 각성 함진영 불파(사기 피해 ×1.3 + 아군 받는 피해 −15% 5초)가 생겼습니다. 진궁은 4등급(명장)이 되었습니다. 이미 가진 고순 · 진궁도 레벨 · 성급은 그대로 두고 능력치가 새 등급 기준으로 오릅니다. 함진영 돌격 인연의 아군 받는 피해 감소는 −15%에서 −5%로 낮춰 덱 승률을 90%대 초반(약 92%)으로 맞췄습니다.', '완료', 'jade'],
@@ -3569,6 +3628,10 @@ export class StrategyUI {
     if (action === 'city-tab') { const tab = button.dataset.tab; this.cityTab = tab === 'dev' || tab === 'log' ? tab : 'act'; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'summon-rates') { this.summonRatesOpen = !this.summonRatesOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'research-branch') { this.researchBranch = button.dataset.branch ?? null; if (this.renderedState) this.render(this.renderedState); return }
+    if (action?.startsWith('office-')) { this.officeClick(action, button); return }
+    if (action === 'research-queue-cancel') { this.callbacks.onResearchQueueCancel(); return }
+    if (action === 'research-help') { this.callbacks.onHelpRequest('research'); return }
+    if (action === 'building-help') { this.callbacks.onHelpRequest('build', button.dataset.city ?? ''); return }
     if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-squad') { this.formationSquad = Math.max(0, Math.min(2, Number(button.dataset.squad ?? 0))); this.lobbyPanel = null; this.callbacks.onSection('formation'); return }
@@ -3926,6 +3989,20 @@ export class StrategyUI {
       this.callbacks.onEquipmentDraw(Number(button.dataset.count ?? 1))
     }
   }
+  /** 관직 화면: 고르기 창은 화면에서, 임명 · 해임 · 도시 바꾸기는 게임으로 */
+  private officeClick(action: string, button: HTMLElement): void {
+    const data = { ...button.dataset } as Record<string, string>
+    const rerender = () => { if (this.renderedState) this.render(this.renderedState) }
+    if (action === 'office-pick') { this.officeUi = { picker: { post: (data.post === 'governor' || data.post === 'chief' ? data.post : 'scholar'), slot: Number(data.slot) || 0 }, cityPicker: null }; rerender(); return }
+    if (action === 'office-city-pick') { this.officeUi = { picker: null, cityPicker: Number(data.slot) || 0 }; rerender(); return }
+    if (action === 'office-close') { this.officeUi = emptyOfficeUi(); rerender(); return }
+    this.officeUi = emptyOfficeUi()
+    if (action === 'office-appoint') this.callbacks.onOffice('appoint', data)
+    else if (action === 'office-dismiss') this.callbacks.onOffice('dismiss', data)
+    else if (action === 'office-city') this.callbacks.onOffice('city', data)
+    else rerender()
+  }
+
   private guildClick(action: string, button: HTMLElement): void {
     const data = { ...button.dataset } as Record<string, string>
     if (action === 'guild-tab') { this.guildUi = { ...this.guildUi, tab: (data.tab ?? 'info') as GuildTab }; if (this.renderedState) this.render(this.renderedState); this.callbacks.onGuild('tab', data); return }

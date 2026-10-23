@@ -11,7 +11,7 @@ describe('territory and governance', () => {
     ])
     expect(state.cities).toHaveLength(55)
     expect(state.resources.grain).toBeGreaterThan(0)
-    expect(state.research).toHaveLength(56)
+    expect(state.research).toHaveLength(63)
   })
 
   it('starts cities at maximum defense and allows siege damage to reach zero', () => {

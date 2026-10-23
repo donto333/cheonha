@@ -3,9 +3,16 @@
 // 모든 연구 항목(7분야 56개)은 한 목록에 저장하고, 진영에 맞는 다섯 분야만 보이고 효과를 낸다.
 // 부국 ↔ 약탈, 제패 ↔ 유격은 같은 단계(같은 갈림길 쪽)끼리 연동된다: 한쪽을 완료하면 다른 쪽도 완료.
 // 연구에는 단계별 시간이 걸리고 한 번에 하나만 진행한다. 금화로 즉시 완료하거나 취소(전액 환급)할 수 있다.
+// 2026.10.23 내정 보강:
+//  · 심화 연구(7단계 자리): 분야 6단계를 마치면 그 분야의 심화를 Lv.1~20까지 반복해서 올린다(레벨마다 효과가 쌓인다).
+//  · 연구 예약: 연구 중에 다음 연구 하나를 예약해 두면(비용은 예약할 때 낸다) 지금 연구가 끝나는 순간 바로 시작한다.
+//  · 연구 시간 단축: 태학 서원(아군 도시 단계 합) · 태학 박사(관직)가 시작할 때의 연구 시간을 줄인다(offices.ts).
+//  · 연맹 도움: 연맹원이 도와준 만큼 진행 중인 연구의 남은 시간이 줄어든다(도움 한 번 = 남은 시간 1%, 최소 1분).
 // 이 파일은 strategy.ts의 타입만 가져다 쓴다(실행 시 순환 참조 없음).
 import type { ResearchNode, ResourceKey, StrategyState } from './strategy'
 import { locale } from '../i18n/lang'
+import { chiefBonuses, hasOffices, researchSpeedCut, sanitizeOffices } from './offices'
+import { GUILD_HELP_MAX, guildHelpCut } from '../../server/guild.mjs'
 
 export type ResearchBranch = '부국' | '강병' | '지략' | '제패' | '인재' | '약탈' | '유격'
 
@@ -113,44 +120,136 @@ const DEFS: Record<ResearchBranch, Def[]> = {
   ],
 }
 
+// ── 심화 연구(2026.10.23) ─────────────────────────────────────
+/** 심화 최고 레벨 */
+export const MASTERY_MAX = 20
+/** 심화 자리(연구 목록의 7단계) */
+export const MASTERY_TIER = 7
+/** 심화 레벨별 연구 시간(분): Lv.1 4시간에서 30분씩 늘어 Lv.17부터 12시간 */
+export function masteryMinutes(level: number): number {
+  return Math.min(720, 240 + (Math.max(1, Math.trunc(level)) - 1) * 30)
+}
+/** 심화 레벨별 비용: 6단계 연구 비용(영향력 1.3만 · 분야 자원 2.6만)에서 레벨마다 15%씩 늘어난다(백 단위) */
+export function masteryCost(branch: ResearchBranch, level: number): Partial<Record<ResourceKey, number>> {
+  const scale = 1 + 0.15 * (Math.max(1, Math.trunc(level)) - 1)
+  const resource = RESEARCH_BRANCHES.find(item => item.id === branch)?.resource ?? 'grain'
+  const round = (value: number) => Math.round(value / 100) * 100
+  return { influence: round(INFLUENCE_COST[5] * scale), [resource]: round(RESOURCE_COST[5] * scale) }
+}
+/** 분야별 심화: 이름 · 레벨당 효과(수치) · 효과 글(레벨 합계로 쓴다) */
+export const MASTERY_DEFS: Record<ResearchBranch, { name: string; per: number; sign: '+' | '−'; text: (total: string) => string }> = {
+  부국: { name: '천하 창름', per: 0.01, sign: '+', text: total => `모든 수확 +${total}` },
+  강병: { name: '정병 육성', per: 0.005, sign: '+', text: total => `전투 아군 최대 병력 +${total}` },
+  지략: { name: '병법 연찬', per: 0.005, sign: '−', text: total => `전술 명령 비용 −${total}` },
+  제패: { name: '금성탕지', per: 0.005, sign: '+', text: total => `수비대 전력 +${total}(새로 세우는 수비대 · 방어전)` },
+  인재: { name: '육영', per: 0.01, sign: '−', text: total => `무장 레벨업 비용 −${total}` },
+  약탈: { name: '녹림 대업', per: 0.01, sign: '+', text: total => `모든 약탈량 +${total}` },
+  유격: { name: '파성 연마', per: 0.01, sign: '+', text: total => `약탈 공성 성벽 피해 +${total}` },
+}
+const pct = (value: number) => `${Math.round(value * 1000) / 10}%`
+export function isMastery(node: Pick<ResearchNode, 'tier'>): boolean {
+  return node.tier === MASTERY_TIER
+}
+/** 심화 레벨 합계 수치만(예: '+5%', '−3%') */
+export function masteryValueText(branch: ResearchBranch, level: number): string {
+  const def = MASTERY_DEFS[branch]
+  return `${def.sign}${pct(def.per * Math.max(0, level))}`
+}
+/** 심화 레벨 합계 효과 글(레벨 0이면 레벨당 효과) */
+export function masteryEffectText(branch: ResearchBranch, level: number): string {
+  const def = MASTERY_DEFS[branch]
+  return def.text(pct(def.per * Math.max(1, level)))
+}
+function masteryNode(branch: (typeof RESEARCH_BRANCHES)[number], level: number): ResearchNode {
+  const def = MASTERY_DEFS[branch.id]
+  const next = Math.min(MASTERY_MAX, level + 1)
+  return {
+    id: `${branch.prefix}-m`, name: def.name, branch: branch.id, tier: MASTERY_TIER,
+    description: `레벨마다 ${masteryEffectText(branch.id, 1)} · 최대 Lv.${MASTERY_MAX}`,
+    cost: masteryCost(branch.id, next), durationMs: masteryMinutes(next) * 60_000, unlocked: false, level,
+  }
+}
+/** 심화 레벨이 바뀌면 다음 레벨 비용 · 시간을 다시 맞춘다 */
+function refreshMastery(node: ResearchNode): void {
+  const branch = RESEARCH_BRANCHES.find(item => item.id === node.branch)
+  if (!branch) return
+  const fresh = masteryNode(branch, Math.max(0, Math.min(MASTERY_MAX, Math.trunc(node.level ?? 0))))
+  node.level = fresh.level
+  node.cost = fresh.cost
+  node.durationMs = fresh.durationMs
+  node.description = fresh.description
+}
+/** 화면 · 알림용 이름(심화는 레벨을 붙인다. next: 연구할 다음 레벨) */
+export function researchLabel(node: Pick<ResearchNode, 'name' | 'tier' | 'level'>, next = false): string {
+  if (!isMastery(node)) return node.name
+  return `${node.name} Lv.${Math.min(MASTERY_MAX, (node.level ?? 0) + (next ? 1 : 0))}`
+}
+
 export function createResearch(): ResearchNode[] {
-  return RESEARCH_BRANCHES.flatMap(branch => DEFS[branch.id].map(([id, tier, choice, name, description]) => ({
+  const nodes = RESEARCH_BRANCHES.flatMap(branch => DEFS[branch.id].map(([id, tier, choice, name, description]) => ({
     id, name, branch: branch.id, tier: tier as ResearchNode['tier'], description,
     choice: choice || undefined,
     cost: { influence: INFLUENCE_COST[tier - 1], [branch.resource]: RESOURCE_COST[tier - 1] } as Partial<Record<ResourceKey, number>>,
     durationMs: RESEARCH_MINUTES[tier - 1] * 60_000,
     unlocked: false,
   })))
+  return [...nodes, ...RESEARCH_BRANCHES.map(branch => masteryNode(branch, 0))]
 }
 
-const DEF_IDS = new Set(Object.values(DEFS).flat().map(def => def[0]))
+const DEF_IDS = new Set([...Object.values(DEFS).flat().map(def => def[0]), ...RESEARCH_BRANCHES.map(branch => `${branch.prefix}-m`)])
+/** 연구 저장 끝에 붙여 두는 내정 덧붙임(관직)의 표시 */
+export const RESEARCH_META_ID = '__domestic'
+
+/** 저장용 연구 목록: 연구 항목 + 내정 덧붙임(관직). 서버 researchData · 이 기기 저장에 함께 쓴다 */
+export function packResearchSave(state: Pick<StrategyState, 'research' | 'offices'>): unknown[] {
+  const nodes = state.research.filter(node => node && (node as { id?: unknown }).id !== RESEARCH_META_ID)
+  return hasOffices(state.offices) ? [...nodes, { id: RESEARCH_META_ID, offices: state.offices }] : nodes
+}
 
 /**
  * 저장된 연구를 새 구성에 맞춘다. 예전 연구(58개 체계)를 완료했다면 들인 자원을 돌려준다.
+ * 저장 끝의 내정 덧붙임(관직)은 꺼내서 state.offices에 둔다.
  * 반환값: 환급한 자원(없으면 null)
  */
 export function normalizeResearch(state: StrategyState): Partial<Record<ResourceKey, number>> | null {
-  const saved = Array.isArray(state.research) ? state.research : []
+  const raw: unknown[] = Array.isArray(state.research) ? state.research : []
+  const meta = raw.find(node => node && (node as { id?: unknown }).id === RESEARCH_META_ID) as { offices?: unknown } | undefined
+  if (meta) state.offices = sanitizeOffices(meta.offices)
+  const saved = raw.filter((node): node is ResearchNode => Boolean(node) && typeof node === 'object' && (node as { id?: unknown }).id !== RESEARCH_META_ID)
   const refund: Partial<Record<ResourceKey, number>> = {}
   let refunded = false
   for (const node of saved) {
-    if (!node || DEF_IDS.has(node.id) || !node.unlocked) continue
+    if (DEF_IDS.has(node.id) || !node.unlocked) continue
     for (const [key, value] of Object.entries(node.cost ?? {})) {
       refund[key as ResourceKey] = (refund[key as ResourceKey] ?? 0) + (value ?? 0)
       refunded = true
     }
   }
-  const byId = new Map(saved.filter(node => node && DEF_IDS.has(node.id)).map(node => [node.id, node]))
+  const byId = new Map(saved.filter(node => DEF_IDS.has(node.id)).map(node => [node.id, node]))
   state.research = createResearch().map(node => {
     const old = byId.get(node.id)
-    return old ? { ...node, unlocked: Boolean(old.unlocked), endsAt: old.unlocked ? undefined : old.endsAt, startedAt: old.unlocked ? undefined : old.startedAt } : node
+    if (!old) return node
+    if (isMastery(node)) {
+      node.level = Math.max(0, Math.min(MASTERY_MAX, Math.trunc(Number(old.level) || 0)))
+      refreshMastery(node)
+      const open = (node.level ?? 0) < MASTERY_MAX
+      return { ...node, endsAt: open ? old.endsAt : undefined, startedAt: open ? old.startedAt : undefined, queued: open && old.queued ? true : undefined, help: open && old.endsAt !== undefined ? old.help : undefined }
+    }
+    return { ...node, unlocked: Boolean(old.unlocked), endsAt: old.unlocked ? undefined : old.endsAt, startedAt: old.unlocked ? undefined : old.startedAt, queued: !old.unlocked && old.queued ? true : undefined, help: !old.unlocked && old.endsAt !== undefined ? old.help : undefined }
   })
   syncLinkedResearch(state)
   // 진행 중 연구는 하나만
   let active = false
   for (const node of state.research) {
     if (node.endsAt === undefined) continue
-    if (active || node.unlocked) { node.endsAt = undefined; node.startedAt = undefined } else active = true
+    if (active || node.unlocked) { node.endsAt = undefined; node.startedAt = undefined; node.help = undefined } else active = true
+  }
+  // 예약도 하나만(진행 중인 것은 예약이 아니다). 넘치는 예약은 비용을 돌려준다
+  let queued = false
+  for (const node of state.research) {
+    if (!node.queued) continue
+    if (node.endsAt !== undefined) { node.queued = undefined; continue }
+    if (queued || node.unlocked) { pay(state, node.cost, -1); node.queued = undefined } else queued = true
   }
   if (!refunded) return null
   for (const [key, value] of Object.entries(refund)) {
@@ -165,6 +264,10 @@ export function researchDone(state: StrategyState, id: string): boolean {
 export function activeResearch(state: StrategyState): ResearchNode | null {
   return state.research.find(node => node.endsAt !== undefined && !node.unlocked) ?? null
 }
+/** 예약한 연구(지금 연구가 끝나면 바로 시작) */
+export function queuedResearch(state: StrategyState): ResearchNode | null {
+  return state.research.find(node => node.queued && node.endsAt === undefined) ?? null
+}
 function sibling(state: StrategyState, node: ResearchNode): ResearchNode | undefined {
   if (!node.choice) return undefined
   return state.research.find(other => other.branch === node.branch && other.tier === node.tier && other.id !== node.id)
@@ -173,16 +276,44 @@ function tierDone(state: StrategyState, branch: string, tier: number): boolean {
   return state.research.some(node => node.branch === branch && node.tier === tier && node.unlocked)
 }
 
-export type ResearchStatus = 'done' | 'active' | 'available' | 'switch' | 'locked' | 'busy'
-/** 화면 표시용 상태: switch = 갈림길의 다른 쪽을 이미 완료(다시 고르면 그쪽 효과는 사라진다) */
+export type ResearchStatus = 'done' | 'active' | 'queued' | 'available' | 'switch' | 'locked' | 'busy'
+/** 화면 표시용 상태: switch = 갈림길의 다른 쪽을 이미 완료(다시 고르면 그쪽 효과는 사라진다) · queued = 예약 */
 export function researchStatus(state: StrategyState, node: ResearchNode): ResearchStatus {
+  if (isMastery(node)) {
+    if ((node.level ?? 0) >= MASTERY_MAX) return 'done'
+    if (node.endsAt !== undefined) return 'active'
+    if (node.queued) return 'queued'
+    if (!tierDone(state, node.branch, 6)) return 'locked'
+    if (activeResearch(state)) return 'busy'
+    return 'available'
+  }
   if (node.unlocked) return 'done'
   if (node.endsAt !== undefined) return 'active'
+  if (node.queued) return 'queued'
   if (node.tier > 1 && !tierDone(state, node.branch, node.tier - 1)) return 'locked'
   if (activeResearch(state)) return 'busy'
   const other = sibling(state, node)
   if (other?.unlocked) return 'switch'
   return 'available'
+}
+
+/** 예약할 수 없는 까닭(예약할 수 있으면 null): 진행 중인 연구가 있어야 하고, 그 연구가 끝난 뒤 시작할 수 있는 것만 */
+export function queueBlocker(state: StrategyState, node: ResearchNode): string | null {
+  const active = activeResearch(state)
+  if (!active) return '진행 중인 연구가 없습니다.'
+  if (active.id === node.id) return '지금 연구하고 있습니다.'
+  const queued = queuedResearch(state)
+  if (queued) return `이미 예약한 연구가 있습니다 · ${researchLabel(queued, true)}`
+  if (!branchActive(state, node.branch)) return isWandererState(state) ? '재야(중립 진영)는 이 분야를 연구할 수 없습니다.' : '재야(중립 진영) 전용 분야입니다.'
+  if (isMastery(node)) {
+    if ((node.level ?? 0) >= MASTERY_MAX) return `${node.name}은(는) 이미 최고 레벨입니다.`
+    if (!tierDone(state, node.branch, 6) && !(active.branch === node.branch && active.tier === 6)) return '6단계 연구를 마치면 심화 연구가 열립니다.'
+    return null
+  }
+  if (node.unlocked) return '이미 완료한 연구입니다.'
+  if (active.branch === node.branch && active.tier === node.tier) return '같은 단계의 다른 연구가 진행 중입니다.'
+  if (node.tier > 1 && !tierDone(state, node.branch, node.tier - 1) && !(active.branch === node.branch && active.tier === node.tier - 1)) return `앞 단계(${node.tier - 1}단계) 연구를 먼저 완료하십시오.`
+  return null
 }
 
 export function researchCostText(cost: Partial<Record<ResourceKey, number>>, labels: Record<ResourceKey, string>): string {
@@ -208,31 +339,79 @@ export function formatDuration(ms: number): string {
   return `${s}초`
 }
 
-export function startResearch(state: StrategyState, id: string, now = Date.now()): { ok: boolean; message: string } {
+/** 지금 시작하면 걸리는 연구 시간(태학 서원 · 태학 박사 단축 반영) */
+export function researchDurationFor(state: StrategyState, node: Pick<ResearchNode, 'durationMs'>): number {
+  return Math.max(1000, Math.round(node.durationMs * (1 - researchSpeedCut(state))))
+}
+function begin(state: StrategyState, node: ResearchNode, at: number): void {
+  node.queued = undefined
+  node.help = undefined
+  node.startedAt = at
+  node.endsAt = at + researchDurationFor(state, node)
+}
+
+export function startResearch(state: StrategyState, id: string, now = Date.now()): { ok: boolean; message: string; queued?: boolean } {
   settleResearch(state, now)
   const node = state.research.find(item => item.id === id)
   if (!node) return { ok: false, message: '연구 항목을 찾을 수 없습니다.' }
   if (!branchActive(state, node.branch)) return { ok: false, message: isWandererState(state) ? '재야(중립 진영)는 이 분야를 연구할 수 없습니다. 약탈 · 유격 분야를 연구하십시오.' : '재야(중립 진영) 전용 분야입니다.' }
   const status = researchStatus(state, node)
-  if (status === 'done') return { ok: false, message: '이미 완료한 연구입니다.' }
+  if (status === 'done') return { ok: false, message: isMastery(node) ? `${node.name}은(는) 이미 최고 레벨(Lv.${MASTERY_MAX})입니다.` : '이미 완료한 연구입니다.' }
   if (status === 'active') return { ok: false, message: '이미 진행 중인 연구입니다.' }
-  if (status === 'locked') return { ok: false, message: `앞 단계(${node.tier - 1}단계) 연구를 먼저 완료하십시오.` }
-  if (status === 'busy') return { ok: false, message: `다른 연구가 진행 중입니다 · ${activeResearch(state)?.name}` }
+  if (status === 'queued') return { ok: false, message: '이미 예약한 연구입니다.' }
+  const active = activeResearch(state)
+  if (active) {
+    // 다른 연구가 진행 중이면 예약한다: 비용은 지금 내고, 지금 연구가 끝나는 순간 시작한다
+    const blocker = queueBlocker(state, node)
+    if (blocker) return { ok: false, message: blocker }
+    if (!canPay(state, node.cost)) return { ok: false, message: '연구 자원이 부족합니다.' }
+    pay(state, node.cost, 1)
+    node.queued = true
+    state.lastNotice = `연구 예약 · ${researchLabel(node, true)} · ${researchLabel(active, true)} 연구가 끝나면 바로 시작합니다`
+    return { ok: true, message: state.lastNotice, queued: true }
+  }
+  if (status === 'locked') return { ok: false, message: isMastery(node) ? '6단계 연구를 마치면 심화 연구가 열립니다.' : `앞 단계(${node.tier - 1}단계) 연구를 먼저 완료하십시오.` }
   if (!canPay(state, node.cost)) return { ok: false, message: '연구 자원이 부족합니다.' }
   pay(state, node.cost, 1)
-  node.startedAt = now
-  node.endsAt = now + node.durationMs
-  state.lastNotice = `연구 시작 · ${node.name} · ${formatDuration(node.durationMs)} 후 완료`
+  begin(state, node, now)
+  state.lastNotice = `연구 시작 · ${researchLabel(node, true)} · ${formatDuration((node.endsAt ?? now) - now)} 후 완료`
   return { ok: true, message: state.lastNotice }
 }
 
-export function cancelResearch(state: StrategyState): { ok: boolean; message: string } {
+/**
+ * 예약한 연구를 at에 시작한다(진행 중인 연구가 없을 때). 그새 시작할 수 없게 됐으면(앞 단계 취소 등) 비용을 돌려주고 지운다.
+ */
+function promoteQueue(state: StrategyState, at: number): { started?: ResearchNode; dropped?: ResearchNode } {
+  if (activeResearch(state)) return {}
+  const node = queuedResearch(state)
+  if (!node) return {}
+  const ready = branchActive(state, node.branch) && (isMastery(node)
+    ? (node.level ?? 0) < MASTERY_MAX && tierDone(state, node.branch, 6)
+    : !node.unlocked && (node.tier === 1 || tierDone(state, node.branch, node.tier - 1)))
+  if (!ready) { pay(state, node.cost, -1); node.queued = undefined; return { dropped: node } }
+  begin(state, node, at)
+  return { started: node }
+}
+
+export function cancelResearch(state: StrategyState, now = Date.now()): { ok: boolean; message: string } {
   const node = activeResearch(state)
   if (!node) return { ok: false, message: '진행 중인 연구가 없습니다.' }
   pay(state, node.cost, -1)
   node.endsAt = undefined
   node.startedAt = undefined
-  state.lastNotice = `연구 취소 · ${node.name} · 자원을 모두 돌려받았습니다.`
+  node.help = undefined
+  const next = promoteQueue(state, now)
+  state.lastNotice = `연구 취소 · ${researchLabel(node, true)} · 자원을 모두 돌려받았습니다.${next.started ? ` 예약한 ${researchLabel(next.started, true)} 연구를 시작했습니다.` : next.dropped ? ` 예약한 ${researchLabel(next.dropped, true)}도 시작할 수 없어 돌려받았습니다.` : ''}`
+  return { ok: true, message: state.lastNotice }
+}
+
+/** 예약 취소(예약할 때 낸 비용을 모두 돌려준다) */
+export function cancelQueuedResearch(state: StrategyState): { ok: boolean; message: string } {
+  const node = queuedResearch(state)
+  if (!node) return { ok: false, message: '예약한 연구가 없습니다.' }
+  pay(state, node.cost, -1)
+  node.queued = undefined
+  state.lastNotice = `연구 예약 취소 · ${researchLabel(node, true)} · 자원을 모두 돌려받았습니다.`
   return { ok: true, message: state.lastNotice }
 }
 
@@ -248,23 +427,36 @@ export function rushResearch(state: StrategyState, now = Date.now()): { ok: bool
   if (state.gold < cost) return { ok: false, message: `금화가 부족합니다. 즉시 완료에 금화 ${cost}개가 필요합니다.` }
   state.gold -= cost
   complete(state, node)
-  state.lastNotice = `즉시 완료 · ${node.name} (금화 −${cost})`
+  const next = promoteQueue(state, now)
+  state.lastNotice = `즉시 완료 · ${researchLabel(node)} (금화 −${cost})${next.started ? ` · 예약한 ${researchLabel(next.started, true)} 시작` : ''}`
   return { ok: true, message: state.lastNotice }
 }
 
 function complete(state: StrategyState, node: ResearchNode): void {
+  if (isMastery(node)) {
+    // 심화: 레벨이 오르고 다음 레벨 비용 · 시간으로 바뀐다(짝 분야도 같은 레벨)
+    node.endsAt = undefined
+    node.startedAt = undefined
+    node.help = undefined
+    node.level = Math.min(MASTERY_MAX, (node.level ?? 0) + 1)
+    refreshMastery(node)
+    const twin = linkedNode(state, node)
+    if (twin && (twin.level ?? 0) < (node.level ?? 0)) { twin.level = node.level; refreshMastery(twin) }
+    return
+  }
   for (const item of [node, linkedNode(state, node)]) {
     if (!item) continue
     item.unlocked = true
     item.endsAt = undefined
     item.startedAt = undefined
+    item.help = undefined
     const other = sibling(state, item)
     if (other) other.unlocked = false // 갈림길은 한쪽만
   }
 }
 
 /**
- * 세 진영 분야와 재야 분야는 같은 단계끼리 연동된다: 부국 ↔ 약탈, 제패 ↔ 유격(같은 단계 · 같은 갈림길 쪽).
+ * 세 진영 분야와 재야 분야는 같은 단계끼리 연동된다: 부국 ↔ 약탈, 제패 ↔ 유격(같은 단계 · 같은 갈림길 쪽, 심화는 레벨).
  * 한쪽을 완료하면 다른 쪽도 완료로 친다 — 진영을 바꿔도 쌓은 단계가 그대로 이어진다.
  */
 const LINKED_PREFIX: Record<string, string> = { econ: 'loot', loot: 'econ', realm: 'raid', raid: 'realm' }
@@ -277,28 +469,69 @@ function linkedNode(state: StrategyState, node: ResearchNode): ResearchNode | un
   const id = linkedResearchId(node.id)
   return id ? state.research.find(item => item.id === id) : undefined
 }
-/** 저장분을 불러올 때 연동된 쌍을 맞춘다(한쪽만 완료돼 있으면 다른 쪽도 완료) */
+/** 저장분을 불러올 때 연동된 쌍을 맞춘다(한쪽만 완료돼 있으면 다른 쪽도 완료, 심화는 높은 레벨로) */
 function syncLinkedResearch(state: StrategyState): void {
   for (const node of state.research) {
+    if (isMastery(node)) {
+      const twin = linkedNode(state, node)
+      if (twin && (twin.level ?? 0) < (node.level ?? 0)) { twin.level = node.level; refreshMastery(twin) }
+      continue
+    }
     if (!node.unlocked) continue
     const twin = linkedNode(state, node)
     if (!twin || twin.unlocked) continue
     // 갈림길 반대쪽이 이미 완료돼 있으면 지금 진영 분야 쪽을 따른다
     const rival = sibling(state, twin)
     if (rival?.unlocked && branchActive(state, twin.branch) && !branchActive(state, node.branch)) continue
-    twin.unlocked = true; twin.endsAt = undefined; twin.startedAt = undefined
+    twin.unlocked = true; twin.endsAt = undefined; twin.startedAt = undefined; twin.queued = undefined
     if (rival) rival.unlocked = false
   }
 }
 
-/** 시간이 다 된 연구를 완료 처리한다. 완료한 연구 목록을 돌려준다. */
+/** 시간이 다 된 연구를 완료 처리하고, 예약한 연구를 이어서 시작한다. 완료한 연구 목록을 돌려준다. */
 export function settleResearch(state: StrategyState, now = Date.now()): ResearchNode[] {
   const done: ResearchNode[] = []
-  for (const node of state.research) {
-    if (node.endsAt !== undefined && !node.unlocked && now >= node.endsAt) { complete(state, node); done.push(node) }
+  for (let guard = 0; guard < 8; guard += 1) {
+    const due = state.research.find(node => node.endsAt !== undefined && !node.unlocked && now >= node.endsAt)
+    if (due) {
+      const at = due.endsAt ?? now
+      complete(state, due)
+      done.push(due)
+      // 예약한 연구는 앞 연구가 끝난 그 순간부터 센다(접속하지 않은 동안에도 이어진다)
+      promoteQueue(state, at)
+      continue
+    }
+    // 진행 중인 연구 없이 예약만 남았으면(취소 · 옛 저장) 지금 시작한다
+    if (!activeResearch(state) && queuedResearch(state)) { promoteQueue(state, now); continue }
+    break
   }
-  if (done.length) state.lastNotice = `연구 완료 · ${done.map(node => node.name).join(' · ')}`
+  if (done.length) state.lastNotice = `연구 완료 · ${done.map(node => researchLabel(node)).join(' · ')}`
   return done
+}
+
+// ── 연맹 도움(2026.10.23) ─────────────────────────────────────
+/** 연맹 도움을 받을 수 있는 일(진행 중인 연구 · 공사) */
+export interface HelpTarget { endsAt?: number; help?: { id: number; job: string; applied: number } }
+/** 도움 요청의 일 구분: 같은 일이면 서버에서 받은 도움 수가 이어진다 */
+export function helpJob(id: string, startedAt: number | undefined): string {
+  return `${id}:${startedAt ?? 0}`
+}
+/**
+ * 서버에서 받은 도움 수(helped)만큼 남은 시간을 줄인다. 아직 반영하지 않은 도움만, 한 번에 남은 시간의 1%(최소 1분), 최대 10번.
+ * 줄인 시간(ms)을 돌려준다.
+ */
+export function applyHelpCount(target: HelpTarget, helped: number, now = Date.now()): number {
+  if (!target.help || target.endsAt === undefined) return 0
+  const goal = Math.max(0, Math.min(GUILD_HELP_MAX, Math.trunc(helped)))
+  let cut = 0
+  while (target.help.applied < goal && target.endsAt > now) {
+    const step = Math.min(target.endsAt - now, guildHelpCut(target.endsAt - now))
+    target.endsAt -= step
+    cut += step
+    target.help.applied += 1
+  }
+  if (target.help.applied < goal) target.help.applied = goal
+  return cut
 }
 
 // ── 효과 ─────────────────────────────────────────────────────
@@ -332,36 +565,47 @@ export interface BattleResearch {
   combo?: number
 }
 
+/** 심화 레벨(0~20) */
+export function masteryLevel(state: Pick<StrategyState, 'research'>, id: string): number {
+  const node = state.research.find(item => item.id === id)
+  return node ? Math.max(0, Math.min(MASTERY_MAX, Math.trunc(node.level ?? 0))) : 0
+}
+
 export function researchMods(state: StrategyState): ResearchMods {
   // 지금 진영에서 쓰지 않는 분야(재야의 부국 · 제패, 세 진영의 약탈 · 유격)는 효과가 없다
   const has = (id: string) => state.research.some(node => node.id === id && node.unlocked && branchActive(state, node.branch))
+  const level = (id: string) => { const node = state.research.find(item => item.id === id); return node && branchActive(state, node.branch) ? masteryLevel(state, id) : 0 }
   const raidWall = (has('raid-1') ? 0.15 : 0) + (has('raid-3b') ? 0.15 : 0) + (has('raid-6b') ? 0.3 : 0)
+  // 재야 두목(관직): 약탈 횟수 · 약탈량 · 약탈 공성 성벽 피해 · 재출정 대기
+  const chief = chiefBonuses(state)
+  const realmM = level('realm-m') * MASTERY_DEFS.제패.per
   return {
     grain: (has('econ-1') ? 0.15 : 0) + (has('econ-6b') ? 0.05 : 0),
     silver: has('econ-2') ? 0.15 : 0,
     woodIron: has('econ-3a') ? 0.25 : 0,
     influence: has('econ-3b') ? 0.2 : 0,
-    allIncome: has('econ-6a') ? 0.1 : 0,
+    allIncome: (has('econ-6a') ? 0.1 : 0) + level('econ-m') * MASTERY_DEFS.부국.per,
     buildingCost: has('econ-4') ? 0.15 : 0,
     incomeCooldown: has('econ-5') ? 0.2 : 0,
     prosperityLoss: has('econ-6b') ? 0.5 : 0,
     raidWallDamage: 1 - (has('realm-1') ? 0.15 : 0) - (has('realm-6b') ? 0.3 : 0),
-    siegeDamage: (has('realm-2') ? 0.15 : 0) + raidWall,
-    raidGarrison: has('realm-3a') ? 0.15 : 0,
+    siegeDamage: (has('realm-2') ? 0.15 : 0) + raidWall + level('raid-m') * MASTERY_DEFS.유격.per + chief.wall,
+    raidGarrison: (has('realm-3a') ? 0.15 : 0) + realmM,
     siegeCost: has('realm-3b') || has('raid-2') ? 0.25 : 0,
-    newGarrison: has('realm-4') ? 0.1 : 0,
-    siegeCooldown: has('realm-5') || has('raid-3a') ? 0.25 : 0,
+    newGarrison: (has('realm-4') ? 0.1 : 0) + realmM,
+    siegeCooldown: (has('realm-5') || has('raid-3a') ? 0.25 : 0) + chief.cooldown,
     factionGold: has('realm-6a') ? 0.2 : 0,
     harvestManuals: has('talent-1'),
     manuals: (has('talent-1') ? 0.2 : 0) + (has('loot-5') ? 0.2 : 0),
     // 인재 연구는 무장 육성(레벨 · 장비 강화 · 능력치 · 은전)에만 듣는다: 모집 · 장비 뽑기 확률과 옥패(과금 재화)에는 영향이 없다(2026.10.19)
     enhanceCost: (has('talent-3b') ? 0.15 : 0) + (has('talent-6b') ? 0.15 : 0),
-    levelCost: (has('talent-4') ? 0.1 : 0) + (has('talent-3a') ? 0.1 : 0),
+    levelCost: (has('talent-4') ? 0.1 : 0) + (has('talent-3a') ? 0.1 : 0) + level('talent-m') * MASTERY_DEFS.인재.per,
     battleSilver: has('talent-5') ? 0.15 : 0,
     formationStats: (has('talent-2') ? 0.02 : 0) + (has('talent-6a') ? 0.03 : 0),
     plunder: {
-      grain: has('loot-1') ? 0.25 : 0, silver: has('loot-2') ? 0.25 : 0, material: has('loot-3a') ? 0.3 : 0, influence: has('loot-3b') ? 0.3 : 0, all: has('loot-6a') ? 0.15 : 0,
-      extraCount: has('loot-4') ? 6 : 0, manuals: has('loot-5'), razeBonus: has('loot-6b') ? 0.5 : 0,
+      grain: has('loot-1') ? 0.25 : 0, silver: has('loot-2') ? 0.25 : 0, material: has('loot-3a') ? 0.3 : 0, influence: has('loot-3b') ? 0.3 : 0,
+      all: (has('loot-6a') ? 0.15 : 0) + level('loot-m') * MASTERY_DEFS.약탈.per + chief.plunder,
+      extraCount: (has('loot-4') ? 6 : 0) + chief.raidCount, manuals: has('loot-5'), razeBonus: has('loot-6b') ? 0.5 : 0,
       battle: (has('raid-4') ? 0.08 : 0) + (has('raid-6a') ? 0.12 : 0), bonusManuals: has('raid-5') ? 6 : 0, // 옥패(과금 재화) 대신 병서(2026.10.19)
     },
     battle: battleResearch(state),
@@ -371,7 +615,7 @@ export function researchMods(state: StrategyState): ResearchMods {
 export function battleResearch(state: Pick<StrategyState, 'research'>): BattleResearch {
   const has = (id: string) => state.research.some(node => node.id === id && node.unlocked)
   return {
-    troops: has('army-1') ? 0.08 : 0,
+    troops: (has('army-1') ? 0.08 : 0) + masteryLevel(state, 'army-m') * MASTERY_DEFS.강병.per,
     archerAtk: has('army-2') ? 0.12 : 0,
     chargeSkill: has('army-3a') ? 0.1 : 0,
     damageTaken: has('army-3b') ? 0.1 : 0,
@@ -384,13 +628,18 @@ export function battleResearch(state: Pick<StrategyState, 'research'>): BattleRe
     strategistCd: has('strat-3a') ? 0.1 : 0,
     fire: has('strat-3b') ? 0.25 : 0,
     enemyWarn: has('strat-4') ? 0.5 : 0,
-    tacticCost: has('strat-5') ? 0.15 : 0,
+    tacticCost: (has('strat-5') ? 0.15 : 0) + masteryLevel(state, 'strat-m') * MASTERY_DEFS.지략.per,
     capBonus: has('strat-6a') ? 4 : 0,
     combo: has('strat-6b') ? 0.1 : 0,
   }
 }
 
-/** 화면에 보일 효과 요약(완료한 연구) */
+/** 화면에 보일 효과 요약(완료한 연구 · 심화) */
 export function researchSummary(state: StrategyState): string[] {
-  return state.research.filter(node => node.unlocked && branchActive(state, node.branch)).map(node => `${node.name} · ${node.description}`)
+  const lines = state.research.filter(node => node.unlocked && branchActive(state, node.branch)).map(node => `${node.name} · ${node.description}`)
+  for (const node of state.research) {
+    if (!isMastery(node) || !branchActive(state, node.branch) || !(node.level ?? 0)) continue
+    lines.push(`${researchLabel(node)} · ${masteryEffectText(node.branch, node.level ?? 0)}`)
+  }
+  return lines
 }
