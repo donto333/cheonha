@@ -150,6 +150,12 @@ try {
     // 채팅 창
     const chat = page.locator('[data-social="toggle"]')
     if (await chat.count()) { await tab.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
+    // 전투 중 화면(시점 단추 자리 확인)
+    try {
+      await page.evaluate(() => { document.querySelectorAll('.social-panel, .chat-panel').forEach(el => el.remove()); const g = window.__strategy; g.state.section = 'battle'; g.ui.render(g.state) })
+      const start = page.locator('[data-action="battle-start"], [data-action="scenario-start"]')
+      if (await start.count()) { await start.first().evaluate(b => b.click()); await sleep(4000); await clearOverlays(); await shot('99c-battle-live') }
+    } catch (error) { errors.push(`[${view.name}] battle-live: ${error}`) }
     await context.close()
   }
   // 세로로 든 휴대폰: 게임이 90도 돌아간 가로 화면으로 떠야 한다

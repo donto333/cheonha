@@ -331,8 +331,8 @@ html body .terr-search { display: none; }
   html body .ritual-reveal h2 { font-size: 26px; }
   html body .ritual-reveal p { margin: 3px 0 2px; }
   html body .ritual-reveal .ritual-skill { margin-top: 8px; padding-top: 8px; text-align: left; }
-  html body .ritual-stage .draw-balance { margin-top: auto; }
-  html body .ritual-stage .ritual-continue { margin-top: 6px; min-height: 38px; }
+  html body .ritual-stage .draw-balance { margin: auto 0 50px; }
+  html body .ritual-stage .ritual-continue { top: auto; bottom: 4px; min-height: 38px; }
 
   /* 작전 결과: 왼쪽(승패 · 별 · 점수 · 확인) / 오른쪽(수치 · 승패 요인) */
   html body .result-modal .result-card {
