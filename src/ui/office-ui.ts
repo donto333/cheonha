@@ -21,6 +21,9 @@ const esc = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, 
 const isWanderer = (state: StrategyState) => state.faction === '재야'
 const postTitle = (post: OfficePost, slot: number) => post === 'scholar' ? '태학 박사' : `${post === 'governor' ? '태수' : '두목'} ${slot + 1}`
 const nationNote = (post: OfficePost) => post === 'chief' ? '군웅 ×1.2' : '같은 나라 ×1.2'
+/** 줄이는 효과 · 늘리는 효과 글(0이면 부호 없이 0%) */
+const minus = (value: number) => value > 0 ? `−${percentText(value)}` : '0%'
+const plus = (value: number) => value > 0 ? `+${percentText(value)}` : '0%'
 /** 자리 카드 아래 규칙 한 줄 */
 const RULE_NOTE: Record<OfficePost, string> = {
   scholar: `모략 ${SCHOLAR_STEP}당 −1% · 최대 −15%`,
@@ -30,22 +33,22 @@ const RULE_NOTE: Record<OfficePost, string> = {
 
 /** 자리별 효과 줄: [능력치 이름 · 값, 효과] */
 function effectLines(state: StrategyState, post: OfficePost, general: General): Array<[string, string]> {
-  if (post === 'scholar') return [[`모략 ${general.stratagem}`, `연구 시간 −${percentText(officeValue(general.stratagem, false, SCHOLAR_STEP, SCHOLAR_CAP))}`]]
+  if (post === 'scholar') return [[`모략 ${general.stratagem}`, `연구 시간 ${minus(officeValue(general.stratagem, false, SCHOLAR_STEP, SCHOLAR_CAP))}`]]
   if (post === 'chief') {
     const bonus = chiefBonus(general)
     return [
       [`통솔 ${general.leadership}`, `하루 약탈 +${bonus.raidCount}회`],
-      [`모략 ${general.stratagem}`, `약탈량 +${percentText(bonus.plunder)}`],
-      [`무력 ${general.martial}`, `약탈 공성 성벽 피해 +${percentText(bonus.wall)}`],
-      [`속도 ${general.speed}`, `재출정 대기 −${percentText(bonus.cooldown)}`],
+      [`모략 ${general.stratagem}`, `약탈량 ${plus(bonus.plunder)}`],
+      [`무력 ${general.martial}`, `약탈 공성 성벽 피해 ${plus(bonus.wall)}`],
+      [`속도 ${general.speed}`, `재출정 대기 ${minus(bonus.cooldown)}`],
     ]
   }
   const bonus = governorBonus(general, state.faction)
   return [
-    [`통솔 ${general.leadership}`, `새 수비대 전력 +${percentText(bonus.leadership)}`],
-    [`모략 ${general.stratagem}`, `은전 · 영향력 +${percentText(bonus.stratagem)}`],
-    [`무력 ${general.martial}`, `맞닿은 적 도시 공성 +${percentText(bonus.martial)}`],
-    [`속도 ${general.speed}`, `공사 시간 −${percentText(bonus.speed)}`],
+    [`통솔 ${general.leadership}`, `새 수비대 전력 ${plus(bonus.leadership)}`],
+    [`모략 ${general.stratagem}`, `은전 · 영향력 ${plus(bonus.stratagem)}`],
+    [`무력 ${general.martial}`, `맞닿은 적 도시 공성 ${plus(bonus.martial)}`],
+    [`속도 ${general.speed}`, `공사 시간 ${minus(bonus.speed)}`],
   ]
 }
 /** 고르기 창 정렬 점수 */
@@ -127,7 +130,7 @@ function cityPanel(state: StrategyState, ui: OfficeUiState): string {
     const holder = posts.findIndex(post => post?.cityId === city.id)
     const mine = holder === slot
     const other = holder >= 0 && !mine ? state.generals.find(general => general.id === posts[holder]?.generalId) : undefined
-    return `<button class="office-cityrow${mine ? ' is-current' : ''}" data-action="office-city" data-slot="${slot}" data-city-id="${city.id}" ${mine ? 'disabled' : ''}><strong>${esc(city.name)}</strong><small>Lv.${city.level} · ${esc(city.region)}</small><em>${mine ? '지금 맡은 도시' : other ? `태수 ${holder + 1} ${esc(other.name)}와 바꾸기` : ''}</em></button>`
+    return `<button class="office-cityrow${mine ? ' is-current' : ''}" data-action="office-city" data-slot="${slot}" data-city-id="${city.id}" ${mine ? 'disabled' : ''}><strong>${esc(city.name)}</strong><small>Lv.${city.level} · ${esc(city.region)}</small><em>${mine ? '지금 맡은 도시' : other ? `태수 ${holder + 1} ${esc(other.name)} · 서로 바꾸기` : ''}</em></button>`
   }).join('')
   return `<div class="gdetail office-picker" role="dialog"><div class="gdetail__backdrop" data-action="office-close"></div><div class="gdetail__body office-picker__body office-picker__body--city"><button class="gdetail__close" data-action="office-close" aria-label="닫기">✕</button>
     <div class="office-picker__head"><strong>태수 ${slot + 1} · 맡을 도시</strong><small>도시 하나에 태수 한 명 · 무력 효과는 그 도시와 맞닿은 적 도시를 공성할 때 붙습니다</small></div>
@@ -145,7 +148,7 @@ export function officeSection(state: StrategyState, ui: OfficeUiState, helpers: 
     ? `재야는 다스리는 도시가 없어 태수 대신 두목을 둡니다. 효과마다 두목 중 가장 높은 값이 들어갑니다 · 태수 · 두목 자리는 인재 ${OFFICE_UNLOCK_TIERS.join(' · ')}단계 연구로 늘어납니다.`
     : `아군 도시 태학 서원 단계 합 ${academyLevelSum(state)}${academy ? ` → 연구 시간 −${percentText(academy)}` : ''}(5당 −1%, 최대 −15%) · 태수가 다스리는 도시 ${governed}곳 · 자리는 인재 ${OFFICE_UNLOCK_TIERS.join(' · ')}단계 연구로 늘어납니다.`
   return `<section class="page-section page-section--office">
-    <div class="section-heading section-heading--compact"><div><span class="eyebrow">내정</span><h1>관직</h1><p class="heading-copy">출전하지 않는 무장을 자리에 앉히면 능력치만큼 내정 효과가 생깁니다.</p></div><div class="section-counter"><span>연구 시간</span><strong>−${percentText(academy + scholar)}</strong></div></div>
+    <div class="section-heading section-heading--compact"><div><span class="eyebrow">내정</span><h1>관직</h1><p class="heading-copy">출전하지 않는 무장을 자리에 앉히면 능력치만큼 내정 효과가 생깁니다.</p></div><div class="section-counter"><span>연구 시간</span><strong>${minus(academy + scholar)}</strong></div></div>
     <div class="office-board">${posts}</div>
     <p class="office-foot">${esc(foot)}</p>
     ${pickerPanel(state, ui, helpers)}${cityPanel(state, ui)}
