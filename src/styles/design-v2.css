@@ -200,6 +200,17 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .v2-menu__cell > span:not(.art-ico) { font-size: 12.5px; font-weight: 800; }
   html body .v2-menu__cell:active { background: rgba(212, 175, 55, .18); }
 
+  /* 보통 휴대폰 가로(높이 420 이하): 오른쪽 정보 칸을 줄여 영토 점령전 · 전투 버튼 자리를 둔다 */
+  @media (max-height: 420px) {
+    html body .v2-right { top: 56px; gap: 4px; }
+    html body .v2-deck__row { height: 26px; }
+    html body .v2-deck__face { width: 23px; height: 23px; }
+    html body .v2-missioninfo__bar { display: none; }
+    html body .v2-chapter__sub { display: none; }
+    html body .v2-battle { height: 58px; }
+    html body .v2-battle.v2-battle--conquest { height: 46px; }
+    html body .v2-actions { gap: 5px; }
+  }
   /* 낮은 화면 */
   @media (max-height: 380px) {
     html body .v2-sideicon .art-ico, html body .v2-dock__btn .art-ico { width: 40px; height: 40px; }
