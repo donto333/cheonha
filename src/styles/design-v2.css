@@ -957,3 +957,7 @@ html body .terr-search { display: none; }
   html body .attendance-day.is-today { border-color: #f6c56d; box-shadow: 0 0 0 1px #f6c56d, 0 0 8px rgba(246, 197, 109, .7); }
   html body .attendance-day.is-done { opacity: .5; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .attendance-day__label { position: relative; z-index: 1; width: 100%; background: rgba(6, 5, 4, .9); }
+  html body .attendance-day__art img { height: auto; max-height: 100%; }
+}
