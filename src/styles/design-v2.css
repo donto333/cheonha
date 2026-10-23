@@ -632,3 +632,8 @@ html body .terr-search { display: none; }
   /* 가운데 ‘전열’ 설명은 자리 이름(중앙 · 전열)과 겹치므로 숨김 */
   html body .app-shell .main-content .page-section--formation .formation-front { display: none; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--formation > .formation-bench-head > div:first-child { display: none; }
+  html body .page-section--formation .formation-bench-head .roster-sort-controls { margin-left: 0; width: 100%; }
+  html body .page-section--formation .formation-bench-head .codex-search input::placeholder { content: ''; }
+}

@@ -3075,7 +3075,7 @@ export class StrategyUI {
   }
 
   private formationSearchBox(): string {
-    return `<label class="codex-search formation-search"><span>찾기</span><input data-formation-search type="search" placeholder="이름 · 병종 · 진영 · 등급" value="${escapeHtml(this.formationQuery)}" aria-label="대기 무장 찾기"></label>`
+    return `<label class="codex-search formation-search"><span>찾기</span><input data-formation-search type="search" placeholder="대기 무장 찾기 · 이름 · 병종 · 진영 · 등급" value="${escapeHtml(this.formationQuery)}" aria-label="대기 무장 찾기"></label>`
   }
 
   private formationNoResult(bench: General[]): string {
