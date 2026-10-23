@@ -582,3 +582,30 @@ html body .terr-search { display: none; }
 @media (orientation: landscape) and (max-height: 500px) {
   html body .app-shell .main-content .updates-more { display: block; width: 100%; height: 32px; margin: 6px 0 0; color: #f3e3bd; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; }
 }
+
+/* ════════ 편성: 무장 덱(왼쪽) 한 화면에 — 스크롤 없음 ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--formation { grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "tabs bhead" "screen bench"; gap: 6px 10px; }
+  html body .page-section--formation > .combo-advice { display: none; }
+  /* 군 탭을 낮게 */
+  html body .app-shell .main-content .page-section--formation .squad-tab { min-height: 0; height: 40px; padding: 0 10px; border-width: 6px; display: flex; align-items: center; gap: 8px; }
+  html body .app-shell .main-content .page-section--formation .squad-tab strong { font-size: 15px; }
+  html body .app-shell .main-content .page-section--formation .squad-tab span { font-size: 12px; }
+  /* 진형 판: 넘치지 않게, 세 칸이 남은 높이를 채운다 */
+  html body .app-shell .main-content .page-section--formation > .formation-screen { display: flex; flex-direction: column; min-height: 0; max-height: none; height: 100%; overflow: hidden; padding: 0 2px 2px; }
+  html body .app-shell .main-content .page-section--formation > .formation-screen .formation-screen-head { flex: 0 0 auto; margin: 0 0 4px; padding-bottom: 4px; }
+  html body .app-shell .main-content .page-section--formation .formation-screen-head .eyebrow { display: none; }
+  html body .app-shell .main-content .page-section--formation .formation-slots { flex: 1 1 auto; min-height: 0; margin: 0; gap: 6px; }
+  html body .app-shell .main-content .page-section--formation .formation-slot { height: 100%; min-height: 0; overflow: hidden; padding: 0 3px; gap: 0; }
+  html body .app-shell .main-content .page-section--formation .formation-slot-main { display: grid; justify-items: center; gap: 1px; }
+  html body .app-shell .main-content .page-section--formation .formation-slot-index { font-size: 12px; }
+  html body .app-shell .main-content .page-section--formation .formation-portrait { width: 46px; height: 58px; margin: 2px 0 3px; }
+  html body .app-shell .main-content .page-section--formation .formation-slot strong { font-size: 14px; line-height: 1.1; }
+  html body .app-shell .main-content .page-section--formation .formation-slot .formation-tags { transform: scale(.85); margin: -1px 0; }
+  html body .app-shell .main-content .page-section--formation .formation-slot-main > small { font-size: 11px; line-height: 1.1; }
+  html body .app-shell .main-content .page-section--formation .formation-slot-main > b { font-size: 15px; line-height: 1.1; }
+  html body .app-shell .main-content .page-section--formation .formation-release { min-height: 0; padding: 1px 6px; font-size: 11px; }
+  html body .app-shell .main-content .page-section--formation .formation-enemy, html body .app-shell .main-content .page-section--formation .formation-front { margin-top: auto; padding: 2px 4px; font-size: 10.5px; line-height: 1.2; }
+  html body .app-shell .main-content .page-section--formation .formation-front span { display: none; }
+  html body .app-shell .main-content .page-section--formation .formation-slot--empty small { font-size: 11px; }
+}
