@@ -824,3 +824,12 @@ html body .terr-search { display: none; }
   html body .msum-btn { height: 52px; }
   html body .msum-banner { background-position: center 40%; background-size: cover; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 그림 제목(가운데 아래)을 가리지 않게: 단추는 오른쪽 아래에 세로로 */
+  html body .msum-art { background-position: center 70% !important; }
+  html body .msum-center { left: auto; right: 10px; bottom: 8px; width: 212px; justify-items: stretch; }
+  html body .msum-actions { flex-direction: column; gap: 4px; }
+  html body .msum-btn { min-width: 0; width: 100%; height: 50px; }
+  html body .msum-free { justify-content: center; }
+  html body .msum-banner { background-position: center 18%; }
+}
