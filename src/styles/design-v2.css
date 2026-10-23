@@ -659,3 +659,36 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--shop .starter-pack-note { flex: 0 0 auto; padding: 4px 12px; }
   html body .app-shell .main-content .page-section--shop .starter-pack-note h3, html body .app-shell .main-content .page-section--shop .starter-pack-note p { margin: 0; font-size: 12.5px; }
 }
+
+/* ════════════════ 전체 점검(2026.10.23 저녁) ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 1. 메뉴 화면 안 버튼을 도안 단추로 통일(금 = 주요, 검정 = 보조) */
+  html body .app-shell .main-content .page-section .action-button--primary:not(.msum-btn):not(.starter-pack__buy) { color: #2b1a06; text-shadow: 0 1px 0 rgba(255, 244, 210, .7); background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-gold.webp') 20 fill / 7px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .page-section .action-button--outline, html body .app-shell .main-content .page-section .mini-action:not(.mini-action--research):not(.mini-action--rush):not(.mini-action--danger) { color: #f3e3bd; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; box-shadow: none; }
+  /* 2. 거르기 탭(도감 · 장비 등)을 장수 화면과 같은 검은 금테 막대로 */
+  html body .mroster-bar .filter-tabs:not(.filter-tabs--realm), html body .app-shell .main-content .page-section .filter-tabs:not(.filter-tabs--realm) { gap: 0; padding: 2px; background: linear-gradient(180deg, rgba(14, 12, 14, .92), rgba(6, 6, 8, .92)); border: 1px solid rgba(212, 175, 55, .55); border-radius: 4px; }
+  html body .app-shell .main-content .page-section .filter-tabs:not(.filter-tabs--realm) .filter-tab { height: 28px; padding: 0 10px; font-size: 12.5px; font-weight: 800; color: #eee2c6; background: none; border: 0; border-left: 1px solid rgba(212, 175, 55, .22); border-radius: 0; box-shadow: none; white-space: nowrap; }
+  html body .app-shell .main-content .page-section .filter-tabs:not(.filter-tabs--realm) .filter-tab:first-child { border-left: 0; }
+  html body .app-shell .main-content .page-section .filter-tabs:not(.filter-tabs--realm) .filter-tab.is-active { color: #fff; border: 6px solid transparent; border-image: url('/assets/ui/v2/kit/btn-red.webp') 22 fill / 6px / 0 stretch; padding: 0 8px; }
+  /* 3. 상점 안내 칸을 얇게(패키지 · 신화 장비): 카드 칸이 더 넓게 */
+  html body .app-shell .main-content .page-section--shop .shop-mythic-guide { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 12px; row-gap: 0; padding: 4px 12px; }
+  html body .app-shell .main-content .page-section--shop .shop-mythic-guide > .shop-mythic-guide__bar { grid-column: 1; margin: 0; }
+  html body .app-shell .main-content .page-section--shop .shop-mythic-guide > p { grid-column: 1; margin: 0; font-size: 11.5px; line-height: 1.35; }
+  html body .app-shell .main-content .page-section--shop .shop-mythic-guide > button { grid-column: 2; grid-row: 1 / span 3; min-height: 32px; height: 32px; }
+  html body .app-shell .main-content .page-section--shop .starter-pack-note .eyebrow { display: none; }
+  html body .app-shell .main-content .page-section--shop .starter-pack-note h3 { display: inline; margin-right: 8px; font-size: 14px; }
+  html body .app-shell .main-content .page-section--shop .starter-pack-note p { display: inline; font-size: 11.5px; }
+  /* 4. 업데이트 머리 줄: 건수 칸이 머리 줄 위로 삐져나오지 않게 */
+  html body .app-shell .hub-tabs--notice .is-in-tabs .section-counter small, html body .app-shell .hub-tabs--notice .is-in-tabs .section-counter span:not(:first-child) { display: none; }
+  html body .app-shell .hub-tabs .is-in-tabs .section-counter { height: 30px; display: flex; flex-direction: row; align-items: center; gap: 4px; overflow: hidden; }
+  html body .app-shell .hub-tabs .is-in-tabs .section-counter > * { line-height: 1; }
+  /* 5. 모집: 제목 · 안내 글이 그림 위에서도 읽히게 뒤를 어둡게 */
+  html body .msum-center::before { content: ''; position: absolute; z-index: -1; left: 6%; right: 6%; top: -8px; bottom: -6px; background: radial-gradient(ellipse at 50% 60%, rgba(8, 4, 2, .82), rgba(8, 4, 2, 0) 72%); pointer-events: none; }
+  html body .msum-center .msum-sub { color: #fff2d6; text-shadow: 0 1px 2px #000, 0 0 6px #000; }
+  /* 6. 무장 획득 연출: 위 제목이 화면 위로 잘리지 않게 */
+  html body .ritual-stage { padding-top: 14px; }
+  html body .ritual-reveal { top: 58px; max-height: calc(100% - 58px - 92px); }
+  /* 7. 장비 화면 칸도 금테 판으로 */
+  html body .app-shell .main-content .page-section--equipment-simple .equip-chip { background: none; border: 0 solid transparent; border-width: 6px 10px; border-image: url('/assets/ui/v2/kit/panel-thin.webp') 18 30 fill / 6px 10px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .page-section--equipment-simple .equip-chip.is-active { filter: drop-shadow(0 0 4px rgba(255, 196, 80, .8)); }
+}
