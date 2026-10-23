@@ -151,14 +151,19 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
 
   /* 아래 가운데: 주요 메뉴 */
   html body .v2-dock {
-    position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(198px + var(--safe-r)); bottom: calc(4px + var(--safe-b));
-    height: 70px; display: flex; align-items: flex-end; justify-content: center; gap: 2px; padding: 0 8px 4px;
-    background: linear-gradient(180deg, rgba(23, 16, 11, 0), rgba(23, 16, 11, .85) 45%);
-    border-bottom: 2px solid var(--v2-gold-deep);
+    position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(198px + var(--safe-r)); bottom: calc(2px + var(--safe-b));
+    height: 76px; display: flex; align-items: flex-end; justify-content: space-evenly; gap: 0; padding: 0 38px 12px;
+    background: none; border: 0;
   }
-  html body .v2-dock__btn { position: relative; flex: 0 1 74px; min-width: 0; display: grid; justify-items: center; gap: 1px; padding: 0; background: none; border: 0; color: var(--v2-ink); }
-  html body .v2-dock__btn .art-ico { width: 46px; height: 46px; }
-  html body .v2-dock__btn > span:not(.art-ico) { font-size: 12.5px; font-weight: 800; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+  /* 두루마리 판(금빛 종이 + 나무 축): 양 끝 장식은 그대로, 가운데만 늘어난다 */
+  html body .v2-dock::before {
+    content: ''; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 64px;
+    border-style: solid; border-width: 10px 33px 11px; border-image: url('/assets/ui/v2/dock-scroll.webp') 50 160 55 160 fill / 10px 33px 11px stretch;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .6));
+  }
+  html body .v2-dock__btn { position: relative; flex: 0 1 70px; min-width: 0; display: grid; justify-items: center; gap: 0; padding: 0; background: none; border: 0; color: #3a2408; }
+  html body .v2-dock__btn .art-ico { width: 44px; height: 44px; }
+  html body .v2-dock__btn > span:not(.art-ico) { font-size: 12.5px; font-weight: 900; color: #3a2408; text-shadow: 0 1px 0 rgba(255, 244, 210, .7); white-space: nowrap; }
   html body .v2-dock__btn:active .art-ico { transform: scale(.92); }
   html body .v2-dock__btn .v2-dot { top: 0; right: calc(50% - 24px); }
   html body .v2-dock__btn.is-coach .art-ico::after, html body .v2-menu__cell.is-coach .art-ico::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; }
@@ -214,7 +219,9 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   /* 낮은 화면 */
   @media (max-height: 380px) {
     html body .v2-sideicon .art-ico, html body .v2-dock__btn .art-ico { width: 40px; height: 40px; }
-    html body .v2-dock { height: 64px; }
+    html body .v2-dock { height: 68px; padding-bottom: 10px; }
+    html body .v2-dock::before { height: 56px; border-width: 9px 29px 10px; border-image-width: 9px 29px 10px; }
+    html body .v2-dock__btn > span:not(.art-ico) { font-size: 11.5px; }
     html body .v2-battle { width: 156px; height: 54px; }
     html body .v2-battle__label { font-size: 26px; }
     html body .v2-battle.v2-battle--conquest { height: 44px; }
