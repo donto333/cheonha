@@ -801,3 +801,7 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-main__actions { grid-area: act !important; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail { grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-story { height: 58px; min-height: 58px; flex-shrink: 0; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { min-height: 46px; }
+}
