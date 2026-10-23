@@ -159,9 +159,16 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .v2-dock__btn {
     position: relative; flex: 1 1 0; min-width: 0; max-width: 112px; aspect-ratio: 876 / 310;
     display: flex; align-items: center; justify-content: center; padding: 0;
-    background: url('/assets/ui/v2/menu-plate.webp') center / 100% 100% no-repeat; border: 0;
+    background: center / 100% 100% no-repeat; border: 0;
     filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65));
   }
+  /* 메뉴마다 판 그림(왼쪽 동판 문양 + 금빛 종이) */
+  html body .v2-dock__btn[data-section="roster"] { background-image: url('/assets/ui/v2/menu/roster.webp'); }
+  html body .v2-dock__btn[data-section="formation"] { background-image: url('/assets/ui/v2/menu/formation.webp'); }
+  html body .v2-dock__btn[data-section="recruit"] { background-image: url('/assets/ui/v2/menu/recruit.webp'); }
+  html body .v2-dock__btn[data-section="research"] { background-image: url('/assets/ui/v2/menu/research.webp'); }
+  html body .v2-dock__btn[data-section="guild"] { background-image: url('/assets/ui/v2/menu/guild.webp'); }
+  html body .v2-dock__btn[data-section="shop"] { background-image: url('/assets/ui/v2/menu/shop.webp'); }
   html body .v2-dock__btn .art-ico { display: none; }
   html body .v2-dock__btn > span:not(.art-ico) { margin-left: 34%; font-size: 15px; font-weight: 900; letter-spacing: .04em; color: #3a2408; line-height: 1; text-shadow: 0 1px 0 rgba(255, 244, 210, .8); white-space: nowrap; }
   html body .v2-dock__btn:active { transform: translateY(1px); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)) brightness(.95); }
