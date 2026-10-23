@@ -521,6 +521,8 @@ export class StrategyUI {
     if (f === 'shu' || f === 'wei' || f === 'wu' || f === 'qun') return generalRealm(general.id) === f
     return general.role === f
   }
+  /** 휴대폰: 업데이트 기록은 최근 것부터 조금씩 */
+  private updatesShown = 6
   private codexFilter: 'all' | 'owned' | 'missing' | '5' | '4' | Role = 'all'
   private codexQuery = ''
   /** 출전 편성 · 대기 무장 찾기(이름 · 칭호 · 병종 · 진영 · 등급 · 스킬) */
@@ -3548,7 +3550,9 @@ export class StrategyUI {
       ['2026.10.06', '첫 기반', '장비 관리(뽑기 · 장착 · 강화 · 세트 효과)와 신화 상점, 전투 연출, 로그인 화면을 갖췄습니다.', '완료', 'jade'],
     ] as const
     const completedLatestFirst = [...completed].sort((left, right) => right[0].localeCompare(left[0]))
-    const completedMarkup = completedLatestFirst.map(([date, title, detail, status, tone]) => `<article class="update-entry" data-action="update-toggle"><time>${date}</time><span class="update-mark update-mark--${tone}"></span><div class="update-entry-copy"><div><h3>${title}</h3><span class="update-status update-status--${tone}">${status}</span></div><p>${detail}</p></div></article>`).join('')
+    const shownUpdates = isPhoneLandscape() ? completedLatestFirst.slice(0, this.updatesShown) : completedLatestFirst
+    const moreUpdates = shownUpdates.length < completedLatestFirst.length ? `<button class="mini-action updates-more" data-action="updates-more">이전 기록 더 보기 · ${completedLatestFirst.length - shownUpdates.length}건</button>` : ''
+    const completedMarkup = shownUpdates.map(([date, title, detail, status, tone]) => `<article class="update-entry" data-action="update-toggle"><time>${date}</time><span class="update-mark update-mark--${tone}"></span><div class="update-entry-copy"><div><h3>${title}</h3><span class="update-status update-status--${tone}">${status}</span></div><p>${detail}</p></div></article>`).join('') + moreUpdates
     return `<section class="page-section page-section--updates"><div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>업데이트 기록</h1><p class="heading-copy">지금까지 반영된 변경사항을 주제별로 요약했습니다.</p></div><div class="updates-summary glass-card"><span>요약 항목</span><strong>${completed.length}<small>건</small></strong><em>최신 적용순</em></div></div><div class="updates-layout updates-layout--single"><div class="glass-card updates-panel"><div class="card-header"><div><span class="eyebrow">배포된 업데이트</span><h2>적용된 업데이트</h2></div><span class="sync-label">최신순</span></div><div class="update-list">${completedMarkup}</div></div></div><div class="updates-footnote"><span class="status-dot"></span><span>적용된 업데이트는 최신 날짜순으로 표시됩니다.</span><span class="muted">현재 버전 · 2026.10</span></div></section>`
   }
 
@@ -3658,6 +3662,7 @@ export class StrategyUI {
     }
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
+    if (action === 'updates-more') { this.updatesShown += 10; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'update-toggle') { button.classList.toggle('is-open'); return }
     if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null; this.lobbyPanel = null; this.equipmentDetailId = null; this.shopLogOpen = false }
     if (action === 'section') { if (button.dataset.scenarioId) { this.scenarioSelectedId = button.dataset.scenarioId; this.scenarioPicked = true; this.scenarioDifficulty = 'normal' } this.callbacks.onSection((button.dataset.section ?? 'overview') as Section) }
