@@ -61,6 +61,8 @@ try {
       await page.locator('[data-action="faction-select"]').first().evaluate(b => b.click())
     }
     await page.waitForSelector('.app-shell', { timeout: 15_000 }).catch(async error => { await shot('99-stuck'); throw error })
+    // 늦게 뜨는 출석 · 안내 창이 캡처를 가리지 않게 스타일로도 숨긴다
+    await page.addStyleTag({ content: '.attendance-modal, .coach-layer, .notice-popup, .game-intro { display: none !important }' }).catch(() => {})
     // 코치 말풍선 · 출석 같은 덮개는 닫는다
     const clearOverlays = () => page.evaluate(() => {
       // 첫 입장 튜토리얼 · 출석 · 안내 창은 캡처에서 뺀다
