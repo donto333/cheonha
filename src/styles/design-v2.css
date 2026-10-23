@@ -1033,3 +1033,8 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--mshop .shop-item .shop-item-icon { background: radial-gradient(circle, rgba(212, 175, 55, .28), rgba(10, 8, 6, 0) 70%) !important; border-color: rgba(212, 175, 55, .55) !important; box-shadow: none !important; }
   html body .app-shell .main-content .page-section--mshop .shop-item::before, html body .app-shell .main-content .page-section--mshop .shop-item::after { display: none !important; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--mshop .shop-grid { align-items: stretch; grid-auto-rows: auto; }
+  html body .app-shell .main-content .page-section--mshop .shop-item { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; display: flex; flex-direction: column; }
+  html body .app-shell .main-content .page-section--mshop .shop-item > .action-button, html body .app-shell .main-content .page-section--mshop .shop-item > button { margin-top: auto; }
+}
