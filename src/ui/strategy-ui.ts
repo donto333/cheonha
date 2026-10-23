@@ -3672,7 +3672,7 @@ export class StrategyUI {
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
     if (action === 'pager') { turnPage(this.root, button.dataset.pager ?? '', Number(button.dataset.dir ?? 1)); return }
-    if (/-(filter|sort|sort-direction|tab)$/.test(action)) resetPage()
+    if (/-(filter|sort|sort-direction|tab)$/.test(action ?? '')) resetPage()
     if (action === 'updates-more') { this.updatesShown += 10; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'update-toggle') { button.classList.toggle('is-open'); return }
     if (action === 'section') { this.root.querySelector('.sidebar')?.classList.remove('is-more-open'); this.generalDetail = null; this.lobbyPanel = null; this.equipmentDetailId = null; this.shopLogOpen = false }
