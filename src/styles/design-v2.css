@@ -1013,3 +1013,23 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--mshop .starter-pack__buy { color: #2b1a06; border: 0 solid transparent; border-width: 8px 12px; border-image: url('/assets/ui/v2/shop/btn-gold.webp') 24 40 fill / 8px 12px / 0 stretch; background: none; box-shadow: none; }
   html body .app-shell .main-content .page-section--mshop .starter-pack__buy.is-done, html body .app-shell .main-content .page-section--mshop .starter-pack__buy:disabled { color: #ddd; border-image-source: url('/assets/ui/v2/shop/btn-gray.webp'); }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 1. 왼쪽 분류 단추: 판 그림 비율 그대로, 아이콘은 판의 둥근 자리에 · 글자는 오른쪽 칸 가운데 */
+  html body .mshop-nav { align-items: stretch; }
+  html body .mshop-tab { height: auto; aspect-ratio: 267 / 113; padding: 0 0 0 42%; justify-content: flex-start; background-size: 100% 100%; }
+  html body .mshop-tab__ico { position: absolute; left: 5.2%; top: 7.5%; height: 85%; width: auto; aspect-ratio: 1; }
+  html body .mshop-tab > span { width: 100%; text-align: center; font-size: 13px; white-space: nowrap; padding-right: 6%; }
+  /* 2. 수량 그림 여러 개 겹쳐 쌓기 */
+  html body .mshop-card__art { position: relative; flex: 1 1 auto; min-height: 44px; width: 100%; display: block; background: none; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .7)); }
+  html body .mshop-card__art > i { position: absolute; width: 58%; height: 70%; background: center / contain no-repeat; }
+  html body .mshop-card__art--1 > i:nth-child(1) { left: 21%; top: 15%; width: 58%; height: 70%; }
+  html body .mshop-card__art--2 > i:nth-child(1) { left: 6%; top: 20%; } html body .mshop-card__art--2 > i:nth-child(2) { left: 36%; top: 12%; }
+  html body .mshop-card__art--3 > i { width: 48%; height: 58%; } html body .mshop-card__art--3 > i:nth-child(1) { left: 4%; top: 36%; } html body .mshop-card__art--3 > i:nth-child(2) { left: 48%; top: 36%; } html body .mshop-card__art--3 > i:nth-child(3) { left: 26%; top: 4%; }
+  html body .mshop-card__art--4 > i { width: 44%; height: 52%; } html body .mshop-card__art--4 > i:nth-child(1) { left: 2%; top: 42%; } html body .mshop-card__art--4 > i:nth-child(2) { left: 54%; top: 42%; } html body .mshop-card__art--4 > i:nth-child(3) { left: 14%; top: 4%; } html body .mshop-card__art--4 > i:nth-child(4) { left: 42%; top: 6%; }
+  html body .mshop-card__art--5 > i { width: 40%; height: 48%; } html body .mshop-card__art--5 > i:nth-child(1) { left: 0; top: 48%; } html body .mshop-card__art--5 > i:nth-child(2) { left: 30%; top: 50%; } html body .mshop-card__art--5 > i:nth-child(3) { left: 60%; top: 48%; } html body .mshop-card__art--5 > i:nth-child(4) { left: 14%; top: 8%; } html body .mshop-card__art--5 > i:nth-child(5) { left: 46%; top: 8%; }
+  html body .mshop-card__art--6 > i { width: 38%; height: 46%; } html body .mshop-card__art--6 > i:nth-child(1) { left: 0; top: 50%; } html body .mshop-card__art--6 > i:nth-child(2) { left: 31%; top: 52%; } html body .mshop-card__art--6 > i:nth-child(3) { left: 62%; top: 50%; } html body .mshop-card__art--6 > i:nth-child(4) { left: 8%; top: 14%; } html body .mshop-card__art--6 > i:nth-child(5) { left: 54%; top: 14%; } html body .mshop-card__art--6 > i:nth-child(6) { left: 31%; top: 0; }
+  /* 4. 신화 장비 카드: 세트별 색 대신 하나의 금빛 배경 */
+  html body .app-shell .main-content .page-section--mshop .shop-item, html body .app-shell .main-content .page-section--mshop .shop-item[class*="shop-item--"] { --equipment-glow: transparent; background: linear-gradient(180deg, rgba(30, 22, 14, .94), rgba(10, 8, 6, .96)) !important; border: 1px solid rgba(212, 175, 55, .65) !important; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6) !important; }
+  html body .app-shell .main-content .page-section--mshop .shop-item .shop-item-icon { background: radial-gradient(circle, rgba(212, 175, 55, .28), rgba(10, 8, 6, 0) 70%) !important; border-color: rgba(212, 175, 55, .55) !important; box-shadow: none !important; }
+  html body .app-shell .main-content .page-section--mshop .shop-item::before, html body .app-shell .main-content .page-section--mshop .shop-item::after { display: none !important; }
+}
