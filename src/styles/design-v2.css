@@ -152,7 +152,7 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   /* 아래 가운데: 주요 메뉴 */
   html body .v2-dock {
     position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(198px + var(--safe-r)); bottom: calc(2px + var(--safe-b));
-    height: 78px; display: flex; align-items: flex-end; justify-content: space-evenly; gap: 0; padding: 0 38px 15px;
+    height: 82px; display: flex; align-items: flex-end; justify-content: space-evenly; gap: 0; padding: 0 38px 19px;
     background: none; border: 0;
   }
   /* 두루마리 판(금빛 종이 + 나무 축): 양 끝 장식은 그대로, 가운데만 늘어난다 */
@@ -219,7 +219,7 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   /* 낮은 화면 */
   @media (max-height: 380px) {
     html body .v2-sideicon .art-ico, html body .v2-dock__btn .art-ico { width: 40px; height: 40px; }
-    html body .v2-dock { height: 70px; padding-bottom: 13px; }
+    html body .v2-dock { height: 74px; padding-bottom: 16px; }
     html body .v2-dock::before { height: 56px; border-width: 9px 29px 10px; border-image-width: 9px 29px 10px; }
     html body .v2-dock__btn > span:not(.art-ico) { font-size: 11.5px; }
     html body .v2-battle { width: 156px; height: 54px; }
