@@ -486,3 +486,54 @@ html body .terr-search { display: none; }
   html body .msum-icon--codex span { background-image: url('/assets/ui/v2/kit/round-codex.webp'); }
   html body .msum-icon small { margin-top: -6px; padding: 0 8px; font-size: 11.5px; color: #fff; background: linear-gradient(180deg, #1b1714, #0b0908); border: 1px solid rgba(212, 175, 55, .7); border-radius: 2px; }
 }
+
+/* ════════════════ 내정 · 연맹 · 상점 화면(2026.10.23 디자인 도안, 그림: public/assets/ui/v2/kit/) ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 머리 줄 오른쪽 단추(새로고침 · ○○ 설명): 검은 금테 단추, 세로 가운데 */
+  html body .app-shell .hub-tabs .is-in-tabs { align-self: center; }
+  html body .app-shell .hub-tabs .is-in-tabs .action-button, html body .app-shell .hub-tabs .is-in-tabs .mini-action, html body .app-shell .hub-tabs .is-in-tabs button:not(.hub-tabs__tab) {
+    height: 30px; min-height: 30px; padding: 0 10px; font-size: 13px; font-weight: 800; color: #f3e3bd; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; box-shadow: none;
+  }
+  html body .app-shell .hub-tabs .is-in-tabs .action-button--primary { color: #2b1a06; border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); }
+
+  /* ── 내정(연구) ── */
+  html body .mres-branch { padding: 0; gap: 0; }
+  html body .mres-branch__icon { position: relative; z-index: 1; width: 46px; height: 46px; color: #e8d39c; background: radial-gradient(circle at 40% 35%, #4a3622, #1a1009); box-shadow: inset 0 0 0 2px #c9a24a, 0 0 0 1px #2a1a0c, 0 2px 4px rgba(0, 0, 0, .6); }
+  html body .mres-branch__text { margin-left: -14px; padding: 3px 12px 3px 20px; min-width: 76px; background: linear-gradient(180deg, #1c1714, #0c0a09); border: 1px solid #a4823a; border-left: 0; border-radius: 0 6px 6px 0; box-shadow: 0 2px 4px rgba(0, 0, 0, .5); }
+  html body .mres-branch__text strong { font-size: 15px; color: #f3e6c6; }
+  html body .mres-branch__text small { color: #cbbd99; }
+  html body .mres-branch.is-active .mres-branch__icon { background: radial-gradient(circle at 40% 35%, #43c48a, #136a43); box-shadow: inset 0 0 0 2px #e9c76a, 0 0 10px rgba(79, 207, 152, .7); color: #fff3c4; }
+  html body .mres-branch.is-active .mres-branch__text { background: linear-gradient(180deg, #ffe7a3, #e9b84a 55%, #b3802a); border-color: #ffe7a3; box-shadow: 0 0 8px rgba(255, 196, 80, .7); }
+  html body .mres-branch.is-active .mres-branch__text strong { color: #2b1a06; }
+  html body .mres-branch.is-active .mres-branch__text small { color: #4a2e0a; }
+  html body .mres-main .research-active, html body .mres-main .research-summary { border: 0 solid transparent; border-width: 10px 14px; border-image: url('/assets/ui/v2/kit/panel-recommend.webp') 30 40 fill / 10px 14px / 0 stretch; background: none; box-shadow: none; border-radius: 0; }
+  html body .mres-tier__label, html body .mres-tier .research-tier { padding: 2px 12px; border-radius: 0; color: #2b1a06; background: none; border: 0 solid transparent; border-width: 6px 12px; border-image: url('/assets/ui/v2/kit/stage-label.webp') 14 30 fill / 6px 12px / 0 stretch; line-height: 1; }
+  html body .mres-tier .research-tier { padding: 0 8px; font-size: 11px; font-weight: 800; }
+  html body .mres-tier .research-node { background: none; border: 0 solid transparent; border-width: 12px; border-image: url('/assets/ui/v2/kit/stage-box.webp') 40 fill / 12px / 0 stretch; border-radius: 0; box-shadow: none; padding: 2px 4px; }
+  html body .mres-tier .research-node.is-available, html body .mres-tier .research-node.is-active, html body .mres-tier .research-node.is-switch { border-image-source: url('/assets/ui/v2/kit/stage-box-on.webp'); filter: drop-shadow(0 0 4px rgba(255, 200, 80, .55)); }
+  html body .mres-tier .research-node.is-locked, html body .mres-tier .research-node.is-busy { border-image-source: url('/assets/ui/v2/kit/stage-box-lock.webp'); }
+  html body .mres-tier .research-node.is-done { border-image-source: url('/assets/ui/v2/kit/stage-box.webp'); }
+  html body .mres-tier .research-node h4 { color: #f6e3b0; }
+  html body .mres-link { height: 3px; background: linear-gradient(90deg, #1d6f62, #4fe0c4, #1d6f62); box-shadow: 0 0 4px rgba(79, 224, 196, .7); }
+  html body .mres-tier .mini-action--research, html body .research-active .mini-action--rush { color: #2b1a06; font-weight: 900; background: none; border: 8px solid transparent; border-image: url('/assets/ui/v2/kit/btn-start.webp') 24 50 fill / 8px 16px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .research-active .mini-action:not(.mini-action--rush), html body .research-summary .mini-action { color: #f3e3bd; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; box-shadow: none; }
+
+  /* ── 상점 ── */
+  html body .page-section--shop .shop-balances--strip { background: none; border: 0 solid transparent; border-width: 8px 14px; border-image: url('/assets/ui/v2/kit/shop-strip.webp') 22 40 fill / 8px 14px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .page-section--shop .shop-tabs { gap: 4px; background: none; border: 0; }
+  html body .page-section--shop .shop-tab { color: #eee2c6; font-weight: 800; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/tab-dark.webp') 20 30 fill / 7px 10px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .page-section--shop .shop-tab.is-active { color: #fff; border-image-source: url('/assets/ui/v2/kit/tab-red.webp'); text-shadow: 0 1px 1px #000; }
+  html body .page-section--shop .shop-row { background: linear-gradient(180deg, rgba(16, 12, 10, .92), rgba(8, 6, 5, .95)); border: 1px solid rgba(212, 175, 55, .45); border-radius: 3px; }
+  html body .page-section--shop .shop-row__head strong, html body .page-section--shop .shop-row__head b { color: #f3e6c6; }
+  html body .page-section--shop .shop-buy { color: #f3e3bd; background: none; border: 6px solid transparent; border-image: url('/assets/ui/v2/kit/cell-dark.webp') 16 fill / 6px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .page-section--shop .shop-buy.is-best { color: #2b1a06; border-image-source: url('/assets/ui/v2/kit/cell-gold.webp'); filter: drop-shadow(0 0 3px rgba(255, 200, 80, .6)); }
+  html body .page-section--shop .shop-buy.is-best b, html body .page-section--shop .shop-buy.is-best span, html body .page-section--shop .shop-buy.is-best em { color: #2b1a06; }
+  html body .page-section--shop .shop-buy:disabled { border-image-source: url('/assets/ui/v2/kit/cell-line.webp'); opacity: .7; filter: none; }
+  html body .page-section--shop .shop-item { background: none; border: 0 solid transparent; border-width: 10px; border-image: url('/assets/ui/v2/kit/stage-box.webp') 40 fill / 10px / 0 stretch; border-radius: 0; box-shadow: none; }
+
+  /* ── 연맹 ── */
+  html body .page-section--guild .guild-empty, html body .guild-locked { margin: 8px 0; padding: 14px 20px; color: #e8dcc0; font-size: 13px; background: none; border: 0 solid transparent; border-width: 14px 20px; border-image: url('/assets/ui/v2/kit/guild-notice.webp') 30 60 fill / 14px 20px / 0 stretch; }
+  html body .page-section--guild .guild-hero, html body .page-section--guild .guild-list, html body .page-section--guild .guild-ranking { background: linear-gradient(180deg, rgba(16, 12, 10, .92), rgba(8, 6, 5, .95)); border: 1px solid rgba(212, 175, 55, .55); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), 0 3px 8px rgba(0, 0, 0, .6); }
+  html body .page-section--guild .guild-rank-tabs button, html body .page-section--guild .guild-tabs button { color: #eee2c6; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; }
+  html body .page-section--guild .guild-rank-tabs button.is-active, html body .page-section--guild .guild-tabs button.is-active { color: #2b1a06; border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); }
+}
