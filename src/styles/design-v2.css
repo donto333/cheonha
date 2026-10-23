@@ -157,13 +157,13 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   }
   /* 메뉴 하나에 두루마리 판 하나(죽간 · 붓 · 금빛 종이). 이름은 오른쪽 금빛 칸에 */
   html body .v2-dock__btn {
-    position: relative; flex: 0 1 112px; min-width: 0; aspect-ratio: 876 / 310;
-    display: flex; align-items: center; justify-content: center; padding: 0 6% 0 40%;
+    position: relative; flex: 1 1 0; min-width: 0; max-width: 112px; aspect-ratio: 876 / 310;
+    display: flex; align-items: center; justify-content: center; padding: 0;
     background: url('/assets/ui/v2/menu-plate.webp') center / 100% 100% no-repeat; border: 0;
     filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65));
   }
   html body .v2-dock__btn .art-ico { display: none; }
-  html body .v2-dock__btn > span:not(.art-ico) { font-size: 15px; font-weight: 900; letter-spacing: .04em; color: #3a2408; line-height: 1; text-shadow: 0 1px 0 rgba(255, 244, 210, .8); white-space: nowrap; }
+  html body .v2-dock__btn > span:not(.art-ico) { margin-left: 34%; font-size: 15px; font-weight: 900; letter-spacing: .04em; color: #3a2408; line-height: 1; text-shadow: 0 1px 0 rgba(255, 244, 210, .8); white-space: nowrap; }
   html body .v2-dock__btn:active { transform: translateY(1px); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)) brightness(.95); }
   html body .v2-dock__btn.is-coach::after { content: ''; position: absolute; inset: -3px; border-radius: 6px; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
   html body .v2-dock__btn .v2-dot { top: -2px; right: 2px; }
