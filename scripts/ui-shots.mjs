@@ -176,6 +176,15 @@ try {
       const cityPick = page.locator('[data-action="office-city-pick"]')
       if (await cityPick.count()) { await cityPick.first().evaluate(b => b.click()); await shot('98f-office-city'); await page.locator('[data-action="office-close"]').first().evaluate(b => b.click()) }
     } catch (error) { errors.push(`[${view.name}] domestic: ${error}`) }
+    // 영토 지도 전체 화면 · 상점 패키지 · 신화 장비 탭
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'territory'; g.ui.render(g.state) })
+    await sleep(600)
+    if (await page.locator('[data-map-action="fullscreen"]').count()) { await page.locator('[data-map-action="fullscreen"]').first().evaluate(b => b.click()); await shot('98g-territory-fullscreen'); await page.locator('[data-map-action="fullscreen"]').first().evaluate(b => b.click()) }
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'shop'; g.ui.render(g.state) })
+    for (const [i, label] of [[1, '98h-shop-package'], [4, '98i-shop-mythic']]) {
+      const tabs = page.locator('.shop-tab')
+      if (await tabs.count() > i) { await tabs.nth(i).evaluate(b => b.click()); await clearOverlays(); await shot(label) }
+    }
     // 무장 상세 창
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })
     if (await page.locator('.gtile').count()) { await page.locator('.gtile').first().evaluate(b => b.click()); await shot('94-roster-detail'); await page.locator('[data-action="general-detail-close"]').first().evaluate(b => b.click()) }

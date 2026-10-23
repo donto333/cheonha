@@ -637,3 +637,18 @@ html body .terr-search { display: none; }
   html body .page-section--formation .formation-bench-head .roster-sort-controls { margin-left: 0; width: 100%; }
   html body .page-section--formation .formation-bench-head .codex-search input::placeholder { content: ''; }
 }
+
+/* ════════ 상점(패키지 · 신화 장비) 넘치는 내용은 칸 안에서 넘기기 · 영토 지도 전체 화면 ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--shop .shop-grid { overflow-y: auto; overscroll-behavior: contain; align-content: start; }
+  html body .app-shell .main-content .page-section--shop .shop-table { overflow-y: auto; overscroll-behavior: contain; }
+  html body .app-shell .main-content .page-section--shop > .glass-card:not(.shop-balances):not(.shop-table):not(.shop-grid) { flex: 0 0 auto; padding: 6px 12px; }
+  html body .app-shell .main-content .page-section--shop .shop-mythic-guide p, html body .app-shell .main-content .page-section--shop .shop-mythic-guide small { margin: 2px 0; font-size: 12px; }
+  html body .app-shell .main-content .page-section--shop .shop-item { padding: 6px 8px; }
+  html body .app-shell .main-content .page-section--shop .shop-item-icon { width: 64px; height: 64px; margin: 0 auto; }
+  html body .app-shell .main-content .page-section--shop .shop-item-icon img { max-width: 100%; max-height: 100%; }
+
+  /* 영토 지도 전체 화면: 화면을 꽉 채운다(위 규칙들이 지도 칸을 ‘제자리’로 묶어 두던 것을 푼다) */
+  html body .page-section--territory .territory-layout > .territory-map.is-fullscreen { position: fixed; inset: 0; z-index: 80; height: auto; padding: calc(4px + var(--safe-t, 0px)) calc(4px + var(--safe-r)) calc(4px + var(--safe-b)) calc(4px + var(--safe-l)); overflow: hidden; display: flex; flex-direction: column; background: #1c120b; border: 0; border-image: none; }
+  html body .page-section--territory .territory-map.is-fullscreen .map-viewport { flex: 1 1 auto; min-height: 0; height: auto; margin: 0; max-width: none; aspect-ratio: auto; }
+}
