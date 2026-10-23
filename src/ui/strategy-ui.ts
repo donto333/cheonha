@@ -2795,20 +2795,28 @@ export class StrategyUI {
     if (isPhoneLandscape()) {
       const branches = researchBranchesFor(state)
       const selected = branches.find(branch => branch.id === this.researchBranch) ?? branches[0]
+      const branchArt = (prefix: string): string => prefix === 'econ' || prefix === 'loot' ? 'econ' : prefix === 'army' ? 'army' : prefix === 'strat' ? 'strat' : prefix === 'realm' || prefix === 'raid' ? 'realm' : 'talent'
       const branchIcon = (prefix: string): IconName => prefix === 'econ' || prefix === 'loot' ? 'grain' : prefix === 'army' ? 'battle' : prefix === 'strat' ? 'research' : prefix === 'realm' || prefix === 'raid' ? 'territory' : 'roster'
       const list = branches.map(branch => {
         const nodes = state.research.filter(node => node.branch === branch.id)
         const done = new Set(nodes.filter(node => node.unlocked).map(node => node.tier)).size
         const level = nodes.find(isMastery)?.level ?? 0
         const running = active && active.branch === branch.id
-        return `<button class="mres-branch${branch.id === selected.id ? ' is-active' : ''}${running ? ' is-running' : ''}" data-action="research-branch" data-branch="${branch.id}"><span class="mres-branch__icon">${icon(branchIcon(branch.prefix))}</span><span class="mres-branch__text"><strong>${branch.id}</strong><small>${done}/6${level ? ` · 심화 ${level}` : ''}${running ? ' · 연구 중' : ''}</small></span></button>`
+        return `<button class="mres-branch${branch.id === selected.id ? ' is-active' : ''}${running ? ' is-running' : ''}" data-action="research-branch" data-branch="${branch.id}" data-ico="${branchArt(branch.prefix)}"><span class="mres-branch__icon">${icon(branchIcon(branch.prefix))}</span><span class="mres-branch__text"><strong>${branch.id}</strong><small>${done}/6${level ? ` · 심화 ${level}` : ''}${running ? ' · 연구 중' : ''}</small></span></button>`
       }).join('')
       const nodes = state.research.filter(node => node.branch === selected.id)
       const tiers = [1, 2, 3, 4, 5, 6, 7].map(tier => {
         const row = nodes.filter(node => node.tier === tier)
         return `<div class="mres-tier${tier === 7 ? ' mres-tier--mastery' : ''}"><span class="mres-tier__label">${tier === 7 ? '심화' : `${tier}단계`}${row.length > 1 ? ' · 택1' : ''}</span>${row.map(node => this.researchCard(node, state, now)).join('')}</div>`
       }).join('<i class="mres-link" aria-hidden="true"></i>')
-      return `<section class="page-section page-section--research page-section--mres"><nav class="mres-branches">${list}</nav><div class="mres-main">${activePanel}<p class="mres-hint">${escapeHtml(selected.hint)}${speed ? ` · <b class="mres-speed">${speed}</b>` : ''}</p><div class="mres-tree">${tiers}</div></div></section>`
+      // 도안: 위 판(분야 메달 · 이름 · 설명 칩 · 진행 중/추천 연구), 가운데 단계 카드, 아래 분야 연구 레벨 막대
+      const doneTiers = new Set(nodes.filter(node => node.unlocked && !isMastery(node)).map(node => node.tier)).size
+      const masteryLv = nodes.find(isMastery)?.level ?? 0
+      const chips = selected.hint.split(/[·,]/).map(part => part.trim()).filter(Boolean).slice(0, 3).map(part => `<span class="mres-chip">${escapeHtml(part)}</span>`).join('')
+      const head = `<div class="mres-head" data-ico="${branchArt(selected.prefix)}"><i class="mres-head__medal" aria-hidden="true"></i><div class="mres-head__copy"><h2>${escapeHtml(selected.id)}</h2><div class="mres-chips">${chips}${speed ? `<span class="mres-chip mres-chip--speed">${escapeHtml(speed)}</span>` : ''}</div></div>${activePanel}</div>`
+      const progress = Math.round((doneTiers + masteryLv / MASTERY_MAX) / 7 * 100)
+      const foot = `<div class="mres-foot" data-ico="${branchArt(selected.prefix)}"><i class="mres-head__medal" aria-hidden="true"></i><span class="mres-foot__label">${escapeHtml(selected.id)} 연구 단계</span><b class="mres-foot__lv">${doneTiers} / 6</b><span class="mres-foot__bar"><i style="width:${progress}%"></i></span><span class="mres-foot__mastery">심화 Lv.${masteryLv} / ${MASTERY_MAX}</span><span class="mres-foot__total">전체 ${doneCount} / 30</span></div>`
+      return `<section class="page-section page-section--research page-section--mres"><nav class="mres-branches">${list}</nav><div class="mres-main">${head}<div class="mres-tree">${tiers}</div>${foot}</div></section>`
     }
     // 재야는 부국 · 제패 대신 재야 전용 약탈 · 유격 분야
     const columns = researchBranchesFor(state).map(branch => {

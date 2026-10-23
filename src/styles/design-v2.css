@@ -836,3 +836,91 @@ html body .terr-search { display: none; }
 @media (orientation: landscape) and (max-height: 500px) {
   html body .msum-free { white-space: nowrap; padding: 0 12px; font-size: 12px; border-width: 6px 10px; }
 }
+
+/* ════════════════ 내정 · 연구(휴대폰 가로, 2026.10.23 도안 · 그림: public/assets/ui/v2/research/) ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--mres { grid-template-columns: 132px minmax(0, 1fr); gap: 8px; }
+  /* 왼쪽 분야 목록: 금테 판 + 메달 그림 */
+  html body .mres-branches { gap: 6px; padding: 6px; overflow: hidden; background: linear-gradient(180deg, rgba(14, 11, 9, .94), rgba(6, 5, 4, .96)); border: 1px solid rgba(212, 175, 55, .55); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6); }
+  html body .mres-branch { height: 52px; gap: 0; padding: 0 6px; background: none; border: 0 solid transparent; border-width: 8px 10px; border-image: url('/assets/ui/v2/research/plate.webp') 20 24 fill / 8px 10px / 0 stretch; }
+  html body .mres-branch.is-active { border-image-source: url('/assets/ui/v2/research/plate-on.webp'); filter: drop-shadow(0 0 5px rgba(255, 180, 60, .7)); }
+  html body .mres-branch .mres-branch__icon { width: 40px; height: 40px; margin: -4px 4px -4px -8px; font-size: 0; color: transparent; background: center / contain no-repeat; box-shadow: none; border-radius: 0; }
+  html body .mres-branch .mres-branch__icon > * { display: none; }
+  html body [data-ico="econ"] .mres-branch__icon, html body [data-ico="econ"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-econ.webp'); }
+  html body [data-ico="army"] .mres-branch__icon, html body [data-ico="army"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-army.webp'); }
+  html body [data-ico="strat"] .mres-branch__icon, html body [data-ico="strat"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-strat.webp'); }
+  html body [data-ico="realm"] .mres-branch__icon, html body [data-ico="realm"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-realm.webp'); }
+  html body [data-ico="talent"] .mres-branch__icon, html body [data-ico="talent"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-talent.webp'); }
+  html body .mres-branch .mres-branch__text { margin: 0; padding: 0; min-width: 0; background: none; border: 0; box-shadow: none; }
+  html body .mres-branch .mres-branch__text strong { font-size: 15px; color: #f3e6c6; }
+  html body .mres-branch .mres-branch__text small { font-size: 11px; color: #cbbd99; }
+  html body .mres-branch.is-active .mres-branch__text strong { color: #2b1a06; }
+  html body .mres-branch.is-active .mres-branch__text small { color: #4a2e0a; }
+  html body .mres-branch.is-active .mres-branch__icon, html body .mres-branch.is-active .mres-branch__text { background-color: transparent; box-shadow: none; }
+
+  /* 오른쪽: 위 판 · 단계 카드 · 아래 막대 */
+  html body .mres-main { gap: 6px; }
+  html body .mres-head { flex: 0 0 auto; display: grid; grid-template-columns: 72px minmax(0, 1fr) minmax(0, 1.25fr); align-items: center; gap: 10px; padding: 6px 10px; background: linear-gradient(90deg, rgba(10, 8, 7, .95), rgba(10, 8, 7, .78)); border: 1px solid rgba(212, 175, 55, .6); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .7), 0 3px 8px rgba(0, 0, 0, .6); }
+  html body .mres-head__medal { display: block; width: 72px; height: 72px; background: center / contain no-repeat; filter: drop-shadow(0 0 6px rgba(255, 170, 50, .5)); }
+  html body .mres-head__copy h2 { margin: 0 0 4px; font-family: 'Gowun Batang', serif; font-size: 26px; color: #f6d77a; text-shadow: 0 1px 0 #3a2408; }
+  html body .mres-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  html body .mres-chip { padding: 2px 8px; font-size: 12px; color: #eee2c6; background: rgba(6, 5, 4, .85); border: 1px solid rgba(212, 175, 55, .45); border-radius: 2px; }
+  html body .mres-chip--speed { color: #9ff0c0; }
+  /* 진행 중 · 추천 연구(오른쪽 칸) */
+  html body .app-shell .main-content .mres-head .research-active { margin: 0; padding: 6px 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 2px 10px; align-items: center; background: rgba(6, 5, 4, .7); border: 1px solid rgba(212, 175, 55, .4); border-image: none; border-radius: 3px; }
+  html body .mres-head .research-active__copy { grid-column: 1; grid-row: 1; min-width: 0; }
+  html body .mres-head .research-active__copy .eyebrow { font-size: 11px; }
+  html body .mres-head .research-active__copy h3 { margin: 0; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .mres-head .research-active__copy p, html body .mres-head .research-queue { display: none; }
+  html body .mres-head .research-active__timer { grid-column: 1; grid-row: 2; display: flex; align-items: center; gap: 6px; }
+  html body .mres-head .research-active__timer strong { font-size: 15px; color: #f6cf6a; }
+  html body .mres-head .research-active__timer small { font-size: 11px; }
+  html body .mres-head .research-progress { flex: 1 1 auto; height: 6px; }
+  html body .mres-head .research-active__actions { grid-column: 2; grid-row: 1 / span 2; display: grid; gap: 4px; }
+  html body .mres-head .research-help-bar { display: none; }
+  html body .app-shell .main-content .mres-head .mini-action--research, html body .app-shell .main-content .mres-head .mini-action--rush { min-height: 36px; padding: 0 12px; color: #2b1a06; font-weight: 900; border: 8px solid transparent; border-image: url('/assets/ui/v2/research/btn-start.webp') 24 30 fill / 8px 10px / 0 stretch; }
+
+  /* 단계 카드: 7칸(1~6단계 + 심화)이 한 줄에 다 들어간다 */
+  html body .mres-tree { flex: 1 1 auto; min-height: 0; display: flex; align-items: stretch; gap: 0; overflow: hidden; padding: 0; }
+  html body .mres-tier { flex: 1 1 0; min-width: 0; max-height: none; display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; overflow: hidden; }
+  html body .mres-link { flex: 0 0 14px; align-self: center; height: 14px; margin: 0 -3px; background: none; box-shadow: none; position: relative; z-index: 1; }
+  html body .mres-link::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); background: linear-gradient(90deg, #8a6a1e, #f3d98a, #8a6a1e); }
+  html body .mres-link::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; transform: translate(-50%, -50%) rotate(45deg); background: #1a120a; border: 2px solid #f3c55a; box-shadow: 0 0 4px rgba(255, 190, 70, .8); }
+  html body .mres-tier__label { flex: 0 0 auto; align-self: stretch; padding: 0; height: 24px; display: grid; place-items: center; font-size: 12.5px; font-weight: 900; color: #f3e6c6; background: none; border: 0 solid transparent; border-width: 6px 12px; border-image: url('/assets/ui/v2/research/stage-label.webp') 18 30 fill / 6px 12px / 0 stretch; border-radius: 0; }
+  html body .mres-tier .research-node { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0 2px 2px; text-align: center; overflow: hidden; background: none; border: 0 solid transparent; border-width: 12px; border-image: url('/assets/ui/v2/research/card.webp') 40 fill / 12px / 0 stretch; filter: none; opacity: 1; }
+  html body .mres-tier .research-node.is-available, html body .mres-tier .research-node.is-active, html body .mres-tier .research-node.is-switch { border-image-source: url('/assets/ui/v2/research/card-on.webp'); filter: drop-shadow(0 0 4px rgba(255, 170, 50, .6)); }
+  html body .mres-tier .research-node.is-done { border-image-source: url('/assets/ui/v2/research/card-done.webp'); }
+  html body .mres-tier .research-node.is-locked, html body .mres-tier .research-node.is-busy { border-image-source: url('/assets/ui/v2/research/card-lock.webp'); opacity: .8; }
+  html body .mres-tier .research-node-top { display: none; }
+  html body .mres-tier .research-node::before { content: ''; flex: 0 0 auto; width: 34px; height: 34px; margin-top: 2px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3a2a18, #0c0907 70%); box-shadow: inset 0 0 0 2px #c9a24a, 0 0 4px rgba(255, 180, 60, .4); }
+  html body .mres-tier .research-node.is-done::before { box-shadow: inset 0 0 0 2px #6fd38b, 0 0 6px rgba(111, 211, 139, .6); background: radial-gradient(circle, #1d4a2a, #0a1a0e 70%); }
+  html body .mres-tier .research-node.is-locked::before, html body .mres-tier .research-node.is-busy::before { content: '🔒'; display: grid; place-items: center; font-size: 15px; box-shadow: inset 0 0 0 2px #7a6a52; }
+  html body .mres-tier .research-node h4 { margin: 2px 0 0; font-size: 13px; line-height: 1.15; color: #f6e3b0; }
+  html body .mres-tier .research-node > p { margin: 1px 0 0; font-size: 11px; line-height: 1.3; color: #cbbd99; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  html body .mres-tier .research-node-footer { margin-top: auto; width: 100%; display: grid; gap: 2px; padding: 0; border: 0; }
+  html body .mres-tier .research-cost { font-size: 10.5px; line-height: 1.2; color: #d9cba8; }
+  html body .mres-tier .research-check { color: #6fd38b; font-size: 12px; font-weight: 800; }
+  html body .mres-tier .research-lock, html body .mres-tier .research-queued, html body .mres-tier .research-running { padding: 3px 2px; font-size: 11px; color: #cbbd99; background: rgba(6, 5, 4, .8); border: 1px solid rgba(212, 175, 55, .35); border-radius: 2px; }
+  html body .app-shell .main-content .mres-tier .mini-action--research { width: 100%; min-height: 28px; height: 28px; padding: 0 4px; font-size: 12px; border: 7px solid transparent; border-image: url('/assets/ui/v2/research/btn-start.webp') 24 30 fill / 7px 8px / 0 stretch; }
+  html body .app-shell .main-content .mres-tier .mini-action--research span { display: none; }
+  /* 3·6단계(택1): 카드 둘이 반씩 — 설명은 숨김 */
+  html body .mres-tier:has(.research-node + .research-node) .research-node > p { -webkit-line-clamp: 1; }
+  html body .mres-tier:has(.research-node + .research-node) .research-node::before { width: 24px; height: 24px; }
+  html body .mres-tier:has(.research-node + .research-node) .research-cost { display: none; }
+  /* 아래 막대: 분야 연구 단계 · 심화 */
+  html body .mres-foot { flex: 0 0 auto; height: 38px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px; background: linear-gradient(90deg, rgba(10, 8, 7, .95), rgba(10, 8, 7, .85)); border: 1px solid rgba(212, 175, 55, .6); border-radius: 3px; }
+  html body .mres-foot .mres-head__medal { width: 36px; height: 36px; }
+  html body .mres-foot__label { font-size: 13px; color: #eee2c6; white-space: nowrap; }
+  html body .mres-foot__lv { font-size: 17px; color: #f6cf6a; white-space: nowrap; }
+  html body .mres-foot__bar { position: relative; flex: 1 1 auto; height: 6px; background: #0b0908; border: 1px solid rgba(212, 175, 55, .5); }
+  html body .mres-foot__bar::before { content: ''; position: absolute; left: -6px; top: 50%; width: 8px; height: 8px; transform: translateY(-50%) rotate(45deg); background: #1a120a; border: 2px solid #f3c55a; }
+  html body .mres-foot__bar i { display: block; height: 100%; background: linear-gradient(90deg, #b8892a, #f6d77a); }
+  html body .mres-foot__mastery, html body .mres-foot__total { padding: 2px 8px; font-size: 12px; color: #eee2c6; white-space: nowrap; background: rgba(6, 5, 4, .85); border: 1px solid rgba(212, 175, 55, .45); border-radius: 2px; }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  html body .mres-head { grid-template-columns: 54px minmax(0, 1fr) minmax(0, 1.3fr); padding: 4px 8px; }
+  html body .mres-head__medal { width: 54px; height: 54px; }
+  html body .mres-head__copy h2 { font-size: 21px; }
+  html body .mres-tier .research-node > p { -webkit-line-clamp: 2; }
+  html body .mres-foot__total { display: none; }
+}
