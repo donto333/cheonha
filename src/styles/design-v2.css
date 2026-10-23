@@ -115,28 +115,43 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .v2-sideicon { position: relative; display: grid; justify-items: center; gap: 1px; width: 56px; background: none; border: 0; color: var(--v2-ink); }
   html body .v2-sideicon .art-ico { width: 46px; height: 46px; }
   html body .v2-sideicon span:not(.art-ico):not(.art-ico__line) { font-size: 12px; font-weight: 800; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
-  /* 채팅: 왼쪽 세로 아이콘 아래 */
-  html body:has(.page-section--v2) .social-fab { left: calc(10px + var(--safe-l)); bottom: calc(66px + var(--safe-b)); }
+  /* 채팅: 오른쪽 위 ‘채팅’ 아이콘으로 연다(떠 있는 단추는 본영에서 숨김) */
+  html body:has(.page-section--v2) .social-fab { opacity: 0; pointer-events: none; }
 
-  /* 오른쪽: 장 진행 · 임무 · 출전 무장 */
-  html body .v2-right { position: absolute; z-index: 3; top: 60px; right: calc(8px + var(--safe-r)); width: 220px; display: grid; gap: 6px; justify-items: end; }
-  html body .v2-chapter { position: relative; width: 100%; display: grid; gap: 1px; padding: 6px 28px 6px 10px; text-align: left; background: rgba(23, 16, 11, .82); border: 1px solid rgba(212, 175, 55, .5); border-radius: 3px; color: var(--v2-ink); }
-  html body .v2-chapter__title { font-size: 13.5px; font-weight: 800; color: var(--v2-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  html body .v2-chapter__sub { font-size: 11.5px; color: var(--v2-gold-hi); }
+  /* 오른쪽: 덱 정보 · 임무 정보 · 시나리오 정보 */
+  html body .v2-right { position: absolute; z-index: 3; top: 60px; right: calc(8px + var(--safe-r)); width: 214px; display: grid; gap: 5px; }
+  html body .v2-info { position: relative; width: 100%; display: grid; gap: 2px; padding: 4px 8px 5px; text-align: left; background: rgba(23, 16, 11, .82); border: 1px solid rgba(212, 175, 55, .45); border-radius: 3px; color: var(--v2-ink); }
+  html body .v2-info__head { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--v2-gold); }
+  html body .v2-info__head b { color: var(--v2-gold-hi); font-variant-numeric: tabular-nums; }
+  html body .v2-deck__row { display: grid; grid-template-columns: 34px auto 1fr; align-items: center; gap: 6px; height: 30px; padding: 0 2px; background: none; border: 0; border-top: 1px solid rgba(212, 175, 55, .14); color: var(--v2-ink); }
+  html body .v2-deck__row:first-of-type { border-top: 0; }
+  html body .v2-deck__row > b { font-size: 12px; color: var(--v2-gold-hi); white-space: nowrap; }
+  html body .v2-deck__row > em { font-style: normal; font-size: 12px; font-weight: 800; text-align: right; color: var(--v2-ink); font-variant-numeric: tabular-nums; }
+  html body .v2-deck__row:active { background: rgba(212, 175, 55, .15); }
+  html body .v2-deck__faces { display: flex; gap: 3px; }
+  html body .v2-deck__face { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--grade, var(--v2-gold)); background: #2a160b center 15% / cover no-repeat; color: var(--v2-gold); font-size: 13px; }
+  html body .v2-deck__face.is-empty { border-style: dashed; background: rgba(0, 0, 0, .45); }
+  html body .v2-missioninfo__line { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .v2-missioninfo__bar { height: 4px; border-radius: 2px; background: rgba(0, 0, 0, .5); overflow: hidden; }
+  html body .v2-missioninfo__bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--v2-gold), var(--v2-gold-hi)); }
+  html body .v2-missioninfo.has-reward::after { content: ''; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #e2412c; box-shadow: 0 0 0 2px var(--v2-darker); }
+  html body .v2-chapter { padding-right: 24px; }
+  html body .v2-chapter__title { font-size: 13px; font-weight: 800; color: var(--v2-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .v2-chapter__sub { font-size: 11px; color: var(--v2-gold-hi); }
   html body .v2-chapter__sub i { font-style: normal; color: var(--v2-gold); }
-  html body .v2-chapter__arrow { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--v2-gold); }
-  html body .v2-mission { position: relative; display: flex; gap: 8px; align-items: center; padding: 3px 10px; background: rgba(23, 16, 11, .75); border: 1px solid rgba(212, 175, 55, .3); border-radius: 3px; color: var(--v2-ink); font-size: 12px; }
-  html body .v2-mission span { color: var(--v2-gold-hi); font-variant-numeric: tabular-nums; }
-  html body .v2-mission.has-reward::after { content: ''; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #e2412c; }
-  html body .v2-army { display: flex; gap: 6px; }
-  html body .v2-army__slot { display: grid; justify-items: center; gap: 1px; width: 52px; background: none; border: 0; }
-  html body .v2-army__face { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--grade, var(--v2-gold)); background: #2a160b center 15% / cover no-repeat; color: var(--v2-gold); font-size: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
-  html body .v2-army__slot small { max-width: 56px; font-size: 11px; font-weight: 700; color: var(--v2-ink); text-shadow: 0 1px 2px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  html body .v2-army__slot.is-empty .v2-army__face { border-style: dashed; background: rgba(0, 0, 0, .45); }
+  html body .v2-chapter__arrow { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); font-size: 22px; color: var(--v2-gold); }
+
+  /* 이벤트 창 */
+  html body .v2-events { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  html body .v2-event { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; background: linear-gradient(180deg, rgba(60, 44, 32, .7), rgba(23, 16, 11, .7)); border: 1px solid rgba(212, 175, 55, .3); border-radius: 3px; color: var(--v2-ink); }
+  html body .v2-event .art-ico { width: 40px; height: 40px; }
+  html body .v2-event strong { display: block; font-size: 13.5px; color: var(--v2-gold-hi); }
+  html body .v2-event small { display: block; font-size: 11px; color: var(--v2-ink-soft); }
+  html body .v2-event > b { font-size: 20px; color: var(--v2-gold); }
 
   /* 아래 가운데: 주요 메뉴 */
   html body .v2-dock {
-    position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(196px + var(--safe-r)); bottom: calc(4px + var(--safe-b));
+    position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(262px + var(--safe-r)); bottom: calc(4px + var(--safe-b));
     height: 70px; display: flex; align-items: flex-end; justify-content: center; gap: 2px; padding: 0 8px 4px;
     background: linear-gradient(180deg, rgba(23, 16, 11, 0), rgba(23, 16, 11, .85) 45%);
     border-bottom: 2px solid var(--v2-gold-deep);
@@ -148,9 +163,14 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .v2-dock__btn .v2-dot { top: 0; right: calc(50% - 24px); }
   html body .v2-dock__btn.is-coach .art-ico::after, html body .v2-menu__cell.is-coach .art-ico::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; }
 
-  /* 오른쪽 아래: 전투 */
+  /* 오른쪽 아래: 영토 점령전 · 전투 */
+  html body .v2-actions { position: absolute; z-index: 3; right: calc(10px + var(--safe-r)); bottom: calc(8px + var(--safe-b)); display: flex; align-items: flex-end; gap: 6px; }
+  html body .v2-conquest { position: relative; display: grid; justify-items: center; gap: 1px; width: 70px; padding: 0; background: none; border: 0; color: var(--v2-ink); }
+  html body .v2-conquest .art-ico { width: 52px; height: 52px; box-shadow: 0 0 0 2px rgba(178, 59, 43, .8), 0 3px 10px rgba(0, 0, 0, .6); border-radius: 50%; }
+  html body .v2-conquest > span:not(.art-ico) { font-size: 11.5px; font-weight: 800; white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+  html body .v2-conquest.is-coach .art-ico::after, html body .v2-battle.is-coach::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; }
   html body .v2-battle {
-    position: absolute; z-index: 3; right: calc(10px + var(--safe-r)); bottom: calc(8px + var(--safe-b)); width: 178px; height: 74px;
+    position: relative; width: 178px; height: 70px;
     display: flex; align-items: center; justify-content: flex-end; gap: 0; padding: 0 22px 0 0;
     background: linear-gradient(180deg, #fbe7a4 0%, #e3bf5a 38%, #b8892a 72%, #8a6a1e 100%);
     clip-path: polygon(14% 0, 100% 0, 100% 100%, 14% 100%, 0 50%);
@@ -180,14 +200,21 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   @media (max-height: 380px) {
     html body .v2-sideicon .art-ico, html body .v2-dock__btn .art-ico { width: 40px; height: 40px; }
     html body .v2-dock { height: 64px; }
-    html body .v2-battle { width: 160px; height: 64px; }
+    html body .v2-battle { width: 156px; height: 62px; }
     html body .v2-battle__label { font-size: 26px; }
-    html body .v2-army__face { width: 40px; height: 40px; }
+    html body .v2-conquest .art-ico { width: 46px; height: 46px; }
+    html body .v2-sideicons { gap: 3px; }
+    html body .v2-sideicon span:not(.art-ico):not(.art-ico__line) { font-size: 11px; }
+    html body .v2-right { gap: 4px; }
+    html body .v2-deck__row { height: 27px; }
+    html body .v2-deck__face { width: 23px; height: 23px; }
+    html body .v2-dock { right: calc(248px + var(--safe-r)); }
   }
   @media (max-width: 780px) {
     html body .v2-res:nth-child(3) { display: none; }
     html body .v2-topicon span:not(.art-ico):not(.art-ico__line) { display: none; }
-    html body .v2-dock { right: calc(176px + var(--safe-r)); }
+    html body .v2-dock { right: calc(248px + var(--safe-r)); left: calc(68px + var(--safe-l)); }
+    html body .v2-right { width: 196px; }
     html body .v2-dock__btn > span:not(.art-ico) { font-size: 11.5px; }
   }
 

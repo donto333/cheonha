@@ -119,13 +119,12 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
-    // 본영 임무 창 · 메뉴 접기
-    const missionsBtn = page.locator('[data-action="lobby-panel"]')
-    if (await missionsBtn.count()) {
+    // 본영 임무 창 · 이벤트 창
+    for (const [panel, label] of [['missions', '92-lobby-missions'], ['events', '93-lobby-events']]) {
       await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
-      await page.locator('[data-action="lobby-panel"]').first().evaluate(b => b.click()); await shot('92-lobby-missions')
-      await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click())
-      if (await page.locator('[data-panel="menu"]').count()) { await page.locator('[data-panel="menu"]').first().evaluate(b => b.click()); await shot('93-lobby-menu'); await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click()) }
+      await clearOverlays()
+      const btn = page.locator(`[data-action="lobby-panel"][data-panel="${panel}"]`)
+      if (await btn.count()) { await btn.first().evaluate(b => b.click()); await shot(label); await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click()) }
     }
     // 모집 결과 · 장비 결과 창
     await page.evaluate(() => { const g = window.__strategy; g.ui.showRecruitResults(g.catalog.generals().slice(10, 20)) })
