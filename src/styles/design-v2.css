@@ -846,11 +846,11 @@ html body .terr-search { display: none; }
   html body .mres-branch.is-active { border-image-source: url('/assets/ui/v2/research/plate-on.webp'); filter: drop-shadow(0 0 5px rgba(255, 180, 60, .7)); }
   html body .mres-branch .mres-branch__icon { width: 40px; height: 40px; margin: -4px 4px -4px -8px; font-size: 0; color: transparent; background: center / contain no-repeat; box-shadow: none; border-radius: 0; }
   html body .mres-branch .mres-branch__icon > * { display: none; }
-  html body [data-ico="econ"] .mres-branch__icon, html body [data-ico="econ"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-econ.webp'); }
-  html body [data-ico="army"] .mres-branch__icon, html body [data-ico="army"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-army.webp'); }
-  html body [data-ico="strat"] .mres-branch__icon, html body [data-ico="strat"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-strat.webp'); }
-  html body [data-ico="realm"] .mres-branch__icon, html body [data-ico="realm"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-realm.webp'); }
-  html body [data-ico="talent"] .mres-branch__icon, html body [data-ico="talent"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-talent.webp'); }
+  html body [data-ico="econ"] .mres-branch__icon, html body [data-ico="econ"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-econ.webp') !important; }
+  html body [data-ico="army"] .mres-branch__icon, html body [data-ico="army"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-army.webp') !important; }
+  html body [data-ico="strat"] .mres-branch__icon, html body [data-ico="strat"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-strat.webp') !important; }
+  html body [data-ico="realm"] .mres-branch__icon, html body [data-ico="realm"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-realm.webp') !important; }
+  html body [data-ico="talent"] .mres-branch__icon, html body [data-ico="talent"] .mres-head__medal { background-image: url('/assets/ui/v2/research/ico-talent.webp') !important; }
   html body .mres-branch .mres-branch__text { margin: 0; padding: 0; min-width: 0; background: none; border: 0; box-shadow: none; }
   html body .mres-branch .mres-branch__text strong { font-size: 15px; color: #f3e6c6; }
   html body .mres-branch .mres-branch__text small { font-size: 11px; color: #cbbd99; }
@@ -923,4 +923,7 @@ html body .terr-search { display: none; }
   html body .mres-head__copy h2 { font-size: 21px; }
   html body .mres-tier .research-node > p { -webkit-line-clamp: 2; }
   html body .mres-foot__total { display: none; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .mres-branch.is-active .mres-branch__icon { background-color: transparent !important; background-size: contain !important; background-position: center !important; background-repeat: no-repeat !important; box-shadow: none !important; }
 }
