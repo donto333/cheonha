@@ -287,3 +287,9 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .page-section--territory .territory-map:not(.is-fullscreen) .map-viewport { margin: 0; min-height: 0; height: 100%; border-radius: 3px; }
   html body .page-section--territory .territory-layout > .territory-map { overflow: hidden; }
 }
+/* 영토: 폭 760px 이하(작은 휴대폰 가로)에서도 세로 휴대폰용 도시 목록 · 아래 창 대신 지도 + 오른쪽 도시 칸 */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--territory .mobile-city-selector { display: none; }
+  html body .page-section--territory .city-sheet-bar { display: none; }
+  html body .page-section--territory .city-management { position: static; inset: auto; z-index: auto; max-height: none; margin: 0; padding: 8px 10px; border-radius: 3px; border: 1px solid rgba(212, 175, 55, .35); transform: none; visibility: visible; transition: none; box-shadow: none; }
+}

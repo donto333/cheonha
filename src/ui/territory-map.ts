@@ -171,7 +171,7 @@ export class TerritoryMapController {
 
   zoomBy(factor: number, ax?: number, ay?: number): void {
     if (!this.viewport) return
-    const { width, height } = this.viewport.getBoundingClientRect()
+    const { width, height } = this.layoutSize(this.viewport)
     this.zoomAround(this.view.zoom * factor, ax ?? width / 2, ay ?? height / 2, this.view)
     this.apply()
   }
@@ -189,7 +189,7 @@ export class TerritoryMapController {
 
   private zoomAround(nextZoom: number, ax: number, ay: number, from: MapViewState): void {
     if (!this.viewport) return
-    const { width: vw, height: vh } = this.viewport.getBoundingClientRect()
+    const { width: vw, height: vh } = this.layoutSize(this.viewport)
     const before = computeTransform(from, vw, vh).transform
     // 손가락(또는 커서) 아래의 지도 지점이 확대 후에도 같은 화면 위치에 있도록 중심을 옮긴다.
     const mx = (ax - before.tx) / (MAP_WIDTH * before.scale)
@@ -224,7 +224,7 @@ export class TerritoryMapController {
     const viewport = this.viewport
     const world = this.world
     if (!viewport || !world) return
-    const { width: vw, height: vh } = viewport.getBoundingClientRect()
+    const { width: vw, height: vh } = this.layoutSize(viewport)
     if (!vw || !vh) return
     const { transform, view } = computeTransform(this.view, vw, vh)
     this.view = view
@@ -247,9 +247,21 @@ export class TerritoryMapController {
     if (zin) zin.toggleAttribute('disabled', transform.zoom >= MAX_ZOOM - 1e-3)
   }
 
+  /**
+   * 창의 실제 배치 크기(CSS zoom을 걸기 전 px). 월드 transform은 이 단위로 계산해야
+   * 휴대폰 가로 화면처럼 화면 칸에 zoom이 걸려 있어도 지도가 창을 꽉 채운다.
+   */
+  private layoutSize(viewport: HTMLElement): { width: number; height: number } {
+    return { width: viewport.clientWidth, height: viewport.clientHeight }
+  }
+
+  /** 손가락 · 커서 위치를 창 안 배치 좌표로(zoom 배율을 되돌린다) */
   private localPoint(event: PointerEvent | WheelEvent | MouseEvent): { x: number; y: number } {
-    const rect = this.viewport!.getBoundingClientRect()
-    return { x: event.clientX - rect.left, y: event.clientY - rect.top }
+    const viewport = this.viewport!
+    const rect = viewport.getBoundingClientRect()
+    const kx = rect.width ? viewport.clientWidth / rect.width : 1
+    const ky = rect.height ? viewport.clientHeight / rect.height : 1
+    return { x: (event.clientX - rect.left) * kx, y: (event.clientY - rect.top) * ky }
   }
 
   private onControlClick = (event: MouseEvent): void => {
@@ -299,7 +311,7 @@ export class TerritoryMapController {
     const mid = pts.length > 1 ? { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 } : pts[0]
     if (!g.moved && Math.hypot(mid.x - g.startX, mid.y - g.startY) < TAP_SLOP && pts.length < 2) return
     g.moved = true
-    const { width: vw, height: vh } = this.viewport.getBoundingClientRect()
+    const { width: vw, height: vh } = this.layoutSize(this.viewport)
     if (pts.length > 1 && g.startDistance > 0) {
       // 두 손가락: 시작 시점 기준으로 확대하고, 두 손가락 중간점을 따라 이동한다.
       const distance = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
