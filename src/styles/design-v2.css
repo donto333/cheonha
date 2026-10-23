@@ -537,3 +537,45 @@ html body .terr-search { display: none; }
   html body .page-section--guild .guild-rank-tabs button, html body .page-section--guild .guild-tabs button { color: #eee2c6; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; border-radius: 0; }
   html body .page-section--guild .guild-rank-tabs button.is-active, html body .page-section--guild .guild-tabs button.is-active { color: #2b1a06; border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); }
 }
+
+/* ════════════════ 스크롤 줄이기(휴대폰 가로) ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 내정: 안내 줄을 빼고 단계 칸을 촘촘하게 */
+  html body .mres-hint { display: none; }
+  html body .mres-tree { padding-top: 0; }
+  html body .mres-tier { gap: 4px; }
+  html body .mres-tier .research-node { padding: 0 3px; }
+  html body .mres-tier .research-node h4 { margin: 2px 0 1px; font-size: 13px; }
+  html body .mres-tier .research-node p { margin: 0; font-size: 11px; line-height: 1.3; }
+  html body .mres-tier .research-node-footer { margin-top: 2px; padding-top: 2px; font-size: 11px; }
+  html body .mres-tier .research-cost { font-size: 11px; }
+  html body .mres-tier .mini-action--research { min-height: 28px; height: 28px; }
+  html body .mres-main .research-active, html body .mres-main .research-summary { padding-top: 0; padding-bottom: 0; }
+
+  /* 영토: 도시 칸의 긴 설명 문단은 숨긴다 */
+  html body .page-section--territory .city-management p:not(.city-management-head p) { display: none; }
+  html body .page-section--territory .city-management .garrison-facing, html body .page-section--territory .city-management .garrison-fatigue { font-size: 11px; margin: 2px 0; }
+
+  /* 설정: 줄을 낮게, 두 칸으로 */
+  html body .app-shell .main-content .device-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; row-gap: 0; padding: 8px 12px; }
+  html body .app-shell .main-content .device-settings > .card-header { grid-column: 1 / -1; margin-bottom: 2px; }
+  html body .app-shell .main-content .device-settings .setting-row { min-height: 0; padding: 5px 0; gap: 8px; }
+  html body .app-shell .main-content .device-settings .setting-row small { display: none; }
+  html body .app-shell .main-content .device-settings .setting-row strong { font-size: 13px; white-space: nowrap; }
+  html body .app-shell .main-content .device-settings .setting-seg__btn { height: 28px; padding: 0 9px; font-size: 12px; }
+
+  /* 업데이트: 내용은 두 줄만, 누르면 펼침 */
+  html body .update-entry { cursor: pointer; padding-top: 6px; padding-bottom: 6px; }
+  html body .update-entry-copy p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 2px 0 0; }
+  html body .update-entry.is-open .update-entry-copy p { display: block; -webkit-line-clamp: unset; }
+  html body .update-entry-copy h3 { margin: 0; }
+
+  /* 장수 · 도감: 카드를 조금 작게 해 한 화면에 더 많이 */
+  html body .gtile-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px 6px; }
+
+  /* 편성: 대기 무장 줄을 낮게 */
+  html body .app-shell .main-content .page-section--formation .formation-bench-card { min-height: 0; padding: 0 6px; border-width: 4px 8px; }
+  html body .app-shell .main-content .page-section--formation .formation-bench-portrait { width: 30px; height: 36px; }
+  html body .app-shell .main-content .page-section--formation .formation-bench-card .mini-action { min-height: 26px; height: 26px; }
+  html body .app-shell .main-content .page-section--formation > .formation-bench { gap: 4px; }
+}
