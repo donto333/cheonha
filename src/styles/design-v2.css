@@ -727,7 +727,7 @@ html body .terr-search { display: none; }
   html body .page-section--scenario > .scenario-stepper > div { display: flex; align-items: baseline; }
   html body .page-section--scenario > .scenario-all { grid-area: list; display: flex; flex-direction: column; min-height: 0; padding: 4px; background: linear-gradient(180deg, rgba(14, 11, 9, .94), rgba(6, 5, 4, .96)); border: 1px solid rgba(212, 175, 55, .5); border-radius: 3px; }
   html body .page-section--scenario > .scenario-all > summary { display: none; }
-  html body .page-section--scenario .scenario-mini-list { flex: 1 1 auto; min-height: 0; max-height: none; padding: 0 2px; gap: 0; align-content: start; }
+  html body .page-section--scenario .scenario-mini-list { flex: 1 1 auto; min-height: 0; max-height: none; height: calc(var(--frame-h) - 58px); overflow: hidden; padding: 0 2px; gap: 0; align-content: start; }
   html body .page-section--scenario .scenario-mini-head { padding: 3px 4px 1px; font-size: 12.5px; }
   html body .page-section--scenario .scenario-mini { margin-top: 3px; padding: 4px 8px; grid-template-columns: 34px minmax(0, 1fr) auto; }
   html body .page-section--scenario .scenario-mini.is-selected { border-color: #e9c76a; background: rgba(233, 199, 106, .16); box-shadow: inset 3px 0 0 #e9c76a; }
@@ -736,12 +736,14 @@ html body .terr-search { display: none; }
   html body .page-section--scenario > .scenario-detail > .pill { grid-column: 1; justify-self: start; }
   html body .page-section--scenario > .scenario-detail > .scenario-main__done { grid-column: 2; justify-self: end; grid-row: 1; }
   html body .page-section--scenario > .scenario-detail > h2 { grid-column: 1; margin: 2px 0 0; font-size: 21px; font-family: 'Gowun Batang', serif; color: #f6d77a; }
-  html body .page-section--scenario > .scenario-detail > .scenario-story { grid-column: 1; grid-row: 3 / span 2; margin: 0; padding: 6px 10px; font-size: 12.5px; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; }
+  html body .page-section--scenario > .scenario-detail > .scenario-story { grid-column: 1; grid-row: 3; margin: 0; padding: 6px 10px; font-size: 12.5px; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; }
   html body .page-section--scenario > .scenario-detail > .scenario-rule { grid-column: 1; }
   html body .page-section--scenario > .scenario-detail > .scenario-deck, html body .page-section--scenario > .scenario-detail > .scenario-reward { grid-column: 2; margin: 0; padding: 5px 8px; font-size: 12px; background: rgba(6, 5, 4, .6); border: 1px solid rgba(212, 175, 55, .3); border-radius: 3px; }
-  html body .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { grid-row: 3; align-self: start; }
+  html body .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { grid-column: 1; grid-row: 4; align-self: start; }
   html body .page-section--scenario > .scenario-detail > .scenario-enemy { grid-row: 2; }
-  html body .page-section--scenario > .scenario-detail > .scenario-reward { grid-row: 4; align-self: start; }
+  html body .page-section--scenario > .scenario-detail > .scenario-reward { grid-row: 3 / span 2; align-self: start; }
+  html body .page-section--scenario > .scenario-detail .scenario-recommend { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html body .page-section--scenario > .scenario-detail .scenario-recommend li small { display: none; }
   html body .page-section--scenario > .scenario-detail .scenario-recommend { margin: 2px 0 0; padding: 0; display: grid; gap: 1px; }
   html body .page-section--scenario > .scenario-detail .scenario-recommend li { font-size: 12px; }
   html body .page-section--scenario > .scenario-detail > .scenario-reward p, html body .page-section--scenario > .scenario-detail > .scenario-reward small { margin: 1px 0 0; font-size: 12px; }
