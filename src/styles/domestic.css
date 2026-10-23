@@ -113,6 +113,16 @@
   html body .mres-main .research-active__actions { grid-template-columns: auto; gap: 5px; }
   html body .mres-main .research-active__actions .mini-action { min-height: 30px; padding: 0 10px; }
   html body .mres-tier--mastery .mres-tier__label { background: linear-gradient(180deg, #ffe7a8, #c9933f); }
+  html body .page-section--office .office-post { gap: 5px; padding: 8px; }
+  html body .page-section--office .office-face { width: 72px; height: 72px; }
+  html body .page-section--office .office-post__note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 작은 휴대폰: 얼굴을 더 작게, 규칙 한 줄은 아래 안내에 있으니 숨긴다(버튼이 카드 안에 보이게) */
+  @media (max-height: 380px) {
+    html body .page-section--office .office-face { width: 60px; height: 60px; }
+    html body .page-section--office .office-post__note { display: none; }
+    html body .page-section--office .office-effects { gap: 1px; }
+    html body .page-section--office .office-post__head { padding-bottom: 3px; }
+  }
 }
 
 /* 연맹 도움 목록(연맹 → 정보) */
