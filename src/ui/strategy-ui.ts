@@ -1694,7 +1694,7 @@ export class StrategyUI {
    *  위 줄: 용 틀 초상 프로필(왼쪽) · 재화 칩 3(가운데) · 출석 · 채팅 · 설정 · 소리 메달(오른쪽)
    *  왼쪽: 공지 · 이벤트 · 임무 · 랭킹 메달(술 달린 고리 + 이름 판)
    *  오른쪽: 덱 정보(1 · 2 · 3군) · 임무 정보 · 시나리오 정보 판
-   *  아래 줄: 장수 · 편성 · 모집 · 내정 · 연맹 · 상점 그림 카드 + 전투 · 영토 점령전
+   *  아래 줄: 장수 · 편성 · 모집 · 내정 · 연맹 · 상점 그림 카드(왼쪽 끝부터) · 오른쪽 아래: 영토 점령전(위) · 전투(아래) 같은 크기
    * 그림 파일: public/assets/ui/v2/lobby/ (docs/ART_ASSETS.md 「본영 도안 그림」)
    */
   private mobileLobby(state: StrategyState): string {
@@ -1746,7 +1746,7 @@ export class StrategyUI {
       + card('shop', en ? 'Shop' : '상점', coach(['shop']))
     const battle = `<button class="v2-battle${coach(['battle', 'duel', 'raid']) ? ' is-coach' : ''}" data-action="section" data-section="battle"${next ? ` data-scenario-id="${next.id}"` : ''}><span class="v2-sr">${en ? 'Battle' : '전투'}</span></button>`
     const conquest = `<button class="v2-conquest${coach(['territory']) ? ' is-coach' : ''}" data-action="section" data-section="territory"><span class="v2-sr">${en ? 'Conquest' : '영토 점령전'}</span></button>`
-    const dock = `<nav class="v2-dock" aria-label="메뉴">${cards}${battle}${conquest}</nav>`
+    const dock = `<nav class="v2-dock" aria-label="메뉴">${cards}</nav><div class="v2-actions">${conquest}${battle}</div>`
     // 창: 임무 · 이벤트
     let panel = ''
     if (this.lobbyPanel === 'missions') panel = `<div class="ml-panel" role="dialog" aria-label="임무"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="ml-panel__body v2-frame"><button class="ml-panel__close" data-action="lobby-panel-close" aria-label="닫기">✕</button>${this.tutorialCard(state)}${this.missionCard(state)}</div></div>`
