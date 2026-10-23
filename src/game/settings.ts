@@ -38,12 +38,3 @@ export function setSfxSetting(value: SoundLevel): void { write(SFX_KEY, value ==
 /** 상단 🔊 버튼: 모든 소리를 한 번에 끄고 켠다(음악·효과음 크기 설정은 그대로) */
 export function muteSetting(): boolean { return read(MUTE_KEY) === '1' }
 export function setMuteSetting(on: boolean): void { write(MUTE_KEY, on ? '1' : 'auto') }
-
-// ── 본영 아래 메뉴 모양(디자인 도안 비교): 금속 틀(도안 ①) · 용머리 틀(도안 ②) · 두루마리(이전) ──
-export type DockStyle = 'metal' | 'dragon' | 'scroll'
-const DOCK_KEY = 'cheonharo.dock'
-export function dockStyleSetting(): DockStyle {
-  const value = read(DOCK_KEY)
-  return value === 'dragon' || value === 'scroll' ? value : 'metal'
-}
-export function setDockStyleSetting(value: DockStyle): void { write(DOCK_KEY, value === 'metal' ? 'auto' : value) }

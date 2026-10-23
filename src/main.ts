@@ -1,5 +1,4 @@
 import { cancelResearch, researchMods, rushResearch, settleResearch } from './game/research'
-import { setDockStyleSetting } from './game/settings'
 import './styles/fonts.css'
 import './styles/main.css'
 import './styles/theme-color.css'
@@ -2990,9 +2989,3 @@ window.setInterval(() => {
 
 // 휴대폰 브라우저: 첫 터치에 전체 화면 · 가로 고정
 enableLandscapeLock()
-
-// 본영 아래 메뉴 모양 미리 보기: 주소에 ?dock=metal|dragon|scroll 을 붙이면 그 모양으로(설정에도 저장)
-{
-  const dock = new URLSearchParams(window.location.search).get('dock')
-  if (dock === 'metal' || dock === 'dragon' || dock === 'scroll') { setDockStyleSetting(dock); document.documentElement.dataset.dock = dock }
-}

@@ -149,71 +149,38 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .v2-event small { display: block; font-size: 11px; color: var(--v2-ink-soft); }
   html body .v2-event > b { font-size: 20px; color: var(--v2-gold); }
 
-  /* ════════ 아래 가운데: 주요 메뉴(설정 › 아래 메뉴 모양: 금속 틀 · 용머리 틀 · 두루마리) ════════ */
+  /* ════════ 아래 가운데: 주요 메뉴(디자인 도안 ①: 금테 틀 + 아이콘 타일 + 금빛 이름, 양 끝 금 장식) ════════ */
   html body .v2-dock {
-    position: absolute; z-index: 3; left: calc(70px + var(--safe-l)); right: calc(196px + var(--safe-r)); bottom: calc(6px + var(--safe-b));
-    display: flex; align-items: stretch; justify-content: center; gap: 4px; padding: 0;
-    background: none; border: 0;
+    position: absolute; z-index: 3; left: calc(70px + var(--safe-l)); right: calc(196px + var(--safe-r)); bottom: calc(6px + var(--safe-b)); height: 44px;
+    display: flex; align-items: stretch; justify-content: center; gap: 3px; padding: 0 20px;
+    background: none; border: 0; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65));
   }
-  html body .v2-dock__btn { position: relative; flex: 1 1 0; min-width: 0; padding: 0; background: none; border: 0; color: var(--v2-ink); }
-  html body .v2-dock__btn .art-ico { display: none; }
-  html body .v2-dock__btn:active { transform: translateY(1px); filter: brightness(.92); }
-  html body .v2-dock__btn .v2-dot { top: -2px; right: 2px; }
-  html body .v2-dock__btn .v2-badge { top: -4px; right: 0; }
-  html body .v2-dock__btn::before { content: ''; display: block; width: var(--dock-ico, 28px); height: var(--dock-ico, 28px); background: center / contain no-repeat; }
-
-  /* ── 두루마리(이전): 메뉴마다 동판 문양 + 금빛 종이 판 ── */
-  html[data-dock="scroll"] body .v2-dock { align-items: flex-end; }
-  html[data-dock="scroll"] body .v2-dock__btn { max-width: 112px; aspect-ratio: 876 / 310; display: flex; align-items: center; justify-content: center; background: center / 100% 100% no-repeat; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65)); }
-  html[data-dock="scroll"] body .v2-dock__btn::before { display: none; }
-  html[data-dock="scroll"] body .v2-dock__btn[data-section="roster"] { background-image: url('/assets/ui/v2/menu/roster.webp'); }
-  html[data-dock="scroll"] body .v2-dock__btn[data-section="formation"] { background-image: url('/assets/ui/v2/menu/formation.webp'); }
-  html[data-dock="scroll"] body .v2-dock__btn[data-section="recruit"] { background-image: url('/assets/ui/v2/menu/recruit.webp'); }
-  html[data-dock="scroll"] body .v2-dock__btn[data-section="research"] { background-image: url('/assets/ui/v2/menu/research.webp'); }
-  html[data-dock="scroll"] body .v2-dock__btn[data-section="guild"] { background-image: url('/assets/ui/v2/menu/guild.webp'); }
-  html[data-dock="scroll"] body .v2-dock__btn[data-section="shop"] { background-image: url('/assets/ui/v2/menu/shop.webp'); }
-  html[data-dock="scroll"] body .v2-dock__btn > span:not(.art-ico) { position: absolute; left: 31%; right: 7%; top: 50%; transform: translateY(-50%); text-align: center; font-size: 15px; font-weight: 900; letter-spacing: .5em; text-indent: .5em; color: #3a2408; line-height: 1; text-shadow: 0 1px 0 rgba(255, 244, 210, .8); white-space: nowrap; }
-  html[data-dock="scroll"] body .v2-dock__btn:active { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)) brightness(.95); }
-  html[data-dock="scroll"] body .v2-dock__btn.is-coach::after { content: ''; position: absolute; inset: -3px; border-radius: 6px; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
-
-  /* ── 금속 틀(도안 ①): 버튼마다 금테 틀(9-slice) + 왼쪽 아이콘 타일 + 금빛 이름, 양 끝 금 장식 ── */
-  html[data-dock="metal"] body .v2-dock { height: 44px; padding: 0 20px; gap: 3px; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65)); }
-  html[data-dock="metal"] body .v2-dock::before, html[data-dock="metal"] body .v2-dock::after { content: ''; position: absolute; top: -3px; bottom: -3px; width: 22px; background: url('/assets/ui/v2/dock/a-cap-l.png') center / auto 100% no-repeat; pointer-events: none; }
-  html[data-dock="metal"] body .v2-dock::before { left: 0; }
-  html[data-dock="metal"] body .v2-dock::after { right: 0; background-image: url('/assets/ui/v2/dock/a-cap-r.png'); }
-  html[data-dock="metal"] body .v2-dock__btn {
-    max-width: 118px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 4px;
+  /* 양 끝 금 장식(도안의 ‘전체 구성’ 끝 부분) */
+  html body .v2-dock::before, html body .v2-dock::after { content: ''; position: absolute; top: -3px; bottom: -3px; width: 22px; background: url('/assets/ui/v2/dock/a-cap-l.png') center / auto 100% no-repeat; pointer-events: none; }
+  html body .v2-dock::before { left: 0; }
+  html body .v2-dock::after { right: 0; background-image: url('/assets/ui/v2/dock/a-cap-r.png'); }
+  /* 버튼: 금테 틀 그림을 9-slice로 늘려 쓴다(모서리 · 옆 장식은 그대로, 가운데만 늘어남) */
+  html body .v2-dock__btn {
+    position: relative; flex: 1 1 0; min-width: 0; max-width: 118px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 4px;
     border: 4px solid transparent; border-left-width: 11px; border-right-width: 11px;
     border-image: url('/assets/ui/v2/dock/a-frame.png') 6 18 fill / 1 / 0 stretch;
-    background: none;
+    background: none; color: var(--v2-ink);
   }
-  html[data-dock="metal"] body .v2-dock__btn::before { --dock-ico: 28px; flex: 0 0 auto; }
-  html[data-dock="metal"] body .v2-dock__btn[data-section="roster"]::before { background-image: url('/assets/ui/v2/dock/a-roster.png'); }
-  html[data-dock="metal"] body .v2-dock__btn[data-section="formation"]::before { background-image: url('/assets/ui/v2/dock/a-formation.png'); }
-  html[data-dock="metal"] body .v2-dock__btn[data-section="recruit"]::before { background-image: url('/assets/ui/v2/dock/a-recruit.png'); }
-  html[data-dock="metal"] body .v2-dock__btn[data-section="research"]::before { background-image: url('/assets/ui/v2/dock/a-research.png'); }
-  html[data-dock="metal"] body .v2-dock__btn[data-section="guild"]::before { background-image: url('/assets/ui/v2/dock/a-guild.png'); }
-  html[data-dock="metal"] body .v2-dock__btn[data-section="shop"]::before { background-image: url('/assets/ui/v2/dock/a-shop.png'); }
-  html[data-dock="metal"] body .v2-dock__btn > span:not(.art-ico) { font-size: 14px; font-weight: 900; letter-spacing: .1em; line-height: 1; color: #f3d98a; text-shadow: 0 1px 1px #000, 0 0 4px rgba(0, 0, 0, .8); white-space: nowrap; }
-  html[data-dock="metal"] body .v2-dock__btn.is-coach::after { content: ''; position: absolute; inset: -6px -12px; border-radius: 8px; border: 2px solid #4fcf98; box-shadow: 0 0 10px rgba(79, 207, 152, .7); animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
-  html[data-dock="metal"] body .v2-dock__btn .v2-dot { top: -6px; right: -6px; }
-  html[data-dock="metal"] body .v2-dock__btn .v2-badge { top: -8px; right: -6px; }
+  html body .v2-dock__btn .art-ico { display: none; }
+  /* 왼쪽 아이콘 타일(메뉴별 그림) */
+  html body .v2-dock__btn::before { content: ''; flex: 0 0 auto; width: var(--dock-ico, 28px); height: var(--dock-ico, 28px); background: center / contain no-repeat; }
+  html body .v2-dock__btn[data-section="roster"]::before { background-image: url('/assets/ui/v2/dock/a-roster.png'); }
+  html body .v2-dock__btn[data-section="formation"]::before { background-image: url('/assets/ui/v2/dock/a-formation.png'); }
+  html body .v2-dock__btn[data-section="recruit"]::before { background-image: url('/assets/ui/v2/dock/a-recruit.png'); }
+  html body .v2-dock__btn[data-section="research"]::before { background-image: url('/assets/ui/v2/dock/a-research.png'); }
+  html body .v2-dock__btn[data-section="guild"]::before { background-image: url('/assets/ui/v2/dock/a-guild.png'); }
+  html body .v2-dock__btn[data-section="shop"]::before { background-image: url('/assets/ui/v2/dock/a-shop.png'); }
+  html body .v2-dock__btn > span:not(.art-ico) { font-size: 14px; font-weight: 900; letter-spacing: .1em; line-height: 1; color: #f3d98a; text-shadow: 0 1px 1px #000, 0 0 4px rgba(0, 0, 0, .8); white-space: nowrap; }
+  html body .v2-dock__btn:active { transform: translateY(1px); filter: brightness(.92); }
+  html body .v2-dock__btn.is-coach::after { content: ''; position: absolute; inset: -6px -12px; border-radius: 8px; border: 2px solid #4fcf98; box-shadow: 0 0 10px rgba(79, 207, 152, .7); animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
+  html body .v2-dock__btn .v2-dot { top: -6px; right: -6px; }
+  html body .v2-dock__btn .v2-badge { top: -8px; right: -6px; }
 
-  /* ── 용머리 틀(도안 ②): 용머리 테두리 한 판(9-slice) 안에 아이콘(위) + 이름(아래) ── */
-  html[data-dock="dragon"] body .v2-dock { height: 78px; bottom: calc(2px + var(--safe-b)); padding: 6px 58px 18px; gap: 4px; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65)); }
-  html[data-dock="dragon"] body .v2-dock::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 0 solid transparent; border-left-width: 56px; border-right-width: 56px; border-image: url('/assets/ui/v2/dock/b-rail.png') 0 160 fill / 1 / 0 stretch; pointer-events: none; }
-  html[data-dock="dragon"] body .v2-dock__btn { max-width: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 2px 2px 1px; border-radius: 5px; background: linear-gradient(180deg, rgba(70, 48, 26, .55), rgba(16, 9, 4, .75)); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .35), inset 0 1px 0 rgba(255, 230, 160, .18); }
-  html[data-dock="dragon"] body .v2-dock__btn::before { --dock-ico: 30px; }
-  html[data-dock="dragon"] body .v2-dock__btn[data-section="roster"]::before { background-image: url('/assets/ui/v2/dock/b-roster.png'); }
-  html[data-dock="dragon"] body .v2-dock__btn[data-section="formation"]::before { background-image: url('/assets/ui/v2/dock/b-formation.png'); }
-  html[data-dock="dragon"] body .v2-dock__btn[data-section="recruit"]::before { background-image: url('/assets/ui/v2/dock/b-recruit.png'); }
-  html[data-dock="dragon"] body .v2-dock__btn[data-section="research"]::before { background-image: url('/assets/ui/v2/dock/b-research.png'); }
-  html[data-dock="dragon"] body .v2-dock__btn[data-section="guild"]::before { background-image: url('/assets/ui/v2/dock/b-guild.png'); }
-  html[data-dock="dragon"] body .v2-dock__btn[data-section="shop"]::before { background-image: url('/assets/ui/v2/dock/b-shop.png'); }
-  html[data-dock="dragon"] body .v2-dock__btn > span:not(.art-ico) { font-size: 12px; font-weight: 900; letter-spacing: .08em; line-height: 1; color: #f3d98a; text-shadow: 0 1px 1px #000; white-space: nowrap; }
-  html[data-dock="dragon"] body .v2-dock__btn.is-coach::after { content: ''; position: absolute; inset: -2px; border-radius: 6px; border: 2px solid #4fcf98; box-shadow: 0 0 8px rgba(79, 207, 152, .7); animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
-  html[data-dock="dragon"] body .v2-dock__btn .v2-dot { top: 0; right: 2px; }
-  html[data-dock="dragon"] body .v2-dock__btn .v2-badge { top: -2px; right: 2px; }
   html body .v2-dock__btn.is-coach .art-ico::after, html body .v2-menu__cell.is-coach .art-ico::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; }
 
   /* 오른쪽 아래: 영토 점령전 · 전투 */
@@ -267,14 +234,9 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   /* 낮은 화면 */
   @media (max-height: 380px) {
     html body .v2-sideicon .art-ico { width: 40px; height: 40px; }
-    html[data-dock="scroll"] body .v2-dock__btn > span:not(.art-ico) { font-size: 13px; }
-    html[data-dock="metal"] body .v2-dock { height: 40px; }
-    html[data-dock="metal"] body .v2-dock__btn::before { --dock-ico: 24px; }
-    html[data-dock="metal"] body .v2-dock__btn > span:not(.art-ico) { font-size: 13px; }
-    html[data-dock="dragon"] body .v2-dock { height: 72px; padding: 5px 54px 17px; }
-    html[data-dock="dragon"] body .v2-dock::before { border-left-width: 51px; border-right-width: 51px; }
-    html[data-dock="dragon"] body .v2-dock__btn::before { --dock-ico: 26px; }
-    html[data-dock="dragon"] body .v2-dock__btn > span:not(.art-ico) { font-size: 11px; }
+    html body .v2-dock { height: 40px; }
+    html body .v2-dock__btn::before { --dock-ico: 24px; }
+    html body .v2-dock__btn > span:not(.art-ico) { font-size: 13px; }
     html body .v2-battle { width: 156px; height: 54px; }
     html body .v2-battle__label { font-size: 26px; }
     html body .v2-battle.v2-battle--conquest { height: 44px; }
@@ -292,18 +254,12 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   @media (max-width: 780px) {
     html body .v2-res:nth-child(3) { display: none; }
     html body .v2-topicon span:not(.art-ico):not(.art-ico__line) { display: none; }
-    html body .v2-dock { right: calc(174px + var(--safe-r)); left: calc(66px + var(--safe-l)); gap: 3px; }
     html body .v2-right { width: 196px; }
-    html[data-dock="scroll"] body .v2-dock__btn > span:not(.art-ico) { font-size: 12.5px; }
-    html[data-dock="metal"] body .v2-dock { padding: 0 16px; gap: 2px; }
-    html[data-dock="metal"] body .v2-dock::before, html[data-dock="metal"] body .v2-dock::after { width: 18px; }
-    html[data-dock="metal"] body .v2-dock__btn { gap: 3px; border-left-width: 9px; border-right-width: 9px; }
-    html[data-dock="metal"] body .v2-dock__btn::before { --dock-ico: 24px; }
-    html[data-dock="metal"] body .v2-dock__btn > span:not(.art-ico) { font-size: 12.5px; letter-spacing: .05em; }
-    html[data-dock="dragon"] body .v2-dock { padding: 6px 54px 18px; gap: 3px; }
-    html[data-dock="dragon"] body .v2-dock::before { border-left-width: 52px; border-right-width: 52px; }
-    html[data-dock="dragon"] body .v2-dock__btn::before { --dock-ico: 26px; }
-    html[data-dock="dragon"] body .v2-dock__btn > span:not(.art-ico) { font-size: 11px; }
+    html body .v2-dock { right: calc(174px + var(--safe-r)); left: calc(66px + var(--safe-l)); padding: 0 16px; gap: 2px; }
+    html body .v2-dock::before, html body .v2-dock::after { width: 18px; }
+    html body .v2-dock__btn { gap: 3px; border-left-width: 9px; border-right-width: 9px; }
+    html body .v2-dock__btn::before { --dock-ico: 24px; }
+    html body .v2-dock__btn > span:not(.art-ico) { font-size: 12.5px; letter-spacing: .05em; }
   }
 
   /* ════════ 메뉴 화면 머리(참고: ‹ 제목 · · · ✕) ════════ */
