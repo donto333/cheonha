@@ -1777,7 +1777,8 @@ export class StrategyUI {
       ].join('')
       panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="이벤트"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-frame"><div class="v2-menu__head"><strong>${en ? 'Events' : '이벤트'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><div class="v2-events">${rows}</div></div></div>`
     }
-    return `<section class="page-section page-section--mlobby page-section--v2"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
+    const realm = ({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' } as Record<string, string>)[state.faction] ?? 'none'
+    return `<section class="page-section page-section--mlobby page-section--v2" data-realm="${realm}"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
   }
 
   private overviewSection(state: StrategyState): string {

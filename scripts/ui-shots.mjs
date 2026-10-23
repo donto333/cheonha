@@ -121,6 +121,11 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
+    // 진영별 본영 배경
+    for (const faction of ['위나라', '촉한', '오나라']) {
+      await page.evaluate(f => { const g = window.__strategy; const keep = g.state.faction; g.state.faction = f; g.state.section = 'overview'; g.ui.render(g.state); g.state.faction = keep }, faction)
+      await clearOverlays(); await shot(`10-overview-${({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' })[faction]}`)
+    }
     // 본영 임무 창 · 이벤트 창
     for (const [panel, label] of [['missions', '92-lobby-missions'], ['events', '93-lobby-events']]) {
       await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
