@@ -131,6 +131,11 @@ try {
     await shot('95-recruit-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
     await page.evaluate(() => { const g = window.__strategy; g.ui.showEquipmentResults(g.debug.drawEquipment(10)) })
     await shot('96-gear-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
+    // 모집 연출 · 작전 결과 창
+    await page.evaluate(() => { const g = window.__strategy; const general = g.catalog.generals().find(item => item.grade >= 5) ?? g.catalog.generals()[0]; void g.ui.playRecruitAnimation(general, 1, true, '신규유저 패키지 · 천명 무장 추적권') })
+    await sleep(1600); await shot('99a-ritual'); await page.evaluate(() => document.querySelectorAll('.summon-ritual').forEach(el => el.remove()))
+    await page.evaluate(() => { const g = window.__strategy; g.ui.recruitAnimationActive = false; g.ui.showBattleResult({ won: true, reason: 'wipe', stars: 2, score: 12840, durationMs: 14000, breaks: 3, patterns: 7, maxCombo: 1, troopRatio: 0.86, collapses: 0 }, '', [{ label: '전투 연구', text: '2개 적용 · 오부 훈련, 손자병법 주해', tone: 'good' }, { label: '병종 상성', text: '유리 1레인 · 불리 1레인', tone: 'neutral' }, { label: '장비', text: '출전 무장 장착 9/9칸', tone: 'good' }, { label: '무장 성장', text: '평균 Lv.22 · 적 Lv.12', tone: 'good' }]) })
+    await shot('99b-battle-result'); await page.evaluate(() => document.querySelectorAll('.result-modal').forEach(el => el.remove()))
     // 장비 상세 창 · 영토 내정 탭 · 상점 최근 구매
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'equipment'; g.ui.render(g.state) })
     if (await page.locator('.eqtile').count()) { await page.locator('.eqtile').first().evaluate(b => b.click()); await shot('97-equipment-detail'); await page.locator('[data-action="equipment-detail-close"]').first().evaluate(b => b.click()) }
