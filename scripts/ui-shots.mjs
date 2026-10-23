@@ -119,6 +119,13 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
+    // 본영 아래 메뉴 모양 세 가지(설정 › 아래 메뉴 모양) 비교 캡처
+    for (const dock of ['metal', 'dragon', 'scroll']) {
+      await page.evaluate(d => { document.documentElement.dataset.dock = d; const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state); document.documentElement.dataset.dock = d }, dock)
+      await clearOverlays()
+      await shot(`10-overview-dock-${dock}`)
+    }
+    await page.evaluate(() => { try { localStorage.removeItem('cheonharo.dock') } catch {} ; delete document.documentElement.dataset.dock; const g = window.__strategy; g.ui.render(g.state) })
     // 본영 임무 창 · 이벤트 창
     for (const [panel, label] of [['missions', '92-lobby-missions'], ['events', '93-lobby-events']]) {
       await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
