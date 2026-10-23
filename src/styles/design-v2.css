@@ -367,9 +367,10 @@ html body .terr-search { display: none; }
 
   /* ── 머리 줄: 제목판(용 장식) · 금/검 탭 · 재화 칩 · 닫기 ── */
   html body .app-shell .hub-tabs { background: linear-gradient(180deg, rgba(8, 5, 3, .92), rgba(8, 5, 3, .55)); border-bottom: 1px solid rgba(212, 175, 55, .55); box-shadow: 0 1px 0 rgba(0, 0, 0, .6); }
-  html body .app-shell .hub-tabs .hub-tabs__title { position: relative; padding: 0 58px 0 calc(10px + var(--safe-l)); font-family: 'Gowun Batang', serif; font-size: 22px; font-weight: 700; letter-spacing: .06em; background: linear-gradient(90deg, rgba(20, 12, 8, .95), rgba(20, 12, 8, .6)); border-right: 1px solid rgba(212, 175, 55, .35); }
-  html body .app-shell .hub-tabs .hub-tabs__title::after { content: ''; position: absolute; right: -6px; top: 50%; width: 58px; height: 40px; transform: translateY(-50%); background: url('/assets/ui/v2/kit/dragon-ornament.webp') right center / contain no-repeat; pointer-events: none; }
-  html body .app-shell .hub-tabs .hub-tabs__title { color: #f3d98a; text-shadow: 0 1px 0 #3a2408, 0 0 6px rgba(0, 0, 0, .8); }
+  /* 제목판: 도안의 ‘‹ 장수’ 판 그림(왼쪽 금테 · 오른쪽 용머리는 그대로, 가운데만 늘어남) */
+  html body .app-shell .hub-tabs .hub-tabs__title { --ts: .272; position: relative; align-self: center; height: calc(169px * var(--ts)); margin-left: calc(2px + var(--safe-l)); padding: calc(10px * var(--ts)) 0 0 0; display: flex; align-items: center; gap: 6px; font-family: 'Gowun Batang', serif; font-size: 21px; font-weight: 700; letter-spacing: .06em; background: none; border: 0 solid transparent; border-width: 0 calc(150px * var(--ts)) 0 calc(40px * var(--ts)); border-image: url('/assets/ui/v2/kit/title-plate.webp') 0 150 0 40 fill / 0 calc(150px * var(--ts)) 0 calc(40px * var(--ts)) / 0 stretch; }
+  html body .app-shell .hub-tabs .hub-tabs__title { color: #f6d77a; text-shadow: 0 1px 0 #3a2408, 0 0 6px rgba(0, 0, 0, .8); }
+  html body .app-shell .hub-tabs .hub-tabs__back-arrow { font-size: 28px; margin-right: 2px; }
   html body .app-shell .hub-tabs .hub-tabs__back-arrow { color: #f0c35a; }
   html body .app-shell .hub-tabs .hub-tabs__tabs { gap: 3px; margin-left: 14px; }
   html body .app-shell .hub-tabs .hub-tabs__tab { height: 30px; min-width: 76px; padding: 0 14px; font-size: 14px; font-weight: 800; color: #e8dcc0; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; box-shadow: none; border-radius: 0; }
