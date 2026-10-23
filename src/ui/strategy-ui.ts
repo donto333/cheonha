@@ -551,6 +551,8 @@ export class StrategyUI {
   private equipmentSortCache: { key: string; items: Equipment[]; source: Equipment[] } | null = null
   private readonly equipmentRowHeight = 213 // 카드 204 + 간격 9(2026.10.20: 전설에도 특기 줄이 생겨 늘림)
   private shopTab: 'gold' | 'resources' | 'mythic' | 'packages' | 'passes' = 'resources'
+  /** 휴대폰 상점 · 자원 탭에서 고른 자원 */
+  private shopResource: ShopResource = 'honor'
   /** 상점 최근 구매 창 */
   private shopLogOpen = false
   /** 튜토리얼: 10회 모집을 무료로 보여 준다 */
@@ -3361,6 +3363,17 @@ export class StrategyUI {
         const gotToday = state.prelaunchGoldDayKey === dayKey()
         body = `<div class="glass-card shop-prelaunch"><span class="eyebrow">정식 출시 전</span><h2>매일 금화 100개를 드립니다</h2><p>금화 충전은 정식 출시 때 열립니다. 그 전까지는 접속하면 하루 한 번 금화 100개가 지급됩니다.</p><strong class="${gotToday ? 'is-done' : ''}">${gotToday ? '오늘 금화를 받았습니다' : '오늘 금화는 접속·동기화 때 자동으로 지급됩니다'}</strong></div>`
       }
+    } else if (this.shopTab === 'resources' && isPhoneLandscape()) {
+      // 휴대폰: 자원 고르기 탭 + 묶음 카드(도안 ‘자원 · 옥패 상점’)
+      const needs = shopNeeds(state)
+      const resources: ShopResource[] = ['honor', 'manuals', 'silver', 'iron', 'grain', 'wood', 'influence']
+      const pick = resources.includes(this.shopResource) ? this.shopResource : 'honor'
+      const art = (resource: ShopResource) => ({ honor: 'i-honor', manuals: 'i-manuals', iron: 'i-iron', grain: 'i-grain', wood: 'i-wood', silver: 'i-iron', influence: 'i-chest' } as Record<string, string>)[resource]
+      const sub = `<div class="mshop-sub" role="tablist">${resources.map(resource => `<button class="mshop-sub__tab${resource === pick ? ' is-active' : ''}" data-action="shop-resource" data-resource="${resource}">${nameOf(resource)}${needs.some(need => need.resource === resource) ? '<i class="shop-tab__dot"></i>' : ''}</button>`).join('')}</div>`
+      const items = all.filter(item => item.resource === pick)
+      const cards = items.map(item => `<article class="mshop-card"><span class="mshop-card__name">${nameOf(pick)}<b>${formatNumber(item.amount)}</b></span><i class="mshop-card__art" style="background-image:url('${assetUrl(`/assets/ui/v2/shop/${art(pick)}.webp`)}')"></i>${buyButton(item)}</article>`).join('')
+      const need = needs.find(entry => entry.resource === pick)
+      body = `${sub}<p class="mshop-hold">보유 ${nameOf(pick)} <b>${formatNumber(holdingOf(pick))}</b>${need ? ` · <em>${escapeHtml(need.reason)} · ${formatNumber(need.short)} 부족</em>` : ''}</p><div class="mshop-cards">${cards}</div>`
     } else if (this.shopTab === 'resources') {
       const needs = shopNeeds(state)
       const needCard = needs.length ? `<div class="glass-card shop-needs"><div class="card-header"><div><span class="eyebrow">지금 필요한 것</span><h3>모자란 자원 추천</h3></div></div><ul>${needs.map(need => `<li><div><strong>${escapeHtml(need.reason)}</strong><small>${nameOf(need.resource)} ${formatNumber(need.short)} 부족 · 보유 ${formatNumber(holdingOf(need.resource))}</small></div>${need.item ? buyButton(need.item) : '<small class="shop-needs__none">묶음 하나로는 부족합니다</small>'}</li>`).join('')}</ul></div>` : '<div class="glass-card shop-needs shop-needs--ok"><span class="eyebrow">지금 필요한 것</span><p>다음 무장 레벨업·연구·건물 강화·10회 모집에 필요한 재화가 모두 충분합니다.</p></div>'
@@ -3387,6 +3400,15 @@ export class StrategyUI {
     }
     const description = this.shopTab === 'packages' ? '계정마다 한 번만 살 수 있는 신규유저 패키지입니다.' : this.shopTab === 'gold' ? '금화 충전 안내' : this.shopTab === 'resources' ? '금화로 자원과 옥패를 바꿉니다. 지금 모자란 것을 먼저 추천합니다.' : '유저 대련에서 모은 신화 조각으로 신화장비를 교환합니다.'
     const logModal = this.shopLogOpen ? `<div class="recruit-results is-visible shop-log-modal"><div class="recruit-results-backdrop" data-action="shop-log"></div><div class="recruit-results-panel"><div class="recruit-results-heading"><div><span class="eyebrow">상점</span><h2>최근 구매</h2></div><button class="mini-action" data-action="shop-log">닫기</button></div>${this.purchaseLogCard() || '<p class="rank-empty">아직 구매 기록이 없습니다.</p>'}</div></div>` : ''
+    if (isPhoneLandscape()) {
+      // 휴대폰(도안): 왼쪽 분류 단추 · 위 그림 띠(제목 · 설명) · 아래 내용
+      const navItems: Array<[typeof this.shopTab, string, string]> = [['packages', '패키지', 'packages'], ['passes', '정액권', 'passes'], ['resources', '자원·옥패', 'resources'], ['mythic', '신화 장비', 'mythic'], ['gold', '금화 충전', 'gold']]
+      const nav = `<nav class="mshop-nav" role="tablist">${navItems.map(([id, label, ico]) => `<button class="mshop-tab${this.shopTab === id ? ' is-active' : ''}" data-action="shop-tab" data-shop-tab="${id}"><i class="mshop-tab__ico" style="background-image:url('${assetUrl(`/assets/ui/v2/shop/tab-ico-${ico}.webp`)}')"></i><span>${label}</span>${id === 'packages' && STARTER_PACKS.some(pack => !starterPackBought(state, pack.id)) ? '<i class="shop-tab__dot"></i>' : ''}</button>`).join('')}${readPurchaseLog().length ? '<button class="mshop-log" data-action="shop-log">최근 구매</button>' : ''}</nav>`
+      const banners: Record<string, [string, string, string]> = { packages: ['banner-b', '패키지 상점', '빠른 성장을 위한 신규 지휘관 패키지 · 계정당 한 번'], passes: ['banner-a', '정액권', '매일 받는 보상으로 꾸준히 강해지십시오'], resources: ['banner-c', '자원 · 옥패 상점', '강한 나라의 근간, 풍요로운 자원을 확보하십시오'], mythic: ['banner-d', '신화 장비 상점', `대련에서 모은 신화 조각 ${state.mythicFragments} / ${MYTHIC_FRAGMENT_COST} · 낙양 강화석 ${state.mythicStones}`], gold: ['banner-a', '금화 충전', '금화로 옥패 · 자원 · 패키지를 삽니다'] }
+      const [bannerArt, bannerTitle, bannerSub] = banners[this.shopTab]
+      const banner = `<div class="mshop-banner" style="background-image:url('${assetUrl(`/assets/ui/v2/shop/${bannerArt}.webp`)}')"><h2>${bannerTitle}</h2><p>${escapeHtml(bannerSub)}</p></div>`
+      return `<section class="page-section page-section--shop page-section--mshop" data-shop-tab="${this.shopTab}">${nav}<div class="mshop-main">${banner}<div class="mshop-body">${body}</div></div></section>${logModal}`
+    }
     return `<section class="page-section page-section--shop"><div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>상점</h1><p class="heading-copy">${description}</p></div></div>${balances}${tabs}${body}</section>${logModal}`
   }
 
@@ -3679,6 +3701,7 @@ export class StrategyUI {
     }
     if (action?.startsWith('guild-')) { if (button.tagName !== 'SELECT') this.guildClick(action, button); return }
     if (action === 'nav-more') { this.root.querySelector('.sidebar')?.classList.toggle('is-more-open'); return }
+    if (action === 'shop-resource') { this.shopResource = (button.dataset.resource ?? 'honor') as ShopResource; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'pager') { turnPage(this.root, button.dataset.pager ?? '', Number(button.dataset.dir ?? 1)); return }
     if (/-(filter|sort|sort-direction|tab)$/.test(action ?? '')) resetPage()
     if (action === 'updates-more') { this.updatesShown += 10; if (this.renderedState) this.render(this.renderedState); return }

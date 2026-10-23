@@ -961,3 +961,55 @@ html body .terr-search { display: none; }
   html body .attendance-day__label { position: relative; z-index: 1; width: 100%; background: rgba(6, 5, 4, .9); }
   html body .attendance-day__art img { height: auto; max-height: 100%; }
 }
+
+/* ════════════════ 상점(휴대폰 가로, 2026.10.24 도안 · 그림: public/assets/ui/v2/shop/) ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html:has(.page-section--mshop) body .app-shell { background: linear-gradient(180deg, rgba(10, 6, 3, .45), rgba(10, 6, 3, .82)), url('/assets/ui/v2/shop/bg-market.webp') center / cover no-repeat, #120a06 !important; }
+  html:has(.page-section--mshop[data-shop-tab="mythic"]) body .app-shell { background-image: linear-gradient(180deg, rgba(10, 6, 3, .45), rgba(10, 6, 3, .82)), url('/assets/ui/v2/shop/bg-forge.webp') !important; }
+  html body .app-shell .main-content .page-section--mshop { display: grid; grid-template-columns: 142px minmax(0, 1fr); gap: 8px; height: var(--frame-h); overflow: hidden; }
+  /* 왼쪽 분류 단추 */
+  html body .mshop-nav { display: flex; flex-direction: column; gap: 4px; padding: 5px; background: linear-gradient(180deg, rgba(14, 11, 9, .92), rgba(6, 5, 4, .95)); border: 1px solid rgba(212, 175, 55, .55); border-radius: 3px; }
+  html body .mshop-tab { position: relative; height: 50px; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 2px; color: #f3e6c6; font-size: 14px; font-weight: 900; text-align: left; background: url('/assets/ui/v2/shop/tab-plate.webp') center / 100% 100% no-repeat; border: 0; }
+  html body .mshop-tab.is-active { color: #2b1a06; background-image: url('/assets/ui/v2/shop/tab-plate-on.webp'); filter: drop-shadow(0 0 5px rgba(255, 180, 60, .7)); }
+  html body .mshop-tab__ico { flex: 0 0 auto; width: 40px; height: 40px; background: center / contain no-repeat; }
+  html body .mshop-tab .shop-tab__dot { position: absolute; top: 4px; right: 6px; }
+  html body .mshop-log { margin-top: auto; height: 30px; font-size: 12.5px; color: #f3e3bd; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; }
+  /* 오른쪽: 그림 띠 + 내용 */
+  html body .mshop-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+  html body .mshop-banner { position: relative; flex: 0 0 auto; height: 86px; display: grid; align-content: center; padding: 0 16px; background: center 40% / cover no-repeat; border: 1px solid rgba(212, 175, 55, .7); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), 0 3px 8px rgba(0, 0, 0, .6); overflow: hidden; }
+  html body .mshop-banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 4, 2, .1) 0%, rgba(8, 4, 2, .15) 35%, rgba(8, 4, 2, .75) 60%, rgba(8, 4, 2, .85) 100%); }
+  html body .mshop-banner > * { position: relative; justify-self: end; text-align: right; }
+  html body .mshop-banner h2 { margin: 0; font-family: 'Gowun Batang', serif; font-size: 26px; font-weight: 700; color: #f6d77a; background: linear-gradient(180deg, #fff6d0, #f6d77a 45%, #c38a2a); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 0 #2a1204); }
+  html body .mshop-banner p { margin: 2px 0 0; font-size: 12px; color: #f2e4c6; text-shadow: 0 1px 2px #000; }
+  html body .mshop-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; overscroll-behavior: contain; }
+  html body .mshop-body > * { flex: 0 0 auto; margin: 0; }
+  html body .mshop-body > .shop-grid, html body .mshop-body > .starter-pack-grid { flex: 1 1 auto; }
+  /* 자원 고르기 탭 + 카드 */
+  html body .mshop-sub { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  html body .mshop-sub__tab { position: relative; height: 30px; font-size: 13px; font-weight: 800; color: #eee2c6; background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; }
+  html body .mshop-sub__tab.is-active { color: #2b1a06; border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); }
+  html body .mshop-sub__tab .shop-tab__dot { position: absolute; top: -4px; right: -4px; }
+  html body .mshop-hold { font-size: 12.5px; color: #d9cba8; }
+  html body .mshop-hold b { color: #f6cf6a; }
+  html body .mshop-hold em { font-style: normal; color: #ff9b7a; }
+  html body .mshop-cards { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column; gap: 6px; }
+  html body .mshop-card { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 5px; background: linear-gradient(180deg, rgba(30, 22, 14, .92), rgba(10, 8, 6, .95)); border: 1px solid rgba(212, 175, 55, .6); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6); }
+  html body .mshop-card__name { display: grid; justify-items: center; font-size: 12.5px; color: #eee2c6; line-height: 1.2; }
+  html body .mshop-card__name b { font-size: 15px; color: #fff; }
+  html body .mshop-card__art { flex: 1 1 auto; min-height: 40px; width: 100%; background: center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .7)); }
+  html body .app-shell .main-content .mshop-card .shop-buy { width: 100%; display: grid; justify-items: center; gap: 0; padding: 0; min-height: 0; height: 44px; color: #2b1a06; border: 0 solid transparent; border-width: 8px 12px; border-image: url('/assets/ui/v2/shop/btn-gold.webp') 24 40 fill / 8px 12px / 0 stretch; filter: none; opacity: 1; }
+  html body .mshop-card .shop-buy b { font-size: 13px; color: #2b1a06; }
+  html body .mshop-card .shop-buy span { display: none; }
+  html body .mshop-card .shop-buy em { display: block; font-style: normal; font-size: 10.5px; color: #7a1e10; }
+  html body .mshop-card .shop-buy em.is-plain { color: #5a4220; }
+  html body .mshop-card .shop-buy small { font-size: 10px; color: #3a2a18; }
+  html body .app-shell .main-content .mshop-card .shop-buy:disabled { color: #ddd; border-image-source: url('/assets/ui/v2/shop/btn-gray.webp'); opacity: .9; }
+  html body .mshop-card .shop-buy:disabled b, html body .mshop-card .shop-buy:disabled em, html body .mshop-card .shop-buy:disabled small { color: #e8e2d6; }
+  /* 패키지(신규 지휘관) 카드: 금테 + 붉은 ‘계정당 1회’ */
+  html body .page-section--mshop .starter-pack-head { display: none; }
+  html body .page-section--mshop .starter-pack-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; overflow-y: auto; }
+  html body .page-section--mshop .starter-pack { position: relative; padding: 18px 6px 6px; background: linear-gradient(180deg, rgba(30, 22, 14, .94), rgba(10, 8, 6, .96)); border: 1px solid rgba(212, 175, 55, .7); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6); }
+  html body .page-section--mshop .starter-pack__tag { position: absolute; top: 2px; left: 4px; padding: 1px 10px; font-size: 10.5px; font-weight: 800; color: #fff; background: url('/assets/ui/v2/shop/pill-red.webp') center / 100% 100% no-repeat; border: 0; }
+  html body .app-shell .main-content .page-section--mshop .starter-pack__buy { color: #2b1a06; border: 0 solid transparent; border-width: 8px 12px; border-image: url('/assets/ui/v2/shop/btn-gold.webp') 24 40 fill / 8px 12px / 0 stretch; background: none; box-shadow: none; }
+  html body .app-shell .main-content .page-section--mshop .starter-pack__buy.is-done, html body .app-shell .main-content .page-section--mshop .starter-pack__buy:disabled { color: #ddd; border-image-source: url('/assets/ui/v2/shop/btn-gray.webp'); }
+}
