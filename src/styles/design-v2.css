@@ -367,9 +367,8 @@ html body .terr-search { display: none; }
 
   /* ── 머리 줄: 제목판(용 장식) · 금/검 탭 · 재화 칩 · 닫기 ── */
   html body .app-shell .hub-tabs { background: linear-gradient(180deg, rgba(8, 5, 3, .92), rgba(8, 5, 3, .55)); border-bottom: 1px solid rgba(212, 175, 55, .55); box-shadow: 0 1px 0 rgba(0, 0, 0, .6); }
-  html body .app-shell .hub-tabs .hub-tabs__title { position: relative; padding: 0 64px 0 calc(10px + var(--safe-l)); font-family: 'Gowun Batang', serif; font-size: 22px; font-weight: 700; letter-spacing: .06em; background: linear-gradient(90deg, rgba(20, 12, 8, .95), rgba(20, 12, 8, .6)); border-right: 1px solid rgba(212, 175, 55, .35); }
-  html body .app-shell .hub-tabs .hub-tabs__title::after { content: ''; position: absolute; right: -14px; top: 50%; width: 82px; height: 34px; transform: translateY(-50%); background: url('/assets/ui/v2/kit/dragon-ornament.webp') right center / contain no-repeat; pointer-events: none; }
-  html body .app-shell .hub-tabs .hub-tabs__title { color: transparent; background-clip: padding-box; }
+  html body .app-shell .hub-tabs .hub-tabs__title { position: relative; padding: 0 58px 0 calc(10px + var(--safe-l)); font-family: 'Gowun Batang', serif; font-size: 22px; font-weight: 700; letter-spacing: .06em; background: linear-gradient(90deg, rgba(20, 12, 8, .95), rgba(20, 12, 8, .6)); border-right: 1px solid rgba(212, 175, 55, .35); }
+  html body .app-shell .hub-tabs .hub-tabs__title::after { content: ''; position: absolute; right: -6px; top: 50%; width: 58px; height: 40px; transform: translateY(-50%); background: url('/assets/ui/v2/kit/dragon-ornament.webp') right center / contain no-repeat; pointer-events: none; }
   html body .app-shell .hub-tabs .hub-tabs__title { color: #f3d98a; text-shadow: 0 1px 0 #3a2408, 0 0 6px rgba(0, 0, 0, .8); }
   html body .app-shell .hub-tabs .hub-tabs__back-arrow { color: #f0c35a; }
   html body .app-shell .hub-tabs .hub-tabs__tabs { gap: 3px; margin-left: 14px; }
@@ -432,7 +431,7 @@ html body .terr-search { display: none; }
   html body .gtile.is-locked .gtile__art { filter: grayscale(.9) brightness(.45); }
 
   /* ── 아래 줄: 투구 메달 · 출전 전투력 · 편성 · 장비 · 도감 ── */
-  html body .app-shell .mscreen-foot { position: relative; height: 40px; padding: 0 0 0 46px; gap: 6px; border-top: 0; font-size: 13px; color: #e8dcc0; background: linear-gradient(180deg, rgba(14, 12, 12, .93), rgba(6, 5, 5, .96)); border: 1px solid rgba(212, 175, 55, .6); border-radius: 4px 20px 20px 4px; box-shadow: 0 -1px 0 rgba(0, 0, 0, .6); }
+  html body .app-shell .mscreen-foot { position: relative; height: 40px; margin-left: 52px; padding: 0 0 0 46px; gap: 6px; border-top: 0; font-size: 13px; color: #e8dcc0; background: linear-gradient(180deg, rgba(14, 12, 12, .93), rgba(6, 5, 5, .96)); border: 1px solid rgba(212, 175, 55, .6); border-radius: 4px 20px 20px 4px; box-shadow: 0 -1px 0 rgba(0, 0, 0, .6); }
   html body .mscreen-foot__helm { position: absolute; left: -2px; top: 50%; width: 44px; height: 44px; transform: translateY(-50%); background: url('/assets/ui/v2/kit/helmet.webp') center / contain no-repeat; }
   html body .app-shell .mscreen-foot > span { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
   html body .app-shell .mscreen-foot > span b { font-size: 19px; font-weight: 900; color: #f6cf6a; text-shadow: 0 1px 1px #000; }
@@ -442,16 +441,16 @@ html body .terr-search { display: none; }
   html body .app-shell .mscreen-foot__btn:last-child { margin-right: 3px; }
 
   /* ── 편성 ── */
-  html body .app-shell .main-content .squad-tab { color: #e8dcc0; background: none; border: 9px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark-dragon.webp') 30 fill / 9px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .squad-tab { color: #e8dcc0; background: none; border: 9px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 9px / 0 stretch; border-radius: 0; box-shadow: none; }
   html body .app-shell .main-content .squad-tab strong { color: #f8e9c4; }
-  html body .app-shell .main-content .squad-tab.is-active { border-image-source: url('/assets/ui/v2/kit/btn-dark.webp'); filter: drop-shadow(0 0 4px rgba(255, 190, 70, .9)); }
+  html body .app-shell .main-content .squad-tab.is-active { filter: drop-shadow(0 0 4px rgba(255, 190, 70, .9)); }
   html body .app-shell .main-content .squad-tab.is-active strong { color: #f6cf6a; }
-  html body .app-shell .main-content .page-section--formation > .formation-screen { background: none; border: 0 solid transparent; border-width: 40px 16px 14px; border-image: url('/assets/ui/v2/kit/panel-formation.webp') 80 34 30 fill / 40px 16px 14px / 0 stretch; box-shadow: none; border-radius: 0; padding: 0 2px 2px; }
-  html body .app-shell .main-content .page-section--formation > .formation-screen .formation-screen-head { margin: -34px 0 6px; min-height: 30px; }
-  html body .app-shell .main-content .page-section--formation .formation-slot { background: none; border: 0 solid transparent; border-width: 12px; border-image: url('/assets/ui/v2/kit/panel-square.webp') 40 fill / 12px / 0 stretch; border-radius: 0; box-shadow: none; padding: 0; }
+  html body .app-shell .main-content .page-section--formation > .formation-screen { background: none; border: 0 solid transparent; border-width: 10px; border-image: url('/assets/ui/v2/kit/panel-square.webp') 40 fill / 10px / 0 stretch; box-shadow: none; border-radius: 0; padding: 2px 4px 4px; }
+  html body .app-shell .main-content .page-section--formation > .formation-screen .formation-screen-head { padding-bottom: 5px; border-bottom: 1px solid rgba(212, 175, 55, .35); }
+  html body .app-shell .main-content .page-section--formation .formation-slot { background: none; border: 0 solid transparent; border-width: 8px; border-image: url('/assets/ui/v2/kit/panel-square.webp') 40 fill / 8px / 0 stretch; border-radius: 0; box-shadow: none; padding: 2px 4px; }
   html body .app-shell .main-content .page-section--formation .formation-slot--filled { --accent: transparent; }
   html body .app-shell .main-content .page-section--formation .formation-slot-index { color: #f3d98a; font-weight: 800; }
-  html body .app-shell .main-content .page-section--formation .formation-portrait { position: relative; border: 0; border-radius: 0; box-shadow: none; }
+  html body .app-shell .main-content .page-section--formation .formation-portrait { position: relative; margin-top: 16px; border: 0; border-radius: 0; box-shadow: none; }
   html body .app-shell .main-content .page-section--formation .formation-portrait::after { content: ''; position: absolute; inset: -6% -9% -9%; background: url('/assets/ui/v2/kit/portrait-frame.webp') 0 0 / 100% 100% no-repeat; pointer-events: none; }
   html body .app-shell .main-content .page-section--formation .auto-actions .action-button { background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-dark.webp') 20 fill / 7px / 0 stretch; color: #f3e3bd; box-shadow: none; border-radius: 0; }
   html body .app-shell .main-content .page-section--formation .auto-actions .action-button--primary { border-image-source: url('/assets/ui/v2/kit/btn-gold.webp'); color: #2b1a06; text-shadow: 0 1px 0 rgba(255, 244, 210, .7); }
