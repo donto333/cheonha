@@ -1878,7 +1878,7 @@ export class StrategyUI {
     const freeRecruits = state.missions?.freeRecruits ?? 0
     const freeDraws = state.missions?.freeDraws ?? 0
     const banner = (tab: 'generals' | 'equipment', art: string, title: string, sub: string) => `<button class="msum-banner${active === tab ? ' is-active' : ''}" data-action="summon-tab" data-summon-tab="${tab}" style="background-image:url('${assetUrl(art)}')"><strong>${title}</strong><small>${sub}</small></button>`
-    const banners = `<nav class="msum-banners">${banner('generals', '/assets/ui/recruit-montage.webp', en ? 'Generals' : '무장 모집', `${state.generals.length} / ${allGenerals().length}`)}${banner('equipment', '/assets/ui/forge-montage.webp', en ? 'Gear' : '장비 뽑기', `${en ? 'Owned' : '보유'} ${equipmentInventoryCount(state)}`)}</nav>`
+    const banners = `<nav class="msum-banners">${banner('generals', isPhoneLandscape() ? '/assets/ui/v2/kit/summon-generals.webp' : '/assets/ui/recruit-montage.webp', en ? 'Generals' : '무장 모집', `${state.generals.length} / ${allGenerals().length}`)}${banner('equipment', isPhoneLandscape() ? '/assets/ui/v2/kit/summon-gear.webp' : '/assets/ui/forge-montage.webp', en ? 'Gear' : '장비 뽑기', `${en ? 'Owned' : '보유'} ${equipmentInventoryCount(state)}`)}</nav>`
     const title = gear ? (en ? 'Master Arms' : '명장의 병기') : (en ? 'Call of Heroes' : '무장의 부름')
     const sub = gear ? '무기 · 갑옷 · 장신구를 뽑습니다. 장착 · 강화는 장비 관리에서.' : '중복 무장은 성급으로 바뀝니다 · 현금 결제 없음'
     const buttons = gear
@@ -1890,7 +1890,7 @@ export class StrategyUI {
     const recruitRates = ([5, 4, 3, 2, 1] as const).map(grade => `<li><span class="grade-dot" style="--grade:${GRADE_META[grade].color}"></span>${grade}등급 ${GRADE_META[grade].label}<b>${GRADE_META[grade].rate}</b></li>`).join('')
     const gearRates = ([['legendary', '5%'], ['unique', '12%'], ['rare', '28%'], ['normal', '55%']] as Array<[EquipmentGrade, string]>).map(([grade, rate]) => `<li><span class="grade-dot" style="--grade:${EQUIPMENT_GRADE_META[grade].color}"></span>${EQUIPMENT_GRADE_META[grade].label}<b>${rate}</b></li>`).join('')
     const rates = this.summonRatesOpen ? `<div class="msum-rates" role="dialog"><div class="msum-rates__backdrop" data-action="summon-rates"></div><div class="msum-rates__card"><strong>${gear ? '뽑기' : '모집'} 확률 · 1회 기준</strong><ul>${gear ? gearRates : recruitRates}</ul><small>모든 유저가 같은 확률입니다.</small></div></div>` : ''
-    return `<section class="page-section page-section--summoning page-section--msum"><div class="msum-art" style="background-image:url('${assetUrl(gear ? '/assets/ui/forge-montage.webp' : '/assets/ui/recruit-montage.webp')}')" aria-hidden="true"></div>${banners}<div class="msum-center"><h2>${title}</h2><p class="msum-sub">${sub}</p><div class="msum-actions">${buttons}</div>${note}</div>${side}${rates}</section>`
+    return `<section class="page-section page-section--summoning page-section--msum"><div class="msum-art msum-art--${gear ? 'gear' : 'generals'}" style="background-image:url('${assetUrl(gear ? '/assets/ui/v2/kit/summon-gear.webp' : '/assets/ui/v2/kit/summon-generals.webp')}')" aria-hidden="true"></div>${banners}<div class="msum-center"><h2>${title}</h2><p class="msum-sub">${sub}</p><div class="msum-actions">${buttons}</div>${note}</div>${side}${rates}</section>`
   }
 
   private summoningSection(state: StrategyState): string {

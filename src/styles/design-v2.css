@@ -812,3 +812,15 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-main__actions .action-button { min-height: 34px; height: 34px; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { min-height: 0; padding: 3px 8px; }
 }
+
+/* ════════ 모집: 무장 모집 · 장비 뽑기 배경 그림(제목 글자 포함) ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--msum { background: #120a06; }
+  html body .msum-art { left: 0; right: 0; top: 0; bottom: 0; width: auto; height: auto; aspect-ratio: auto; transform: none; background-size: cover !important; background-position: center 85% !important; -webkit-mask-image: none; mask-image: none; }
+  html body .msum-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 4, 2, .55) 0%, rgba(8, 4, 2, 0) 30%, rgba(8, 4, 2, 0) 82%, rgba(8, 4, 2, .5) 100%), linear-gradient(0deg, rgba(8, 4, 2, .75) 0%, rgba(8, 4, 2, 0) 22%); }
+  /* 그림에 제목이 있으므로 글자 제목 · 안내 줄은 숨기고, 단추를 아래로 */
+  html body .msum-center h2, html body .msum-center .msum-sub, html body .msum-center::before { display: none; }
+  html body .msum-center { bottom: 6px; gap: 2px; }
+  html body .msum-btn { height: 52px; }
+  html body .msum-banner { background-position: center 40%; background-size: cover; }
+}
