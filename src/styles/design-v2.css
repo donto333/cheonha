@@ -276,7 +276,7 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
 /* 영토: 지도를 크게(왼쪽 약 2/3 · 화면 높이 가득). 현황은 얇은 한 줄로 */
 @media (orientation: landscape) and (max-height: 500px) {
   html body .page-section--territory .conquest-overview { display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-height: 0; padding: 3px 10px; margin-bottom: 6px; }
-  html body .page-section--territory .conquest-overview > div:first-child { display: none; }
+  html body .page-section--territory .conquest-overview > div:not(.terr-search):not(.conquest-overview-stats) { display: none; }
   html body .page-section--territory .conquest-overview-stats { display: flex; gap: 18px; margin: 0; }
   html body .page-section--territory .conquest-overview-stats span { display: flex; align-items: baseline; gap: 5px; }
   html body .page-section--territory .conquest-overview-stats b { font-size: 15px; }
