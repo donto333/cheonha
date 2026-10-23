@@ -786,3 +786,18 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-story { display: block; max-height: 62px; overflow: hidden; margin-bottom: 4px; }
   html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { position: relative; z-index: 1; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 시나리오 카드: 왼쪽은 위에서 아래로 쌓는 칸(겹침 없음), 오른쪽은 적군 · 보상 */
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "pill done" "title enemy" "story reward" "deck reward" "space space" "act act"; grid-auto-rows: auto; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > * { grid-row: auto !important; grid-column: auto !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .pill { grid-area: pill !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-main__done { grid-area: done !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > h2 { grid-area: title !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-story { grid-area: story !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-rule { display: none; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-deck:not(.scenario-enemy) { grid-area: deck !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-enemy { grid-area: enemy !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-reward { grid-area: reward !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail > .scenario-main__actions { grid-area: act !important; }
+  html body .app-shell .main-content .page-section--scenario > .scenario-detail { grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; }
+}
