@@ -263,3 +263,12 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .app-shell .main-content .action-button--primary { color: var(--v2-darker); background: linear-gradient(180deg, #fbe7a4, var(--v2-gold) 55%, #a8801f); border: 1px solid #6e5216; text-shadow: none; box-shadow: inset 0 1px 0 #fff6d8, 0 2px 6px rgba(0, 0, 0, .5); }
   html body .app-shell .main-content .action-button--outline, html body .app-shell .main-content .mini-action { color: var(--v2-ink); background: linear-gradient(180deg, #3a2b1f, #22180f); border: 1px solid rgba(212, 175, 55, .55); }
 }
+
+/* 편성: 자동 편성 버튼을 진형 칸 머리(제목과 ‘출정 준비 완료’ 사이)에 */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--formation .formation-screen-head { display: flex; align-items: center; gap: 8px; }
+  html body .page-section--formation .formation-screen-head > div:first-child { flex: 0 0 auto; }
+  html body .page-section--formation .formation-screen-head .auto-actions { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; margin: 0; }
+  html body .page-section--formation .formation-screen-head .auto-actions .action-button { min-height: 30px; height: 30px; padding: 0 10px; font-size: 12.5px; white-space: nowrap; grid-column: auto; }
+  html body .page-section--formation .formation-screen-head .formation-readiness { position: static; flex: 0 0 auto; margin: 0; transform: none; }
+}
