@@ -183,7 +183,13 @@ try {
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'shop'; g.ui.render(g.state) })
     for (const [i, label] of [[1, '98h-shop-package'], [4, '98i-shop-mythic']]) {
       const tabs = page.locator('.shop-tab')
-      if (await tabs.count() > i) { await tabs.nth(i).evaluate(b => b.click()); await clearOverlays(); await shot(label) }
+      if (await tabs.count() > i) {
+        await tabs.nth(i).evaluate(b => b.click()); await clearOverlays(); await shot(label)
+        // 내용 칸이 넘기기 되는지: 맨 아래로 넘긴 화면도 찍는다
+        const scrolled = await page.evaluate(() => { let best = null; for (const el of document.querySelectorAll('.page-section--shop *')) { const st = getComputedStyle(el); if (/(auto|scroll)/.test(st.overflowY) && el.scrollHeight > el.clientHeight + 4 && (!best || el.scrollHeight > best.scrollHeight)) best = el } if (!best) return 'none'; best.scrollTop = best.scrollHeight; return best.className })
+        metrics.push(`${view.name}\t${label}\tscroller\t${scrolled}`)
+        await shot(`${label}-end`)
+      }
     }
     // 무장 상세 창
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'roster'; g.ui.render(g.state) })

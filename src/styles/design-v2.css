@@ -652,3 +652,10 @@ html body .terr-search { display: none; }
   html body .page-section--territory .territory-layout > .territory-map.is-fullscreen { position: fixed; inset: 0; z-index: 80; height: auto; padding: calc(4px + var(--safe-t, 0px)) calc(4px + var(--safe-r)) calc(4px + var(--safe-b)) calc(4px + var(--safe-l)); overflow: hidden; display: flex; flex-direction: column; background: #1c120b; border: 0; border-image: none; }
   html body .page-section--territory .territory-map.is-fullscreen .map-viewport { flex: 1 1 auto; min-height: 0; height: auto; margin: 0; max-width: none; aspect-ratio: auto; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 상점: 남은 높이를 내용 칸이 쓰고, 그 안에서 넘긴다(패키지 · 신화 장비 · 정액권 등 모든 탭) */
+  html body .app-shell .main-content .page-section--shop > :last-child:not(.shop-balances):not(.shop-tabs) { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  html body .app-shell .main-content .page-section--shop .starter-pack-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; }
+  html body .app-shell .main-content .page-section--shop .starter-pack-note { flex: 0 0 auto; padding: 4px 12px; }
+  html body .app-shell .main-content .page-section--shop .starter-pack-note h3, html body .app-shell .main-content .page-section--shop .starter-pack-note p { margin: 0; font-size: 12.5px; }
+}
