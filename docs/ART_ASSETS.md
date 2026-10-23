@@ -30,7 +30,21 @@ painterly semi-realistic rendering, soft rim light, high detail, clean silhouett
 |---|---|---|---|
 | `lobby-city.webp` | 1920×1080 | 본영(메인) 화면 전체 배경 | `wide aerial view of a grand ancient Chinese walled capital city with palaces, pagodas, river, bridges and cherry blossoms, mountains in the distance, golden hour, isometric-like 3/4 view, center area slightly darker for UI overlays, 16:9` |
 | `screen-bg.webp` | 1920×1080 | 장수 · 편성 · 상점 등 메뉴 화면 배경 | `dark atmospheric background of an ancient Chinese fortress wall at dusk, misty mountains, low contrast and dark so UI panels stay readable, 16:9` |
-| `btn-battle.png` | 720×280 (투명) | 오른쪽 아래 큰 **전투** 버튼 바탕 | `ornate golden banner-shaped button plate with crossed swords emblem on the left, empty space on the right for a label, embossed gold frame, transparent background, wide 18:7` |
+
+## 1-1. 본영 도안 그림 (2026.10.23 적용, `lobby/` 폴더)
+
+휴대폰 가로 본영(메인)은 보내 주신 도안 그림을 잘라 넣어 만들었습니다. 파일은 `public/assets/ui/v2/lobby/`에 있고, 같은 이름의 더 큰 그림으로 바꿔 넣으면 그대로 적용됩니다(크기는 자유, 비율은 지금 파일과 같게).
+
+| 파일 | 쓰이는 곳 | 비고 |
+|---|---|---|
+| `card-frame.webp` | 아래 메뉴 카드 6개의 금 테두리(용머리 모서리) | 9-slice로 늘려 씀. 안쪽은 투명 |
+| `card-roster/formation/recruit/research/guild/shop.webp` | 카드 안 그림 | 이름 띠와 글자는 게임이 그림 |
+| `btn-battle.webp` · `btn-conquest.webp` | 전투 · 영토 점령전 버튼 | 글자까지 그림에 포함 |
+| `medal-notice/event/missions/rank.webp` | 왼쪽 메달 4(술 포함) | 고리 중심은 그림 너비의 58.75% · 높이의 38.6%. 이름 판은 게임이 그림 |
+| `medal-benefit/chat/settings/sound.webp` | 오른쪽 위 메달 4 | 이름(출석 · 채팅 · 설정 · 소리)은 게임이 그림 |
+| `chip-gold/honor/silver.webp` | 재화 칩 | 520×180 기준, 왼쪽 185px · 오른쪽 150px은 그대로, 가운데가 늘어남 |
+| `portrait-frame.webp` | 프로필 초상 틀(용 · 깃발) | 깃발 글자(魏 · 蜀 · 吳)는 게임이 그림 |
+| `panel-big.webp` · `panel-thin.webp` · `panel-red.webp` · `panel-small.webp` | 오른쪽 정보 판 틀 | 9-slice |
 
 ## 2. 메뉴 아이콘 (512×512 투명 PNG, `icons/` 폴더)
 

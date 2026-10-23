@@ -5,7 +5,8 @@ import { SQUAD_LABELS, squadIds, squadOf, squadPower } from '../game/squads'
 import { raidBossDeck, raidBossFor } from '../game/raid'
 import { RAID_REWARDS, raidWeekKey } from '../../server/raid.mjs'
 import { EQUIPMENT_PRESET_SLOTS, EQUIPMENT_STORAGE_WARN, bulkDismantlePreview, dismantlableCount, dismantleYield, equipmentOwners, presetItemIds } from '../game/equipment-manage'
-import { TUTORIAL_REWARD, TUTORIAL_STEPS, nextTutorialStep, tutorialFinished, DAILY_BONUS, DAILY_BONUS_ID, MISSIONS, dailyBonusReady, ensureMissions, missionStatus, rewardText, type MissionDef } from '../game/missions'
+import { TUTORIAL_REWARD, TUTORIAL_STEPS, nextTutorialStep, tutorialFinished, DAILY_BONUS, DAILY_BONUS_ID, MISSIONS, dailyBonusReady, ensureMissions, missionStatus, rewardText, seoulDay, type MissionDef } from '../game/missions'
+import { nextAttendanceDay } from '../../server/attendance.mjs'
 import { packageBonus, shopNeeds, shopPackages, type ShopPackage, type ShopResource } from '../game/shop'
 import { effectsSetting, muteSetting, musicSetting, qualitySetting, setEffectsSetting, setMusicSetting, setMuteSetting, setQualitySetting, setSfxSetting, sfxSetting, type EffectsSetting, type QualitySetting, type SoundLevel } from '../game/settings'
 import { sound } from '../engine/sound'
@@ -575,7 +576,6 @@ export class StrategyUI {
     // 새 디자인 큰 그림이 준비돼 있으면 CSS가 그 그림을 쓴다(docs/ART_ASSETS.md)
     probeArt('/assets/ui/v2/lobby-city.webp', 'has-lobby-city')
     probeArt('/assets/ui/v2/screen-bg.webp', 'has-screen-bg')
-    probeArt('/assets/ui/v2/btn-battle.png', 'has-art-battle')
     for (const type of ['pointerup', 'pointercancel', 'pointerleave']) root.addEventListener(type, this.cancelUnitPress)
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
     window.addEventListener('keydown', event => {
@@ -1690,13 +1690,12 @@ export class StrategyUI {
   private lobbyPanel: 'missions' | 'events' | null = null
 
   /**
-   * 가로 휴대폰 본영(사용자 배치안 2026.10.23)
-   *  왼쪽 위: 유저 프로필 · 왼쪽: 공지 · 이벤트 · 임무 · 랭킹
-   *  가운데 위: 재화 · 가운데 아래: 장수 · 편성 · 모집 · 내정 · 연맹 · 상점
-   *  오른쪽 위: 출석 · 채팅 · 설정 · 소리
-   *  오른쪽: 1 · 2 · 3군 덱 정보 · 임무 정보 · 시나리오 정보
-   *  오른쪽 아래: 영토 점령전 · 전투
-   * 그림 파일 목록: docs/ART_ASSETS.md
+   * 가로 휴대폰 본영(2026.10.23 디자인 도안 · 사용자 배치안)
+   *  위 줄: 용 틀 초상 프로필(왼쪽) · 재화 칩 3(가운데) · 출석 · 채팅 · 설정 · 소리 메달(오른쪽)
+   *  왼쪽: 공지 · 이벤트 · 임무 · 랭킹 메달(술 달린 고리 + 이름 판)
+   *  오른쪽: 덱 정보(1 · 2 · 3군) · 임무 정보 · 시나리오 정보 판
+   *  아래 줄: 장수 · 편성 · 모집 · 내정 · 연맹 · 상점 그림 카드 + 전투 · 영토 점령전
+   * 그림 파일: public/assets/ui/v2/lobby/ (docs/ART_ASSETS.md 「본영 도안 그림」)
    */
   private mobileLobby(state: StrategyState): string {
     const next = this.nextScenario(state)
@@ -1713,34 +1712,41 @@ export class StrategyUI {
     const doneCount = statuses.filter(status => status !== 'progress').length
     const claimable = statuses.includes('ready') || dailyBonusReady(state)
     const nextMission = daily.find((_, index) => statuses[index] === 'progress')
+    const attendanceReady = nextAttendanceDay(state.missions?.attendance, seoulDay()) !== null
     const dot = (on: unknown) => on ? '<i class="v2-dot" aria-hidden="true"></i>' : ''
-    // 왼쪽 위: 유저 프로필
-    const profile = `<button class="v2-profile" data-action="section" data-section="account">${leader ? `<span class="v2-profile__face" style="background-image:url('${this.portraitAsset(leader)}')"></span>` : ''}<span class="v2-profile__seal" data-no-tr>${escapeHtml(state.faction.slice(0, 1))}</span><span class="v2-profile__body"><strong>${ugc(name)}</strong><span class="v2-profile__power"><small>${en ? 'Power' : '전투력'}</small><b>${formatNumber(power)}</b></span><small class="v2-profile__meta">${escapeHtml(state.faction)} · ${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}</small></span></button>`
-    // 가운데 위: 재화
-    const res = (iconName: IconName, value: number, title: string) => `<span class="v2-res" title="${title}">${icon(iconName)}<b title="${formatNumber(value)}">${compactNumber(value)}</b><button class="v2-res__plus" data-action="section" data-section="shop" aria-label="${title} 얻기">+</button></span>`
+    const coach = (sections: Section[]) => Boolean(this.coachSection && sections.includes(this.coachSection as Section))
+    // 왼쪽 위: 유저 프로필(용 틀 초상 + 진영 깃발 + 이름 · 전투력 · 진영 정보)
+    const sealChar = ({ '위': '魏', '촉': '蜀', '오': '吳' } as Record<string, string>)[state.faction.slice(0, 1)] ?? state.faction.slice(0, 1)
+    const profile = `<button class="v2-profile" data-action="section" data-section="account"><span class="v2-profile__face">${leader ? `<i class="v2-profile__portrait" style="background-image:url('${this.portraitAsset(leader)}')"></i>` : ''}<span class="v2-profile__seal" data-no-tr>${escapeHtml(sealChar)}</span></span><span class="v2-profile__body"><strong>${ugc(name)}</strong><span class="v2-profile__power"><small>${en ? 'Power' : '전투력'}</small><b>${formatNumber(power)}</b></span><small class="v2-profile__meta">${escapeHtml(state.faction)} · ${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}</small></span></button>`
+    // 가운데 위: 재화 칩(금 테두리 칩 그림 + 숫자, 누르면 상점)
+    const res = (kind: 'gold' | 'honor' | 'silver', value: number, title: string) => `<button class="v2-res v2-res--${kind}" data-action="section" data-section="shop" title="${title} ${formatNumber(value)}" aria-label="${title} ${formatNumber(value)} · 상점에서 얻기"><b>${compactNumber(value)}</b></button>`
     const resources = `<div class="v2-resources">${res('gold', state.gold, '금화')}${res('honor', state.honor, '옥패')}${res('silver', state.silver, '은전')}</div>`
-    // 오른쪽 위: 출석 · 채팅 · 설정 · 소리
-    const topIcon = (key: ArtIconKey, art: string, label: string, attrs: string) => `<button class="v2-topicon" ${attrs}>${artIcon(key, art)}<span>${label}</span></button>`
-    const topIcons = `<div class="v2-topicons">${topIcon('calendar', 'attendance', en ? 'Check-in' : '출석', 'data-action="attendance-open"')}${topIcon('chat', 'chat', en ? 'Chat' : '채팅', 'data-action="open-chat"')}${topIcon('gear', 'settings', en ? 'Settings' : '설정', 'data-action="section" data-section="account"')}<button class="v2-topicon v2-topicon--sound" data-action="sound-toggle" aria-label="${muteSetting() ? '소리 켜기' : '소리 끄기'}"><span class="art-ico"><span class="art-ico__line">${muteSetting() ? '🔇' : '🔊'}</span></span><span>${en ? 'Sound' : '소리'}</span></button></div>`
-    // 왼쪽: 공지 · 이벤트 · 임무 · 랭킹
-    const sideIcon = (key: ArtIconKey, art: string, label: string, attrs: string, badge = '') => `<button class="v2-sideicon" ${attrs}>${artIcon(key, art)}<span>${label}</span>${badge}</button>`
-    const sideIcons = `<div class="v2-sideicons">${sideIcon('mail', 'news', en ? 'Notice' : '공지', 'data-action="section" data-section="updates"')}${sideIcon('gift', 'event', en ? 'Event' : '이벤트', 'data-action="lobby-panel" data-panel="events"')}${sideIcon('scroll', 'missions', en ? 'Missions' : '임무', 'data-action="lobby-panel" data-panel="missions"', dot(claimable))}${sideIcon('trophy', 'rank', en ? 'Ranks' : '랭킹', 'data-action="section" data-section="rank"')}</div>`
+    // 오른쪽 위: 출석 · 채팅 · 설정 · 소리(금 고리 메달)
+    const topIcon = (kind: string, label: string, attrs: string, badge = '') => `<button class="v2-topicon v2-topicon--${kind}" ${attrs}><span class="v2-topicon__medal"></span><span class="v2-topicon__label">${label}</span>${badge}</button>`
+    const topIcons = `<div class="v2-topicons">${topIcon('benefit', en ? 'Check-in' : '출석', 'data-action="attendance-open"', dot(attendanceReady))}${topIcon('chat', en ? 'Chat' : '채팅', 'data-action="open-chat"')}${topIcon('settings', en ? 'Settings' : '설정', 'data-action="section" data-section="account"')}${topIcon(muteSetting() ? 'mute' : 'sound', en ? 'Sound' : '소리', `data-action="sound-toggle" aria-label="${muteSetting() ? '소리 켜기' : '소리 끄기'}"`)}</div>`
+    // 왼쪽: 공지 · 이벤트 · 임무 · 랭킹(술 달린 메달 + 이름 판)
+    const sideIcon = (kind: string, label: string, attrs: string, badge = '') => `<button class="v2-sideicon v2-sideicon--${kind}" ${attrs}><span class="v2-sideicon__medal"></span><span class="v2-sideicon__label">${label}</span>${badge}</button>`
+    const sideIcons = `<div class="v2-sideicons">${sideIcon('notice', en ? 'Notice' : '공지', 'data-action="section" data-section="updates"')}${sideIcon('event', en ? 'Event' : '이벤트', 'data-action="lobby-panel" data-panel="events"')}${sideIcon('missions', en ? 'Missions' : '임무', 'data-action="lobby-panel" data-panel="missions"', dot(claimable))}${sideIcon('rank', en ? 'Ranks' : '랭킹', 'data-action="section" data-section="rank"')}</div>`
     // 오른쪽: 덱 정보(1 · 2 · 3군) · 임무 정보 · 시나리오 정보
     const deckRows = [0, 1, 2].map(index => {
       const ids = squadIds(state, index)
-      const faces = [0, 1, 2].map(slot => { const general = state.generals.find(item => item.id === ids[slot]); return general ? `<span class="v2-deck__face" style="background-image:url('${this.portraitAsset(general)}');--grade:${gradeColor(general)}"></span>` : '<span class="v2-deck__face is-empty">＋</span>' }).join('')
+      const faces = [0, 1, 2].map(slot => { const general = state.generals.find(item => item.id === ids[slot]); return general ? `<span class="v2-deck__face" style="background-image:url('${this.portraitAsset(general)}')"></span>` : '<span class="v2-deck__face is-empty">＋</span>' }).join('')
       return `<button class="v2-deck__row" data-action="lobby-squad" data-squad="${index}"><b>${SQUAD_LABELS[index]}</b><span class="v2-deck__faces">${faces}</span><em>${formatNumber(squadPower(state, index))}</em></button>`
     }).join('')
     const deckInfo = `<div class="v2-info v2-deck"><div class="v2-info__head">${en ? 'Squads' : '덱 정보'}</div>${deckRows}</div>`
-    const missionInfo = `<button class="v2-info v2-missioninfo${claimable ? ' has-reward' : ''}" data-action="lobby-panel" data-panel="missions"><span class="v2-info__head">${en ? 'Daily missions' : '임무 정보'} <b>${doneCount}/${daily.length}</b></span><span class="v2-missioninfo__line">${doneCount >= daily.length ? (en ? '✓ All done today' : '✓ 오늘 임무 완료') : escapeHtml(nextMission?.label ?? '')}</span><span class="v2-missioninfo__bar"><i style="width:${Math.round(doneCount / Math.max(1, daily.length) * 100)}%"></i></span></button>`
-    const scenarioInfo = next ? `<button class="v2-info v2-chapter" data-action="section" data-section="battle" data-scenario-id="${next.id}"><span class="v2-info__head">${en ? 'Scenario' : '시나리오 정보'} <b>${state.scenarioCleared.length}/${SCENARIOS.length}</b></span><span class="v2-chapter__title">${allCleared ? (en ? 'Replay' : '다시 도전') : `${next.year}${en ? '' : '년'}`} · ${escapeHtml(next.title)}</span><span class="v2-chapter__sub">${en ? 'Enemy' : '적'} Lv.${scenarioEnemyLevel(next)} <i>${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</i></span><span class="v2-chapter__arrow">›</span></button>` : ''
-    // 가운데 아래: 장수 · 편성 · 모집 · 내정 · 연맹 · 상점
-    const dockItem = (section: Section, key: ArtIconKey, art: string, label: string, coachOn: boolean, badge = '') => `<button class="v2-dock__btn${coachOn ? ' is-coach' : ''}" data-action="section" data-section="${section}">${artIcon(key, art)}<span>${label}</span>${badge}</button>`
-    const coach = (sections: Section[]) => Boolean(this.coachSection && sections.includes(this.coachSection as Section))
-    const dock = `<nav class="v2-dock" aria-label="메뉴">${dockItem('roster', 'roster', 'generals', en ? 'Generals' : '장수', coach(['roster', 'codex']))}${dockItem('formation', 'formation', 'formation', en ? 'Lineup' : '편성', coach(['formation', 'equipment']), deployed.length < 3 ? '<b class="v2-badge">!</b>' : '')}${dockItem('recruit', 'recruit', 'recruit', en ? 'Recruit' : '모집', coach(['recruit']), dot(state.lastRecruit))}${dockItem('research', 'research', 'research', en ? 'Domestic' : '내정', coach(['research']))}${dockItem('guild', 'guild', 'guild', en ? 'Guild' : '연맹', coach(['guild', 'board']), dot(this.guildUi.me?.requests?.length))}${dockItem('shop', 'shop', 'shop', en ? 'Shop' : '상점', coach(['shop']))}</nav>`
-    // 오른쪽 아래: 영토 점령전 · 전투
-    const conquest = `<button class="v2-battle v2-battle--conquest${coach(['territory']) ? ' is-coach' : ''}" data-action="section" data-section="territory"><span class="v2-battle__emblem">${artIcon('territory', 'territory')}</span><span class="v2-battle__label">${en ? 'Conquest' : '영토 점령전'}</span></button>`
-    const battle = `<button class="v2-battle${coach(['battle', 'duel', 'raid']) ? ' is-coach' : ''}" data-action="section" data-section="battle"${next ? ` data-scenario-id="${next.id}"` : ''}><span class="v2-battle__emblem">${artIcon('swords', 'battle')}</span><span class="v2-battle__label">${en ? 'Battle' : '전투'}</span></button>`
+    const missionInfo = `<button class="v2-info v2-missioninfo${claimable ? ' has-reward' : ''}" data-action="lobby-panel" data-panel="missions"><span class="v2-info__head">${en ? 'Daily missions' : '임무 정보'} <b>${doneCount}/${daily.length}</b></span><span class="v2-missioninfo__line">${doneCount >= daily.length ? (en ? '✓ All done today' : '✓ 오늘 임무 완료') : escapeHtml(nextMission?.label ?? '')}</span><span class="v2-info__arrow" aria-hidden="true">›</span></button>`
+    const scenarioInfo = next ? `<button class="v2-info v2-chapter" data-action="section" data-section="battle" data-scenario-id="${next.id}"><span class="v2-info__head">${en ? 'Scenario' : '시나리오 정보'} <b>${state.scenarioCleared.length}/${SCENARIOS.length}</b></span><span class="v2-chapter__title">${allCleared ? (en ? 'Replay' : '다시 도전') : `${next.year}${en ? '' : '년'}`} · ${escapeHtml(next.title)}</span><span class="v2-chapter__sub">${en ? 'Enemy' : '적'} Lv.${scenarioEnemyLevel(next)} <i>${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</i></span><span class="v2-info__arrow" aria-hidden="true">›</span></button>` : ''
+    // 아래 줄: 그림 카드 6(틀 + 그림 + 이름 띠) · 전투 · 영토 점령전
+    const card = (section: Section, label: string, coachOn: boolean, badge = '') => `<button class="v2-card v2-card--${section}${coachOn ? ' is-coach' : ''}" data-action="section" data-section="${section}"><span class="v2-card__in"><i class="v2-card__pic"></i><span class="v2-card__band"><span class="v2-card__label">${label}</span></span></span>${badge}</button>`
+    const cards = card('roster', en ? 'Generals' : '장수', coach(['roster', 'codex']))
+      + card('formation', en ? 'Lineup' : '편성', coach(['formation', 'equipment']), deployed.length < 3 ? '<b class="v2-badge">!</b>' : '')
+      + card('recruit', en ? 'Recruit' : '모집', coach(['recruit']), dot(state.lastRecruit))
+      + card('research', en ? 'Domestic' : '내정', coach(['research']))
+      + card('guild', en ? 'Guild' : '연맹', coach(['guild', 'board']), dot(this.guildUi.me?.requests?.length))
+      + card('shop', en ? 'Shop' : '상점', coach(['shop']))
+    const battle = `<button class="v2-battle${coach(['battle', 'duel', 'raid']) ? ' is-coach' : ''}" data-action="section" data-section="battle"${next ? ` data-scenario-id="${next.id}"` : ''}><span class="v2-sr">${en ? 'Battle' : '전투'}</span></button>`
+    const conquest = `<button class="v2-conquest${coach(['territory']) ? ' is-coach' : ''}" data-action="section" data-section="territory"><span class="v2-sr">${en ? 'Conquest' : '영토 점령전'}</span></button>`
+    const dock = `<nav class="v2-dock" aria-label="메뉴">${cards}${battle}${conquest}</nav>`
     // 창: 임무 · 이벤트
     let panel = ''
     if (this.lobbyPanel === 'missions') panel = `<div class="ml-panel" role="dialog" aria-label="임무"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="ml-panel__body v2-frame"><button class="ml-panel__close" data-action="lobby-panel-close" aria-label="닫기">✕</button>${this.tutorialCard(state)}${this.missionCard(state)}</div></div>`
@@ -1755,7 +1761,7 @@ export class StrategyUI {
       ].join('')
       panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="이벤트"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-frame"><div class="v2-menu__head"><strong>${en ? 'Events' : '이벤트'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><div class="v2-events">${rows}</div></div></div>`
     }
-    return `<section class="page-section page-section--mlobby page-section--v2"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}<div class="v2-actions">${conquest}${battle}</div>${panel}</section>`
+    return `<section class="page-section page-section--mlobby page-section--v2"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
   }
 
   private overviewSection(state: StrategyState): string {
@@ -3405,7 +3411,7 @@ export class StrategyUI {
   private updatesSection(): string {
     // 지금까지의 업데이트를 주제별로 요약(새 항목은 맨 위에 더한다)
     const completed = [
-    ['2026.10.23', '휴대폰 가로 화면 · 본영 메뉴 새 배치', '본영(메인) 메뉴를 다시 배치했습니다. 왼쪽 위 유저 프로필, 왼쪽에 공지 · 이벤트 · 임무 · 랭킹, 가운데 위 재화, 가운데 아래 장수 · 편성 · 모집 · 내정 · 연맹 · 상점(금테 틀 + 아이콘 타일 디자인), 오른쪽 위 출석 · 채팅 · 설정 · 소리, 오른쪽에 1 · 2 · 3군 덱 정보 · 임무 정보 · 시나리오 정보, 오른쪽 아래 영토 점령전(붉은색) · 전투(금색) 버튼입니다. 모집 화면은 무장 모집 · 장비 뽑기 탭, 전투 화면은 시나리오 · 대련 · 레이드 탭으로 묶였습니다. 편성의 자동 편성 버튼은 진형 칸 머리로, 영토는 지도를 크게 보여 주고 위 줄에 도시 검색을 두었습니다. 무장 획득 연출 · 작전 결과 창은 한 화면에 들어오게 가로 배치로 바꾸고, 전투 시점 단추는 화면 오른쪽 아래로 옮겼습니다.'],
+    ['2026.10.23', '휴대폰 가로 화면 · 본영 메뉴 새 배치', '본영(메인) 메뉴를 다시 배치했습니다. 왼쪽 위 유저 프로필, 왼쪽에 공지 · 이벤트 · 임무 · 랭킹, 가운데 위 재화, 아래 줄에 장수 · 편성 · 모집 · 내정 · 연맹 · 상점 그림 카드와 전투 · 영토 점령전 버튼, 오른쪽 위 출석 · 채팅 · 설정 · 소리 메달, 오른쪽에 1 · 2 · 3군 덱 정보 · 임무 정보 · 시나리오 정보 판입니다. 틀 · 메달 · 카드 그림은 새 디자인 도안(용머리 금테 · 붉은 술)을 그대로 썼습니다. 모집 화면은 무장 모집 · 장비 뽑기 탭, 전투 화면은 시나리오 · 대련 · 레이드 탭으로 묶였습니다. 편성의 자동 편성 버튼은 진형 칸 머리로, 영토는 지도를 크게 보여 주고 위 줄에 도시 검색을 두었습니다. 무장 획득 연출 · 작전 결과 창은 한 화면에 들어오게 가로 배치로 바꾸고, 전투 시점 단추는 화면 오른쪽 아래로 옮겼습니다.'],
     ['2026.10.22', '속공 인연 6종 조정 · 스킬 위력 상한', '스킬 한 번의 사기 피해 상한(40)이 스킬 위력 버프가 걸린 동안(속공 인연의 초반 효과 · 공격 강화 · 용의 위세 · 연환의 분노 · 간파)에는 50까지 열립니다. 속공 인연 6종의 전투 시작 20초 효과는 아군 공격 +80% · 스킬 위력 +100%(기존 스킬 +80%)가 되고, 이 동안 스킬 상한 50이 적용됩니다. 속공 덱은 버티기 · 유틸 덱에 강하고, 스킬 연계 · 디버프 덱에 약합니다.', '완료', 'jade'],
     ['2026.10.22', '고순 천명 · 진궁 명장', '고순이 5등급(천명)이 되었습니다. 능력치가 천명 수준으로 오르고, 5성 각성 함진영 불파(사기 피해 ×1.3 + 아군 받는 피해 −15% 5초)가 생겼습니다. 진궁은 4등급(명장)이 되었습니다. 이미 가진 고순 · 진궁도 레벨 · 성급은 그대로 두고 능력치가 새 등급 기준으로 오릅니다. 함진영 돌격 인연의 아군 받는 피해 감소는 −15%에서 −5%로 낮춰 덱 승률을 90%대 초반(약 92%)으로 맞췄습니다.', '완료', 'jade'],
     ['2026.10.22', '속공 인연 6종', '세 명이 모두 출전하면 켜지는 속공 인연 6종이 생겼습니다: 합비 질풍대(장료 · 악진 · 이전), 하북 선봉(안량 · 문추 · 장합), 자오곡 기습(위연 · 황충 · 마대 · 받는 피해 −15% 추가), 백기 야습(감녕 · 능통 · 손책), 함진영 돌격(여포 · 고순 · 진궁 · 받는 피해 −5% 추가), 관마 쌍웅(관우 · 마초 · 관은병). 그 조합에 원래 켜지던 인연 효과에 전투 시작 20초 동안 아군 공격 · 스킬 위력 +80%가 더해지고, 영토전 · 대련에서는 속공 덱으로 판정됩니다. 구성원의 추천 덱 속공 칸에 이 덱이 나옵니다. 시나리오 · 레이드의 적에게는 켜지지 않습니다.', '완료', 'jade'],
