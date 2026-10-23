@@ -624,3 +624,11 @@ html body .terr-search { display: none; }
   html body .page-section--formation .formation-bench-head .sort-direction { height: 32px; width: 32px; }
   html body .app-shell .main-content .page-section--formation .formation-slot-main > small { display: none; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--formation > .formation-bench-head h3 { flex: 0 0 auto; white-space: nowrap; }
+  html body .page-section--formation .formation-bench-head .roster-sort-controls { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; gap: 4px; margin-left: 6px; }
+  html body .page-section--formation .formation-bench-head .codex-search { flex: 1 1 auto; min-width: 0; }
+  html body .page-section--formation .formation-bench-head .codex-search input { width: 100%; min-width: 0; }
+  /* 가운데 ‘전열’ 설명은 자리 이름(중앙 · 전열)과 겹치므로 숨김 */
+  html body .app-shell .main-content .page-section--formation .formation-front { display: none; }
+}
