@@ -191,6 +191,9 @@ try {
         await shot(`${label}-end`)
       }
     }
+    // 모집: 장비 뽑기 탭
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'recruit'; g.ui.render(g.state) })
+    if (await page.locator('[data-action="summon-tab"][data-summon-tab="equipment"]').count()) { await page.locator('[data-action="summon-tab"][data-summon-tab="equipment"]').first().evaluate(b => b.click()); await clearOverlays(); await shot('98k-summon-gear'); await page.locator('[data-action="summon-tab"][data-summon-tab="generals"]').first().evaluate(b => b.click()) }
     // 쪽 넘기기: 도감 2쪽
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'codex'; g.ui.render(g.state) })
     await sleep(500)
