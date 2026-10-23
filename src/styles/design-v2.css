@@ -927,3 +927,33 @@ html body .terr-search { display: none; }
 @media (orientation: landscape) and (max-height: 500px) {
   html body .mres-branch.is-active .mres-branch__icon { background-color: transparent !important; background-size: contain !important; background-position: center !important; background-repeat: no-repeat !important; box-shadow: none !important; }
 }
+
+/* ════════ 출석 체크(휴대폰 가로): 37일을 한 화면에 — 왼쪽 안내 · 첫 7일, 오른쪽 30일(10×3) ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .attendance-modal { padding: 6px; }
+  html body .attendance-modal__panel {
+    width: min(100%, calc(100vw - 12px)); max-height: calc(100dvh - 12px); overflow: hidden; padding: 10px 12px;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.25fr); grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "head h30" "h7 g30" "g7 g30" "ok g30"; gap: 4px 12px; align-content: stretch;
+    background: linear-gradient(180deg, rgba(20, 15, 11, .98), rgba(8, 6, 5, .98)); border: 1px solid rgba(212, 175, 55, .7); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .7), 0 10px 30px rgba(0, 0, 0, .7);
+  }
+  html body .attendance-modal__head { grid-area: head; }
+  html body .attendance-modal__head h2 { margin: 2px 0; font-size: 17px; font-family: 'Gowun Batang', serif; color: #f6d77a; }
+  html body .attendance-modal__head p { font-size: 11px; line-height: 1.4; }
+  html body .attendance-modal__panel > h3:nth-of-type(1) { grid-area: h7; margin: 2px 0 0; }
+  html body .attendance-modal__panel > h3:nth-of-type(2) { grid-area: h30; margin: 0; align-self: end; }
+  html body .attendance-grid--week { grid-area: g7; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 4px; align-content: stretch; }
+  html body .attendance-modal__panel > ol.attendance-grid:not(.attendance-grid--week) { grid-area: g30; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  html body .attendance-modal__ok { grid-area: ok; justify-self: stretch; min-height: 34px; height: 34px; }
+  html body .attendance-day { min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; justify-items: center; gap: 1px; padding: 3px 2px; text-align: center; background: rgba(6, 5, 4, .85); border: 1px solid rgba(212, 175, 55, .35); border-radius: 2px; }
+  html body .attendance-day b { font-size: 11px; }
+  html body .attendance-day__art { position: relative; display: grid; place-items: center; width: 100%; min-height: 0; overflow: hidden; }
+  html body .attendance-day__art img { max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; }
+  html body .attendance-day__art img.is-portrait { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; border-radius: 2px; }
+  html body .attendance-day__trio { display: flex; height: 100%; }
+  html body .attendance-day__trio img { height: 100%; width: auto; }
+  html body .attendance-day__label { font-size: 9.5px; line-height: 1.15; color: #e8dcc0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  html body .attendance-day__count { position: absolute; right: 1px; bottom: 0; font-size: 10px; font-style: normal; color: #fff; text-shadow: 0 1px 2px #000; }
+  html body .attendance-day.is-hero { border-color: rgba(255, 210, 120, .75); background: radial-gradient(circle at 50% 40%, rgba(120, 80, 20, .5), rgba(6, 5, 4, .9) 75%); }
+  html body .attendance-day.is-today { border-color: #f6c56d; box-shadow: 0 0 0 1px #f6c56d, 0 0 8px rgba(246, 197, 109, .7); }
+  html body .attendance-day.is-done { opacity: .5; }
+}

@@ -194,6 +194,12 @@ try {
     // 모집: 장비 뽑기 탭
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'recruit'; g.ui.render(g.state) })
     if (await page.locator('[data-action="summon-tab"][data-summon-tab="equipment"]').count()) { await page.locator('[data-action="summon-tab"][data-summon-tab="equipment"]').first().evaluate(b => b.click()); await clearOverlays(); await shot('98k-summon-gear'); await page.locator('[data-action="summon-tab"][data-summon-tab="generals"]').first().evaluate(b => b.click()) }
+    // 출석 체크 창(전체 37일)
+    await page.addStyleTag({ content: '.attendance-modal.is-shot { display: grid !important }' }).catch(() => {})
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state); g.ui.showAttendance(9, '9일째 보상 · 금화 50개'); document.querySelector('.attendance-modal')?.classList.add('is-shot') })
+    await sleep(500)
+    await tab.screenshot({ path: `${out}/${view.name}-98l-attendance.png` })
+    await page.evaluate(() => document.querySelectorAll('.attendance-modal').forEach(el => el.remove()))
     // 쪽 넘기기: 도감 2쪽
     await page.evaluate(() => { const g = window.__strategy; g.state.section = 'codex'; g.ui.render(g.state) })
     await sleep(500)
