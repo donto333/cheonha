@@ -151,7 +151,7 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
 
   /* 아래 가운데: 주요 메뉴 */
   html body .v2-dock {
-    position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(262px + var(--safe-r)); bottom: calc(4px + var(--safe-b));
+    position: absolute; z-index: 3; left: calc(76px + var(--safe-l)); right: calc(198px + var(--safe-r)); bottom: calc(4px + var(--safe-b));
     height: 70px; display: flex; align-items: flex-end; justify-content: center; gap: 2px; padding: 0 8px 4px;
     background: linear-gradient(180deg, rgba(23, 16, 11, 0), rgba(23, 16, 11, .85) 45%);
     border-bottom: 2px solid var(--v2-gold-deep);
@@ -164,13 +164,17 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .v2-dock__btn.is-coach .art-ico::after, html body .v2-menu__cell.is-coach .art-ico::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; }
 
   /* 오른쪽 아래: 영토 점령전 · 전투 */
-  html body .v2-actions { position: absolute; z-index: 3; right: calc(10px + var(--safe-r)); bottom: calc(8px + var(--safe-b)); display: flex; align-items: flex-end; gap: 6px; }
-  html body .v2-conquest { position: relative; display: grid; justify-items: center; gap: 1px; width: 70px; padding: 0; background: none; border: 0; color: var(--v2-ink); }
-  html body .v2-conquest .art-ico { width: 52px; height: 52px; box-shadow: 0 0 0 2px rgba(178, 59, 43, .8), 0 3px 10px rgba(0, 0, 0, .6); border-radius: 50%; }
-  html body .v2-conquest > span:not(.art-ico) { font-size: 11.5px; font-weight: 800; white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
-  html body .v2-conquest.is-coach .art-ico::after, html body .v2-battle.is-coach::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; }
+  html body .v2-actions { position: absolute; z-index: 3; right: calc(10px + var(--safe-r)); bottom: calc(8px + var(--safe-b)); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  html body .v2-battle.is-coach::after { content: ''; position: absolute; inset: 2px; clip-path: inherit; border: 2px solid #4fcf98; animation: hub-coach 1.6s ease-in-out infinite; pointer-events: none; }
+  /* 영토 점령전: 전투 버튼과 같은 모양, 붉은 옻칠 색 */
+  html body .v2-battle.v2-battle--conquest { height: 50px; padding-right: 16px; background: linear-gradient(180deg, #e0745e 0%, #b23b2b 40%, #8a2a1d 75%, #5e1b12 100%); }
+  html body .v2-battle--conquest::before { border-color: rgba(255, 214, 190, .6); }
+  html body .v2-battle--conquest .v2-battle__emblem { left: 12px; }
+  html body .v2-battle--conquest .v2-battle__emblem .art-ico { width: 42px; height: 42px; }
+  html body .v2-battle--conquest .v2-battle__label { font-size: 18px; letter-spacing: .04em; color: #fff1dc; text-shadow: 0 1px 2px rgba(0, 0, 0, .7); }
+  html.has-art-battle body .v2-battle--conquest { background: linear-gradient(180deg, #e0745e 0%, #b23b2b 40%, #8a2a1d 75%, #5e1b12 100%); clip-path: polygon(14% 0, 100% 0, 100% 100%, 14% 100%, 0 50%); }
   html body .v2-battle {
-    position: relative; width: 178px; height: 70px;
+    position: relative; width: 178px; height: 62px;
     display: flex; align-items: center; justify-content: flex-end; gap: 0; padding: 0 22px 0 0;
     background: linear-gradient(180deg, #fbe7a4 0%, #e3bf5a 38%, #b8892a 72%, #8a6a1e 100%);
     clip-path: polygon(14% 0, 100% 0, 100% 100%, 14% 100%, 0 50%);
@@ -200,20 +204,24 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   @media (max-height: 380px) {
     html body .v2-sideicon .art-ico, html body .v2-dock__btn .art-ico { width: 40px; height: 40px; }
     html body .v2-dock { height: 64px; }
-    html body .v2-battle { width: 156px; height: 62px; }
+    html body .v2-battle { width: 156px; height: 54px; }
     html body .v2-battle__label { font-size: 26px; }
-    html body .v2-conquest .art-ico { width: 46px; height: 46px; }
+    html body .v2-battle.v2-battle--conquest { height: 44px; }
+    html body .v2-battle--conquest .v2-battle__emblem .art-ico { width: 36px; height: 36px; }
+    html body .v2-battle--conquest .v2-battle__label { font-size: 16px; }
+    html body .v2-actions { gap: 4px; }
+    html body .v2-chapter__sub, html body .v2-missioninfo__bar { display: none; }
     html body .v2-sideicons { gap: 3px; }
     html body .v2-sideicon span:not(.art-ico):not(.art-ico__line) { font-size: 11px; }
     html body .v2-right { gap: 4px; }
-    html body .v2-deck__row { height: 27px; }
+    html body .v2-deck__row { height: 25px; }
     html body .v2-deck__face { width: 23px; height: 23px; }
-    html body .v2-dock { right: calc(248px + var(--safe-r)); }
+    html body .v2-dock { right: calc(176px + var(--safe-r)); }
   }
   @media (max-width: 780px) {
     html body .v2-res:nth-child(3) { display: none; }
     html body .v2-topicon span:not(.art-ico):not(.art-ico__line) { display: none; }
-    html body .v2-dock { right: calc(248px + var(--safe-r)); left: calc(68px + var(--safe-l)); }
+    html body .v2-dock { right: calc(176px + var(--safe-r)); left: calc(68px + var(--safe-l)); }
     html body .v2-right { width: 196px; }
     html body .v2-dock__btn > span:not(.art-ico) { font-size: 11.5px; }
   }
