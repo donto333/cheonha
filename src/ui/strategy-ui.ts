@@ -2112,8 +2112,18 @@ export class StrategyUI {
       if (!general) return ''
       body = this.codexCard(general, Boolean(owned))
     }
-    return `<div class="gdetail" role="dialog"><div class="gdetail__backdrop" data-action="general-detail-close"></div><div class="gdetail__body"><button class="gdetail__close" data-action="general-detail-close" aria-label="닫기">✕</button>${body}</div></div>`
+    // 연출: 처음 열 때만 등장 연출(gdetail--enter), 그림 위 빛 · 불씨는 늘
+    const enter = this.generalDetailEnter
+    this.generalDetailEnter = false
+    const shown = state.generals.find(item => item.id === detail.id) ?? allGenerals().find(item => item.id === detail.id)
+    const grade = shown?.grade ?? 1
+    const embers = grade >= 4 ? `<span class="gfx-embers">${Array.from({ length: grade >= 5 ? 12 : 7 }, (_, i) => `<i style="--i:${i};--x:${(i * 37) % 100}%;--d:${(3.2 + ((i * 7) % 5) * 0.45).toFixed(2)}s"></i>`).join('')}</span>` : ''
+    const fx = `<span class="gfx-art" aria-hidden="true"></span><span class="gfx-shine" aria-hidden="true"></span>${embers}`
+    body = body.replace(/(<div class="(?:gcard-portrait|codex-card-art)"[^>]*>)/, `$1${fx}`)
+    return `<div class="gdetail gdetail--profile${enter ? ' gdetail--enter' : ''}" data-grade="${grade}" role="dialog"><div class="gdetail__backdrop" data-action="general-detail-close"></div><div class="gdetail__body"><button class="gdetail__close" data-action="general-detail-close" aria-label="닫기">✕</button>${body}</div></div>`
   }
+  /** 무장 프로필을 방금 열었는가(등장 연출은 한 번만) */
+  private generalDetailEnter = false
 
   /** 가로 휴대폰 보유 무장: 타일 6장씩 · 아래 버튼 줄 */
   private mobileRoster(state: StrategyState): string {
@@ -3866,7 +3876,7 @@ export class StrategyUI {
     if (action === 'research-queue-cancel') { this.callbacks.onResearchQueueCancel(); return }
     if (action === 'research-help') { this.callbacks.onHelpRequest('research'); return }
     if (action === 'building-help') { this.callbacks.onHelpRequest('build', button.dataset.city ?? ''); return }
-    if (action === 'general-detail') { this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'general-detail') { this.generalDetailEnter = true; this.generalDetail = { kind: button.dataset.kind === 'codex' ? 'codex' : 'roster', id: button.dataset.id ?? '' }; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-squad') { this.formationSquad = Math.max(0, Math.min(2, Number(button.dataset.squad ?? 0))); this.lobbyPanel = null; this.callbacks.onSection('formation'); return }
     if (action === 'open-chat') { (document.querySelector('[data-social="toggle"]') as HTMLElement | null)?.click(); return }
