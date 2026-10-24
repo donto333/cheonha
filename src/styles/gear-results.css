@@ -80,7 +80,7 @@ html body .recruit-results.gear-results { padding: 0; place-items: center; overf
 .gear-results .gr-card:not(.gr-card--normal) .gr-card__stat { color: color-mix(in srgb, var(--grade), #fff 10%); }
 .gear-results .gr-card__set { position: absolute; left: calc(16 * var(--u)); right: calc(16 * var(--u)); top: calc(240 * var(--u)); display: flex; align-items: center; justify-content: center; gap: calc(8 * var(--u)); font-size: calc(19 * var(--u)); font-style: normal; font-weight: 600; line-height: 1.3; color: #e8cd92; white-space: nowrap; }
 .gear-results .gr-card__set span { overflow: hidden; text-overflow: ellipsis; }
-.gear-results .gr-card__set i { flex: 0 0 auto; display: grid; place-items: center; width: calc(28 * var(--u)); height: calc(28 * var(--u)); border: calc(1.5 * var(--u)) solid #c9a35a; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5a3a1a, #23150a); color: #f2d48e; font-size: calc(15 * var(--u)); font-style: normal; font-weight: 900; font-family: 'Noto Serif KR', 'Noto Serif CJK KR', serif; line-height: 1; }
+.gear-results .gr-card__set i { flex: 0 0 auto; display: grid; place-items: center; width: calc(28 * var(--u)); height: calc(28 * var(--u)); border: calc(1.5 * var(--u)) solid #c9a35a; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5a3a1a, #23150a); color: #f2d48e; font-size: calc(15 * var(--u)); font-style: normal; font-weight: 900; font-family: 'Gowun Batang', serif; line-height: 1; }
 
 /* 무장 카드: 초상을 카드 위쪽에 넓게, 성급은 오른쪽 위 */
 /* 초상 틀: 카드 금테와 같은 두 줄 금선(바깥 금 · 어두운 틈 · 안쪽 가는 금) + 네 모서리 금 꺾쇠, 안쪽은 등급색이 은은하게 */
