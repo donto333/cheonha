@@ -1,0 +1,8 @@
+land day1 {"panel":[836,382],"vh":390,"cells":37,"clipped":0,"labelCut":0,"cellH":83}
+land day24 {"panel":[836,382],"vh":390,"cells":37,"clipped":0,"labelCut":0,"cellH":83}
+galaxy day1 {"panel":[907,404],"vh":412,"cells":37,"clipped":0,"labelCut":0,"cellH":88}
+galaxy day24 {"panel":[907,404],"vh":412,"cells":37,"clipped":0,"labelCut":0,"cellH":88}
+small day1 {"panel":[732,352],"vh":360,"cells":37,"clipped":0,"labelCut":1,"cellH":76}
+small day24 {"panel":[732,352],"vh":360,"cells":37,"clipped":0,"labelCut":1,"cellH":76}
+pc day1 {"panel":[836,430],"vh":475,"cells":37,"clipped":0,"labelCut":0,"cellH":95}
+pc day24 {"panel":[836,430],"vh":475,"cells":37,"clipped":0,"labelCut":0,"cellH":95}
