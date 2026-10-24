@@ -1489,10 +1489,65 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
-/* 운영자 계정 안내: 작은 단추만 두고 누르면 설명이 펼쳐진다(화면을 가리지 않게) */
-html body .operator-chip { position: relative; display: inline-flex; vertical-align: middle; margin: 0 0 0 6px; z-index: 30; }
-html body .operator-chip__btn { display: inline-flex; align-items: center; gap: 3px; height: 20px; padding: 0 7px; font-size: 11px; font-weight: 800; line-height: 1; color: #ffb39e; background: rgba(120, 30, 20, .55); border: 1px solid rgba(255, 128, 102, .55); border-radius: 10px; cursor: pointer; }
-html body .operator-chip__btn b { font-weight: 900; color: #ffd2c4; }
-html body .operator-chip__btn[aria-expanded="true"] { background: rgba(160, 40, 25, .85); color: #fff; }
-html body .operator-chip__pop { position: absolute; left: 0; top: calc(100% + 5px); width: max-content; max-width: min(300px, 70vw); padding: 7px 10px; font-size: 11.5px; font-weight: 600; line-height: 1.45; color: #ffe3d8; white-space: normal; background: rgba(40, 14, 10, .97); border: 1px solid rgba(255, 128, 102, .6); border-radius: 4px; box-shadow: 0 6px 18px rgba(0, 0, 0, .7); }
-html body .operator-chip__pop[hidden] { display: none; }
+/* 내정 건물(2026.10.24): 이름 · 레벨이 한 줄로 가로로 보이게 — 강화 단추는 아래 줄 전체로(좁은 칸에서 이름이 세로로 쪼개지던 문제) */
+html body .building-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); grid-template-areas: "glyph copy" "act act"; align-items: center; column-gap: 10px; row-gap: 6px; padding: 10px 0; }
+html body .building-row > .building-glyph { grid-area: glyph; width: 34px; height: 34px; }
+html body .building-row > .building-copy { grid-area: copy; min-width: 0; }
+html body .building-row > .mini-action, html body .building-row > .building-actions { grid-area: act; width: 100%; min-width: 0; }
+html body .building-row > .building-actions { flex-direction: row; flex-wrap: wrap; }
+html body .building-row > .building-actions > * { flex: 1 1 auto; }
+html body .building-copy > strong { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; writing-mode: horizontal-tb; white-space: normal; word-break: keep-all; font-size: 14px; line-height: 1.3; }
+html body .building-copy > small { display: block; margin-top: 2px; font-size: 11.5px; line-height: 1.35; color: #cdbf9f; word-break: keep-all; }
+html body .building-lv { display: inline-flex; align-items: baseline; padding: 1px 7px; border: 1px solid rgba(224, 177, 82, .55); border-radius: 3px; background: rgba(224, 177, 82, .12); color: #f3cf72; font-size: 12px; font-weight: 800; letter-spacing: 0; white-space: nowrap; }
+html body .building-lv small { margin-left: 2px; color: #b9a582; font-size: 10.5px; font-weight: 600; }
+html body .building-lv.is-max { border-color: rgba(120, 220, 170, .6); background: rgba(80, 200, 150, .12); color: #8fe0b4; }
+html body .building-row .building-next { margin-left: 0; }
+
+/* 내정 건물 강화 단추: 어두운 단추 대신 밝은 금빛(누를 수 있을 때). 공사 중 · 최고 단계 · 다른 공사 대기는 그대로 어둡게 */
+html body .app-shell .main-content .page-section .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled), html body .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled) { color: #2b1a06; text-shadow: 0 1px 0 rgba(255, 244, 210, .7); background: none; border: 7px solid transparent; border-image: url('/assets/ui/v2/kit/btn-gold.webp') 20 fill / 7px / 0 stretch; border-radius: 0; box-shadow: none; /* 9칸 이음새 메움 */ background-image: url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-tl.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-tr.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-bl.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-br.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-t.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-b.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-l.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-r.webp'), url('/assets/ui/v2/slice/kit-btn-gold-20_20_20_20-c.webp'); background-position: 0 0, 100% 0, 0 100%, 100% 100%, calc(7px - 1px) 0, calc(7px - 1px) 100%, 0 calc(7px - 1px), 100% calc(7px - 1px), calc(7px - 1px) calc(7px - 1px); background-size: 7px 7px, 7px 7px, 7px 7px, 7px 7px, calc(100% - 7px - 7px + 2px) 7px, calc(100% - 7px - 7px + 2px) 7px, 7px calc(100% - 7px - 7px + 2px), 7px calc(100% - 7px - 7px + 2px), calc(100% - 7px - 7px + 2px) calc(100% - 7px - 7px + 2px); background-repeat: no-repeat; background-origin: border-box; background-clip: border-box;  font-weight: 800; }
+html body .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled):hover { filter: brightness(1.08); }
+html body .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled):active { filter: brightness(.92); }
+/* 금빛 강화 단추 글자: 진한 먹색 · 굵게, '레벨 강화 | 시간 | 비용'으로 나눠 읽기 쉽게 */
+html body .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled) { display: flex; align-items: center; justify-content: center; gap: 10px; color: #2a1704; text-shadow: 0 1px 0 rgba(255, 246, 214, .75); font-size: 13px; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__label { font-size: 14px; font-weight: 900; letter-spacing: .02em; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__time { padding: 0 8px; border-left: 1px solid rgba(60, 34, 8, .35); border-right: 1px solid rgba(60, 34, 8, .35); font-weight: 800; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; white-space: nowrap; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost .gi { filter: drop-shadow(0 0 1px rgba(60, 34, 8, .9)); }
+html body .building-row > .mini-action[data-action="building-upgrade"]:disabled .bld-up__label { font-weight: 800; }
+html body .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled) { gap: 7px; padding-left: 4px; padding-right: 4px; overflow: hidden; font-size: 12px; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__label { font-size: 13px; white-space: nowrap; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__time { padding: 0 6px; white-space: nowrap; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost { gap: 4px; }
+html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost .gi { width: 14px; height: 14px; }
+@media (max-width: 760px), (max-height: 380px) {
+  html body .building-row > .mini-action[data-action="building-upgrade"]:not(:disabled) { gap: 5px; font-size: 11px; }
+  html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__label { font-size: 12px; }
+  html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__time { padding: 0 4px; }
+  html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost { gap: 3px; letter-spacing: -.02em; }
+  html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost .gi { width: 12px; height: 12px; }
+}
+/* 강화 단추를 작게(글자 크기는 그대로): 전체 폭 대신 글자만큼, 높이 낮게.
+   설명 바로 아래(아이콘 오른쪽 칸)에 붙여 건물 한 줄의 높이도 줄인다 */
+html body .building-row { grid-template-areas: "glyph copy" ". act"; row-gap: 5px; padding: 8px 0; }
+html body .building-row > .mini-action[data-action="building-upgrade"] { justify-self: start; width: auto; max-width: 100%; }
+html body .building-row > .mini-action[data-action="building-upgrade"], html body .app-shell .main-content .page-section .building-row > .mini-action[data-action="building-upgrade"] { min-height: 0; height: 30px; padding: 0 10px; border-width: 5px; border-image-width: 5px; background-size: 5px 5px, 5px 5px, 5px 5px, 5px 5px, calc(100% - 8px) 5px, calc(100% - 8px) 5px, 5px calc(100% - 8px), 5px calc(100% - 8px), calc(100% - 8px) calc(100% - 8px); background-position: 0 0, 100% 0, 0 100%, 100% 100%, 4px 0, 4px 100%, 0 4px, 100% 4px, 4px 4px; }
+html body .building-row > .mini-action[data-action="building-upgrade"]:disabled { color: #cdbf9f; }
+html body .building-row > .building-actions { grid-area: act; justify-content: flex-start; }
+html body .building-row > .building-actions > .mini-action { flex: 0 0 auto; min-height: 0; height: 30px; }
+@media (max-height: 380px) {
+  /* 작은 휴대폰: 단추가 아이콘 아래부터 시작해 글자가 넘치지 않게 */
+  html body .building-row { grid-template-areas: "glyph copy" "act act"; }
+}
+
+/* 운영자 계정 안내: 작은 단추만 두고 누르면 설명이 뜬다(화면을 가리지 않게). 설명 창은 body에 붙는다 */
+html body .operator-chip { position: relative; display: inline-flex; flex: 0 0 auto; vertical-align: middle; margin: 0 0 0 6px; z-index: 30; }
+html body .app-shell .operator-chip .operator-chip__btn { display: inline-flex; align-items: center; gap: 4px; height: 22px; min-height: 0; padding: 0 4px 0 8px; font-size: 11px; font-weight: 800; line-height: 1; color: #ffb39e; background: rgba(120, 30, 20, .6); border: 1px solid rgba(255, 128, 102, .6); border-image: none; border-radius: 11px; box-shadow: none; cursor: pointer; }
+html body .app-shell .operator-chip .operator-chip__btn b { display: grid; place-items: center; width: 15px; height: 15px; font-size: 10px; font-weight: 900; font-style: italic; font-family: Georgia, serif; color: #2a0d08; background: #ffb39e; border-radius: 50%; }
+html body .app-shell .operator-chip .operator-chip__btn[aria-expanded="true"] { background: rgba(170, 40, 25, .9); color: #fff; }
+html body .operator-pop { position: fixed; z-index: 2147482000; width: max-content; max-width: min(300px, 80vw); padding: 7px 10px; font-size: 11.5px; font-weight: 600; line-height: 1.45; color: #ffe3d8; background: rgba(40, 14, 10, .97); border: 1px solid rgba(255, 128, 102, .6); border-radius: 4px; box-shadow: 0 6px 18px rgba(0, 0, 0, .7); }
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 휴대폰: 위쪽 막대 단추 줄에 끼므로 동그란 i 단추만 */
+  html body .app-shell .operator-chip .operator-chip__btn { width: 26px; height: 26px; padding: 0; justify-content: center; border-radius: 50%; }
+  html body .app-shell .operator-chip .operator-chip__label { display: none; }
+  html body .app-shell .operator-chip .operator-chip__btn b { width: 18px; height: 18px; font-size: 12px; }
+}

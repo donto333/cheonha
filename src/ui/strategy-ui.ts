@@ -635,8 +635,9 @@ export class StrategyUI {
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
     // 운영자 안내 펼침: 다른 곳을 누르면 닫는다
     document.addEventListener('click', event => {
-      if ((event.target as HTMLElement | null)?.closest?.('.operator-chip')) return
-      this.root.querySelectorAll<HTMLElement>('.operator-chip__pop:not([hidden])').forEach(el => { el.hidden = true; el.parentElement?.querySelector('.operator-chip__btn')?.setAttribute('aria-expanded', 'false') })
+      if ((event.target as HTMLElement | null)?.closest?.('.operator-chip, .operator-pop')) return
+      document.querySelector('.operator-pop')?.remove()
+      this.root.querySelectorAll('.operator-chip__btn').forEach(el => el.setAttribute('aria-expanded', 'false'))
     }, true)
     // 지도 전체 화면을 열 때는 도시 정보 창을 닫아 지도를 다 보여 준다(도시를 누르면 지도 위 오른쪽에 뜬다)
     document.addEventListener('territory-fullscreen', event => {
@@ -1121,7 +1122,7 @@ export class StrategyUI {
     // 화면을 가리지 않게 작은 '운영자 ⓘ' 단추만 두고, 누르면 설명이 펼쳐진다(다시 누르거나 다른 곳을 누르면 닫힘)
     const account = this.account
     if (!account || !(account.operator || account.role === 'admin')) return ''
-    return `<span class="operator-chip"><button type="button" class="operator-chip__btn" data-action="operator-note" aria-expanded="false" title="운영자 계정 안내">운영자 <b>ⓘ</b></button><span class="operator-chip__pop" role="note" hidden>운영자 계정 · ${escapeHtml(where)}</span></span>`
+    return `<span class="operator-chip"><button type="button" class="operator-chip__btn" data-action="operator-note" data-note="${escapeHtml(where)}" aria-expanded="false" aria-label="운영자 계정 안내 보기" title="운영자 계정 안내"><span class="operator-chip__label">운영자</span><b>i</b></button></span>`
   }
 
   setAccount(account: AccountView | null): void {
@@ -2947,10 +2948,10 @@ export class StrategyUI {
     if (building.endsAt !== undefined) {
       const left = Math.max(0, building.endsAt - Date.now())
       const total = Math.max(1, building.endsAt - (building.startedAt ?? building.endsAt - 1))
-      return `<div class="building-row is-building"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name} <em class="building-next">→ ${building.level + 1}단계 공사 중</em></strong><small>남은 시간 <b data-build-left="${building.endsAt}">${formatDuration(left)}</b></small><span class="building-progress"><i data-build-bar="${building.endsAt}" data-build-total="${total}" style="width:${Math.min(100, (1 - left / total) * 100).toFixed(1)}%"></i></span></div><div class="building-actions"><button class="mini-action" data-action="building-rush" data-city="${city.id}" data-build-rush="${building.endsAt}" ${canManage ? '' : 'disabled'}>즉시 완공 · 금화 ${rushCost(left)}</button><button class="mini-action" data-action="building-cancel" data-city="${city.id}" ${canManage ? '' : 'disabled'}>취소</button>${canManage && this.renderedState?.guild ? (building.help ? `<span class="building-help">연맹 도움 ${building.help.applied}/${GUILD_HELP_MAX}</span>` : `<button class="mini-action" data-action="building-help" data-city="${city.id}">도움 요청</button>`) : ''}</div></div>`
+      return `<div class="building-row is-building"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name} <span class="building-lv">Lv.${building.level}<small> / ${building.maxLevel}</small></span> <em class="building-next">→ Lv.${building.level + 1} 공사 중</em></strong><small>남은 시간 <b data-build-left="${building.endsAt}">${formatDuration(left)}</b></small><span class="building-progress"><i data-build-bar="${building.endsAt}" data-build-total="${total}" style="width:${Math.min(100, (1 - left / total) * 100).toFixed(1)}%"></i></span></div><div class="building-actions"><button class="mini-action" data-action="building-rush" data-city="${city.id}" data-build-rush="${building.endsAt}" ${canManage ? '' : 'disabled'}>즉시 완공 · 금화 ${rushCost(left)}</button><button class="mini-action" data-action="building-cancel" data-city="${city.id}" ${canManage ? '' : 'disabled'}>취소</button>${canManage && this.renderedState?.guild ? (building.help ? `<span class="building-help">연맹 도움 ${building.help.applied}/${GUILD_HELP_MAX}</span>` : `<button class="mini-action" data-action="building-help" data-city="${city.id}">도움 요청</button>`) : ''}</div></div>`
     }
     const waitOther = Boolean(busyBuilding && !maxed)
-    return `<div class="building-row"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name}</strong><small>${building.description}</small><span class="building-level">${'◆'.repeat(building.level)}${'◇'.repeat(building.maxLevel - building.level)}</span></div><button class="mini-action ${maxed ? 'is-maxed' : ''}" data-action="building-upgrade" data-city="${city.id}" data-building="${building.id}" ${!canManage || maxed || waitOther ? 'disabled' : ''} title="${waitOther ? '이 도시는 다른 건물을 짓는 중입니다' : ''}">${maxed ? '최고 단계' : waitOther ? `다른 공사 중 · ${costText}` : `강화 · ${formatDuration(buildingDurationMs(building, this.renderedState ?? undefined, city))} · ${costText}`}</button></div>`
+    return `<div class="building-row"><div class="building-glyph">${icon(building.kind === 'agriculture' ? 'grain' : building.kind === 'commerce' ? 'silver' : building.kind === 'barracks' ? 'duel' : building.kind === 'workshop' ? 'iron' : 'research')}</div><div class="building-copy"><strong>${building.name} <span class="building-lv${maxed ? ' is-max' : ''}">Lv.${building.level}<small> / ${building.maxLevel}</small></span></strong><small>${building.description}</small></div><button class="mini-action ${maxed ? 'is-maxed' : ''}" data-action="building-upgrade" data-city="${city.id}" data-building="${building.id}" ${!canManage || maxed || waitOther ? 'disabled' : ''} title="${waitOther ? '이 도시는 다른 건물을 짓는 중입니다' : ''}">${maxed ? '최고 단계' : waitOther ? `다른 공사 중 · ${costText}` : `<b class="bld-up__label">Lv.${building.level + 1} 강화</b><span class="bld-up__time">${formatDuration(buildingDurationMs(building, this.renderedState ?? undefined, city))}</span><span class="bld-up__cost">${costText.replace(/ · /g, ' ')}</span>`}</button></div>`
   }
 
   /** 연구 속도 안내: 태학 서원 · 태학 박사 단축(없으면 빈 글) */
@@ -3977,8 +3978,21 @@ export class StrategyUI {
     }
     if (action?.startsWith('login-')) { this.handleLoginGateAction(action!, button); return }
     if (action === 'operator-note') {
-      const pop = button.parentElement?.querySelector<HTMLElement>('.operator-chip__pop')
-      if (pop) { const open = pop.hidden; this.root.querySelectorAll<HTMLElement>('.operator-chip__pop').forEach(el => { el.hidden = true }); this.root.querySelectorAll('.operator-chip__btn').forEach(el => el.setAttribute('aria-expanded', 'false')); pop.hidden = !open; button.setAttribute('aria-expanded', String(open)) }
+      // 설명은 화면 맨 위 층(body)에 띄운다: 위쪽 막대 안에 두면 잘리거나 가려진다
+      const was = document.querySelector('.operator-pop')
+      was?.remove()
+      this.root.querySelectorAll('.operator-chip__btn').forEach(el => el.setAttribute('aria-expanded', 'false'))
+      if (was) return
+      const pop = document.createElement('div')
+      pop.className = 'operator-pop'
+      pop.setAttribute('role', 'note')
+      pop.textContent = `운영자 계정 · ${button.dataset.note ?? ''}`
+      document.body.appendChild(pop)
+      const r = button.getBoundingClientRect()
+      const w = pop.offsetWidth
+      pop.style.left = `${Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`
+      pop.style.top = `${r.bottom + 6}px`
+      button.setAttribute('aria-expanded', 'true')
       return
     }
     if (action === 'mythic-detail' || action === 'mythic-detail-close') { this.mythicDetailId = action === 'mythic-detail' ? button.dataset.equipmentId ?? null : null; if (this.renderedState) this.render(this.renderedState); return }
