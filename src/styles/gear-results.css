@@ -109,10 +109,9 @@ html body .recruit-results.gear-results { padding: 0; place-items: center; overf
 .gear-results .gr-burst--t3 .gr-burst__rays { left: calc(-400 * var(--u)); top: calc(-400 * var(--u)); width: calc(800 * var(--u)); height: calc(800 * var(--u)); animation-duration: 1.2s; }
 .gear-results .gr-burst--t3 .gr-burst__ring { animation-duration: .7s; border-width: calc(6 * var(--u)); }
 .gear-results .gr-burst b { left: calc(-7 * var(--u)); top: calc(-7 * var(--u)); width: calc(14 * var(--u)); height: calc(14 * var(--u)); border-radius: 50%; background: radial-gradient(circle, #fff 0 20%, var(--grade) 45%, transparent 72%); animation: gr-spark .7s cubic-bezier(.1, .7, .3, 1) var(--t, 0ms) both; }
-/* 최고 등급: 화면 섬광 · 흔들림 */
+/* 최고 등급: 화면 섬광 */
 .gear-results .gr-stage::after { content: ''; position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 50% 45%, rgba(255, 246, 220, .95), rgba(255, 210, 120, .45) 40%, transparent 75%); }
 .gear-results .gr-stage.is-flash::after { animation: gr-flash .45s ease-out both; }
-.gear-results .gr-stage.is-flash .gr-grid { animation: gr-shake .25s linear both; }
 /* 여는 동안: 안내 문구, 버튼 · 보유 옥패는 다 열린 뒤 */
 .gear-results .gr-skip { position: absolute; left: calc(536 * var(--u)); width: calc(600 * var(--u)); top: calc(744 * var(--u)); height: calc(50 * var(--u)); margin: 0; display: grid; place-items: center; background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26, 16, 9, .96) 55%, rgba(26, 16, 9, 0) 100%); text-align: center; font-size: calc(22 * var(--u)); font-weight: 700; color: #dcc596; text-shadow: 0 calc(2 * var(--u)) calc(2 * var(--u)) #000; opacity: 0; visibility: hidden; pointer-events: none; }
 .gear-results .gr-stage.is-revealing { cursor: pointer; }
@@ -124,7 +123,6 @@ html body .recruit-results.gear-results { padding: 0; place-items: center; overf
 @keyframes gr-rays { 0% { opacity: 0; transform: scale(.3); } 18% { opacity: 1; } 100% { opacity: 0; transform: scale(1.15); } }
 @keyframes gr-spark { from { transform: rotate(var(--a)) translateX(0) scale(var(--s)); opacity: 1; } to { transform: rotate(var(--a)) translateX(calc(var(--d) * var(--u))) scale(0); opacity: 0; } }
 @keyframes gr-flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes gr-shake { 0%, 100% { translate: 0 0; } 20% { translate: calc(-8 * var(--u)) calc(4 * var(--u)); } 40% { translate: calc(7 * var(--u)) calc(-5 * var(--u)); } 60% { translate: calc(-5 * var(--u)) calc(3 * var(--u)); } 80% { translate: calc(3 * var(--u)) calc(-2 * var(--u)); } }
 @keyframes gr-blink { 0%, 100% { opacity: .35; } 50% { opacity: .95; } }
 
 /* 등장 */
@@ -135,5 +133,5 @@ html body .recruit-results.gear-results { padding: 0; place-items: center; overf
 @keyframes gr-icon-pop { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @keyframes gr-card-shine { 0%, 100% { filter: drop-shadow(0 0 calc(4 * var(--u)) color-mix(in srgb, var(--grade), transparent 60%)); } 50% { filter: drop-shadow(0 0 calc(16 * var(--u)) color-mix(in srgb, var(--grade), transparent 20%)); } }
 @media (prefers-reduced-motion: reduce) {
-  .gear-results .gr-stage, .gear-results .gr-card, .gear-results .gr-card__art img, .gear-results .gr-burst, .gear-results .gr-grid { animation: none !important; }
+  .gear-results .gr-stage, .gear-results .gr-card, .gear-results .gr-card__art img, .gear-results .gr-burst { animation: none !important; }
 }
