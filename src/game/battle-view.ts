@@ -55,13 +55,13 @@ export function saveBattleDistance(value: BattleDistance): void {
   try { window.localStorage.setItem(DIST_KEY, value) } catch { /* 저장 불가: 이번 접속에만 */ }
 }
 
-// ── 전투 시간대(시점 판 아래 ‘시간’): 노을 · 아침. 배경 그림과 빛이 바뀐다. 고른 값은 이 기기에 기억한다 ──
+// ── 전투 시간대(시점 판 아래 ‘시간’): 노을 · 아침(기본). 배경 그림과 빛이 바뀐다. 고른 값은 이 기기에 기억한다 ──
 export type BattleTime = 'dusk' | 'morning'
 export const BATTLE_TIMES: BattleTime[] = ['dusk', 'morning']
 export const BATTLE_TIME_LABEL: Record<BattleTime, string> = { dusk: '노을', morning: '아침' }
 const TIME_KEY = 'cheonharo.battleTime.v1'
 export function loadBattleTime(): BattleTime {
-  try { const v = window.localStorage.getItem(TIME_KEY) as BattleTime | null; return v && BATTLE_TIMES.includes(v) ? v : 'dusk' } catch { return 'dusk' }
+  try { const v = window.localStorage.getItem(TIME_KEY) as BattleTime | null; return v && BATTLE_TIMES.includes(v) ? v : 'morning' } catch { return 'morning' }
 }
 export function saveBattleTime(value: BattleTime): void {
   try { window.localStorage.setItem(TIME_KEY, value) } catch { /* 저장 불가: 이번 접속에만 */ }
