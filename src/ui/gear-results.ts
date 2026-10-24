@@ -2,19 +2,19 @@
 // 틀 · 버튼 · 배경 그림은 /assets/ui/v2/gear-result/, 장비 · 무장 그림은 게임의 그림을 쓴다.
 import { assetUrl } from '../asset-url'
 import { sound } from '../engine/sound'
-import { generalRealm, type Realm } from '../game/general-factions'
+import { generalRealm } from '../game/general-factions'
 import { EQUIPMENT_GRADE_META, EQUIPMENT_SET_META, EQUIPMENT_TYPE_META, GRADE_META, equipmentSpecialty, equipmentValue, formatNumber, type Equipment, type EquipmentSet, type General } from '../game/strategy'
 
 const KIT = '/assets/ui/v2/gear-result/'
 const art = (name: string): string => assetUrl(`${KIT}${name}`)
 const escapeHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] ?? character))
 const delay = (index: number) => `--reveal-delay:${Math.min(index, 9) * 20}ms`
-const indexLabel = (index: number) => `<span class="gr-card__back" aria-hidden="true"><i></i></span><span class="gr-card__index">${String(index + 1).padStart(2, '0')}</span>`
+const cardBack = '<span class="gr-card__back" aria-hidden="true"><i></i></span><span class="gr-card__frame" aria-hidden="true"></span>'
 
 /** 세트 표식(카드 아래 줄 앞의 작은 인장) */
 const SET_SEAL: Record<EquipmentSet, string> = { command: '軍', martial: '霸', stratagem: '策', speed: '疾' }
-/** 무장 진영 표식 */
-const REALM_SEAL: Record<Realm, string> = { wei: '魏', shu: '蜀', wu: '吳', qun: '群' }
+/** 무장 병과 → 병과 아이콘 이름 */
+const ROLE_KEY: Record<string, string> = { 기병: 'cavalry', 보병: 'infantry', 궁병: 'archer', 책사: 'strategist' }
 
 /** 연출 등급: 0 보통 · 1 좋음(테 반짝) · 2 높음(빛살) · 3 최고(화면 섬광 · 흔들림) */
 const GEAR_TIER: Record<Equipment['grade'], number> = { normal: 0, rare: 1, unique: 2, legendary: 3, mythic: 3 }
@@ -35,7 +35,7 @@ interface ShellOptions {
 /** 그림 · 글자 크기를 도안 기준으로 쓰기 위한 CSS 변수(카드 틀 그림 등) */
 export function gearResultsStyle(): string {
   const url = (name: string) => `url('${art(name)}')`
-  return `--gr-panel:${url('panel.png')};--gr-card-normal:${url('card_normal.png')};--gr-card-rare:${url('card_rare.png')};--gr-slot:${url('card_inner_slot.png')};--gr-glow:${url('card_rare_glow.png')};--gr-banner:${url('title_banner.png')};--gr-btn:${url('button_brown.png')};--gr-btn-red:${url('button_red.png')};--gr-btn-close:${url('button_close.png')};--gr-back:url('${assetUrl('/assets/ui/v2/kit/card-back.webp')}')`
+  return `--gr-panel:${url('panel.png')};--gr-card-normal:${url('card_normal.png')};--gr-card-rare:${url('card_rare.png')};--gr-slot:${url('card_inner_slot.png')};--gr-glow:${url('card_rare_glow.png')};--gr-banner:${url('title_banner.png')};--gr-btn:${url('button_brown.png')};--gr-btn-red:${url('button_red.png')};--gr-btn-close:${url('button_close.png')};--gr-tile-frame:url('${assetUrl('/assets/ui/v2/kit/card-frame.webp')}');--gr-back:url('${assetUrl('/assets/ui/v2/kit/card-back.webp')}')`
 }
 
 function shell(o: ShellOptions): string {
@@ -62,7 +62,7 @@ function gearCard(item: Equipment, index: number, image: (item: Equipment) => st
   const grade = EQUIPMENT_GRADE_META[item.grade]
   const set = EQUIPMENT_SET_META[item.set]
   const specialty = equipmentSpecialty(item)
-  return `<article class="gr-card gr-card--${item.grade}" data-tier="${GEAR_TIER[item.grade]}" style="--grade:${grade.color};${delay(index)}">${indexLabel(index)}${specialty ? `<strong class="gr-card__badge">특기 · ${escapeHtml(specialty.label)}</strong>` : ''}<div class="gr-card__art"><img src="${image(item)}" alt="${EQUIPMENT_TYPE_META[item.type].label}" draggable="false"></div><b class="gr-card__name">${escapeHtml(item.name)}</b><small class="gr-card__stat">${grade.label} · ${EQUIPMENT_TYPE_META[item.type].label} · +${equipmentValue(item)}</small><em class="gr-card__set"><i aria-hidden="true">${SET_SEAL[item.set]}</i><span>${escapeHtml(set.label)} · ${escapeHtml(item.skillName)}</span></em></article>`
+  return `<article class="gr-card gr-card--gear gr-card--${item.grade}" data-tier="${GEAR_TIER[item.grade]}" style="--grade:${grade.color};${delay(index)}">${cardBack}<span class="gr-card__art gr-card__art--item"><img src="${image(item)}" alt="${EQUIPMENT_TYPE_META[item.type].label}" draggable="false"></span><span class="gr-card__grade">${grade.label}</span><span class="gr-card__seal" title="${escapeHtml(set.label)}">${SET_SEAL[item.set]}</span>${specialty ? `<strong class="gr-card__badge">특기 · ${escapeHtml(specialty.label)}</strong>` : ''}<span class="gr-card__foot"><span class="gr-card__line"><b>${EQUIPMENT_TYPE_META[item.type].label} +${equipmentValue(item)}</b><em>${escapeHtml(set.label)}</em></span><strong>${escapeHtml(item.name)}</strong></span></article>`
 }
 
 /** 장비 결과창 속 내용(바깥 .recruit-results 안에 넣는다) */
@@ -94,14 +94,12 @@ export interface RecruitResultsOptions {
   honorIcon: string
 }
 
-/** 무장 등급 → 카드 틀(색이 가까운 틀) */
-const GENERAL_FRAME: Record<number, string> = { 1: 'normal', 2: 'unique', 3: 'rare', 4: 'elite', 5: 'legendary' }
-
 function generalCard(general: General, index: number, portrait: (general: General) => string): string {
   const meta = GRADE_META[general.grade]
   const realm = generalRealm(general.id)
   const stars = Math.max(0, Math.min(5, general.stars ?? 1))
-  return `<article class="gr-card gr-card--general gr-card--${GENERAL_FRAME[general.grade] ?? 'normal'}" data-tier="${GENERAL_TIER[general.grade] ?? 0}" style="--grade:${meta.color};${delay(index)}">${indexLabel(index)}<span class="gr-card__stars" aria-label="${stars}성">${'★'.repeat(stars)}<s>${'★'.repeat(5 - stars)}</s></span><div class="gr-card__art gr-card__art--portrait"><i aria-hidden="true"></i><img src="${portrait(general)}" alt="" draggable="false" loading="eager" decoding="async"><i aria-hidden="true"></i></div><b class="gr-card__name">${escapeHtml(general.name)}</b><small class="gr-card__stat">${general.grade}등급 · ${meta.label} · Lv.${general.level}</small><em class="gr-card__set"><i aria-hidden="true">${REALM_SEAL[realm]}</i><span>${escapeHtml(general.role)} · ${escapeHtml(general.epithet)}</span></em></article>`
+  const role = ROLE_KEY[general.role] ?? 'infantry'
+  return `<article class="gr-card gr-card--general gr-card--g${general.grade}" data-tier="${GENERAL_TIER[general.grade] ?? 0}" style="--grade:${meta.color};${delay(index)}">${cardBack}<span class="gr-card__art gr-card__art--portrait" style="background-image:url('${portrait(general)}')"></span><span class="gr-card__role" style="background-image:url('${assetUrl(`/assets/ui/v2/kit/role-${role}.webp`)}')" title="${escapeHtml(general.role)}"></span><span class="gr-card__realm" style="background-image:url('${assetUrl(`/assets/ui/v2/kit/logo-${realm}.webp`)}')"></span><span class="gr-card__foot"><span class="gr-card__line"><b>Lv.${general.level}</b><span class="gr-card__stars" aria-label="${stars}성">${'★'.repeat(stars)}<s>${'★'.repeat(5 - stars)}</s></span></span><strong>${escapeHtml(general.name)}</strong></span></article>`
 }
 
 /** 무장 모집 결과창 속 내용 */
