@@ -1048,10 +1048,14 @@ html body .terr-search { display: none; }
 .bt-view-dist__btn { min-height: 30px; padding: 0 2px; font-size: 11px; font-weight: 800; color: #f3e3bd; background: rgba(60, 28, 10, .7); border: 1px solid rgba(240, 194, 106, .45); border-radius: 8px; }
 .bt-view-dist__btn.is-on { color: #3a1d08; background: #f0c26a; border-color: #f0c26a; }
 @media (orientation: landscape) and (max-height: 500px) {
-  html body .app-shell--battle .bt-callout { width: min(300px, 42vw); padding: 3px 10px 4px; background: rgba(14, 8, 4, .62); }
-  html body .app-shell--battle .bt-callout .eyebrow { font-size: 10px; }
-  html body .app-shell--battle .bt-callout strong { font-size: 14px; margin: 0 0 2px; }
-  html body .app-shell--battle .bt-callout .bt-lanes span { padding: 1px 6px; font-size: 11px; }
-  html body .app-shell--battle .bt-callout .bt-bar { height: 3px; }
+  html body .bt-stage .bt-callout { width: min(300px, 42vw); padding: 3px 10px 4px; background: rgba(14, 8, 4, .62); }
+  html body .bt-stage .bt-callout .eyebrow { font-size: 10px; }
+  html body .bt-stage .bt-callout strong { font-size: 14px; margin: 0 0 2px; }
+  html body .bt-stage .bt-callout .bt-lanes span { padding: 1px 6px; font-size: 11px; }
+  html body .bt-stage .bt-callout .bt-bar { height: 3px; }
   html body .bt-view-picker { width: 260px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .bt-stage .bt-callout { align-self: center; width: min(300px, 40vw) !important; max-width: 300px; padding: 3px 10px 4px !important; }
+  html body .bt-stage .bt-callout .bt-lanes { gap: 4px; margin: 2px 0; }
 }
