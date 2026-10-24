@@ -3471,7 +3471,20 @@ export class StrategyUI {
   private deviceSettingsCard(): string {
     const quality = qualitySetting(), effects = effectsSetting()
     const seg = (action: string, current: string, items: Array<[string, string]>) => `<div class="setting-seg">${items.map(([value, label]) => `<button class="setting-seg__btn ${current === value ? 'is-active' : ''}" data-action="${action}" data-value="${value}">${label}</button>`).join('')}</div>`
-    return `<div class="glass-card device-settings"><div class="card-header"><div><span class="eyebrow">이 기기 설정</span><h3>화면 · 소리 · 전투 효과</h3></div></div><div class="setting-row"><div><strong>언어 / Language</strong><small>게임 전체 글자를 한국어 또는 영어로 보여 줍니다. 바꾸면 화면을 다시 불러옵니다.</small></div><div class="setting-seg" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div><div class="setting-row"><div><strong>따라하기 안내</strong><small>게임 소개, 메뉴 짚어 주기, 첫 전투 따라하기를 처음부터 다시 봅니다.</small></div><button class="mini-action" data-action="coach-reset">안내 다시 보기</button></div><div class="setting-row"><div><strong>배경음악</strong><small>본영 · 전투 · 대련 · 레이드마다 다른 곡이 흐릅니다. 위쪽 🔊 버튼으로 모든 소리를 한 번에 끌 수 있습니다.</small></div>${seg('setting-music', muteSetting() ? 'off' : musicSetting(), [['off', '끔'], ['low', '작게'], ['mid', '보통'], ['high', '크게']])}</div><div class="setting-row"><div><strong>효과음</strong><small>버튼 · 강화 · 장비 · 전투(공격 · 스킬 · 승패) 소리입니다.</small></div>${seg('setting-sfx', muteSetting() ? 'off' : sfxSetting(), [['off', '끔'], ['low', '작게'], ['mid', '보통'], ['high', '크게']])}</div><div class="setting-row"><div><strong>그래픽 품질</strong><small>낮음은 빛 번짐·그림자를 끄고 병사 수를 줄입니다. 새로고침하면 적용됩니다.</small></div>${seg('setting-quality', quality, [['auto', '자동'], ['high', '높음'], ['low', '낮음']])}</div><div class="setting-row"><div><strong>전투 효과</strong><small>줄임은 불꽃·화살 수와 화면 흔들림을 줄입니다. 바로 적용됩니다. 자동은 화면이 버벅이면 스스로 줄입니다.</small></div>${seg('setting-effects', effects, [['auto', '자동'], ['full', '전체'], ['reduced', '줄임']])}</div>${this.factionChangeRow()}${this.account && !this.account.openId.startsWith('guest_') ? '' : `<div class="setting-row setting-row--danger"><div><strong>게스트 기록 초기화</strong><small>${this.account ? '이 게스트 아이디와 진행(무장 · 재화 · 튜토리얼 · 출석 · 안내 기록)을 서버에서 모두 지웁니다. 다시 게스트로 들어오면 새 아이디를 정합니다(같은 아이디를 다시 써도 됩니다).' : '이 기기에 저장된 게스트 진행(무장·재화·튜토리얼·안내 기록)을 모두 지우고 접속 화면부터 다시 시작합니다. 이 기기로 만든 게스트 아이디가 있으면 그 아이디와 서버 기록도 함께 지웁니다. 회원 계정 기록은 지워지지 않습니다.'}</small></div><button class="mini-action mini-action--danger" data-action="guest-reset">초기화</button></div>`}</div>`
+    return `<div class="glass-card device-settings"><div class="card-header"><div><span class="eyebrow">이 기기 설정</span><h3>화면 · 소리 · 전투 효과</h3></div></div><div class="setting-row"><div><strong>언어 / Language</strong><small>게임 전체 글자를 한국어 또는 영어로 보여 줍니다. 바꾸면 화면을 다시 불러옵니다.</small></div><div class="setting-seg" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div><div class="setting-row"><div><strong>따라하기 안내</strong><small>게임 소개, 메뉴 짚어 주기, 첫 전투 따라하기를 처음부터 다시 봅니다.</small></div><button class="mini-action" data-action="coach-reset">안내 다시 보기</button></div><div class="setting-row"><div><strong>배경음악</strong><small>본영 · 전투 · 대련 · 레이드마다 다른 곡이 흐릅니다. 위쪽 🔊 버튼으로 모든 소리를 한 번에 끌 수 있습니다.</small></div>${seg('setting-music', muteSetting() ? 'off' : musicSetting(), [['off', '끔'], ['low', '작게'], ['mid', '보통'], ['high', '크게']])}</div><div class="setting-row"><div><strong>효과음</strong><small>버튼 · 강화 · 장비 · 전투(공격 · 스킬 · 승패) 소리입니다.</small></div>${seg('setting-sfx', muteSetting() ? 'off' : sfxSetting(), [['off', '끔'], ['low', '작게'], ['mid', '보통'], ['high', '크게']])}</div><div class="setting-row"><div><strong>그래픽 품질</strong><small>낮음은 빛 번짐·그림자를 끄고 병사 수를 줄입니다. 새로고침하면 적용됩니다.</small></div>${seg('setting-quality', quality, [['auto', '자동'], ['high', '높음'], ['low', '낮음']])}</div><div class="setting-row"><div><strong>전투 효과</strong><small>줄임은 불꽃·화살 수와 화면 흔들림을 줄입니다. 바로 적용됩니다. 자동은 화면이 버벅이면 스스로 줄입니다.</small></div>${seg('setting-effects', effects, [['auto', '자동'], ['full', '전체'], ['reduced', '줄임']])}</div>${this.factionChangeRow()}${this.account && !this.account.openId.startsWith('guest_') ? '' : `<div class="setting-row setting-row--danger"><div><strong>게스트 기록 초기화</strong><small>${this.account ? '이 게스트 아이디와 진행(무장 · 재화 · 튜토리얼 · 출석 · 안내 기록)을 서버에서 모두 지웁니다. 다시 게스트로 들어오면 새 아이디를 정합니다(같은 아이디를 다시 써도 됩니다).' : '이 기기에 저장된 게스트 진행(무장·재화·튜토리얼·안내 기록)을 모두 지우고 접속 화면부터 다시 시작합니다. 이 기기로 만든 게스트 아이디가 있으면 그 아이디와 서버 기록도 함께 지웁니다. 회원 계정 기록은 지워지지 않습니다.'}</small></div><button class="mini-action mini-action--danger" data-action="guest-reset">초기화</button></div>`}${this.logoutRow()}</div>`
+  }
+
+  /** 설정 맨 아래: 로그아웃(회원 · 게스트 아이디) 또는 로그인 화면으로(이 기기에만 저장하는 게스트) */
+  private logoutRow(): string {
+    const signedIn = this.auth.status === 'authenticated'
+    const guestId = Boolean(this.account?.openId.startsWith('guest_'))
+    const title = signedIn ? '로그아웃' : '로그인 화면으로'
+    const note = !signedIn
+      ? '진행은 이 기기에 그대로 저장되어 있습니다. 로그인 화면에서 다시 게스트로 시작하면 이어서 합니다.'
+      : guestId
+        ? '진행을 저장하고 로그인 화면으로 돌아갑니다. 게스트 아이디는 이 기기에서 다시 게스트로 시작하면 그대로 들어옵니다.'
+        : '진행을 저장하고 로그인 화면으로 돌아갑니다. 같은 아이디 · 비밀번호로 언제든 다시 들어올 수 있습니다.'
+    return `<div class="setting-row setting-row--logout"><div><strong>${title}</strong><small>${note}</small></div><button class="mini-action" data-action="logout">${title}</button></div>`
   }
 
   private accountSection(): string {
@@ -4210,7 +4223,14 @@ export class StrategyUI {
     }
     else if (action === 'guest-login') this.callbacks.onGuestLogin()
     else if (action === 'login') this.callbacks.onLogin()
-    else if (action === 'logout') this.callbacks.onLogout()
+    else if (action === 'logout') {
+      const signedIn = this.auth.status === 'authenticated'
+      const guestId = Boolean(this.account?.openId.startsWith('guest_'))
+      const text = !signedIn ? '로그인 화면으로 돌아갈까요? 진행은 이 기기에 저장되어 있습니다.'
+        : guestId ? '로그아웃할까요? 게스트 아이디는 이 기기에서 다시 게스트로 시작하면 들어올 수 있습니다. 다른 기기에서는 들어올 수 없습니다.'
+          : '로그아웃할까요?'
+      if (window.confirm(tr(text))) this.callbacks.onLogout()
+    }
     else if (action === 'account-refresh') this.callbacks.onAccountRefresh()
     else if (action === 'rank-refresh') this.callbacks.onRankRefresh()
     else if (action === 'board-refresh') this.callbacks.onBoardRefresh((button.dataset.board ?? this.boardTab) as BoardPost['board'])
