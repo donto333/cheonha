@@ -716,6 +716,9 @@ export class StrategyUI {
   }
 
   render(state: StrategyState): void {
+    // 진영을 아직 고르지 않았으면 진영 선택 화면을 그대로 둔다.
+    // (새 계정의 금화 · 출석 지급 응답이 늦게 와서 그리면 본영이 진영 선택을 덮어, 진영 미선택으로 튜토리얼이 시작되지 않았다)
+    if (!state.factionConfirmed && this.root.querySelector('.faction-selection')) return
     // 장비 정리(합치기 · 스킬 동기화)는 그리기마다 한 번만 하고, 장비 전투력도 이번 그리기 동안 한 번씩만 계산한다
     ensureEquipmentState(state)
     resetUiPowerMemo()
