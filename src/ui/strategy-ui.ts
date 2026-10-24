@@ -25,6 +25,7 @@ import { HARD_LEVEL_BONUS, HARD_RULE_INFO, SCENARIOS, hardClearReward, hardClear
 import { matchup, type BattleResult } from '../game/battle-core'
 import { BATTLE_EFFECTS, type BattleEffectId } from '../game/battle-effects'
 import { fxGlyph, fxSeal } from './fx-icons'
+import { gearResultsMarkup } from './gear-results'
 import { BONDS, GENERAL_SKILLS, bondActive, skillDefFor, type SkillFx } from '../game/skills'
 import { SEASON_COPIES, SEASON_WANDERER, SEASON_WANDERER_PLUNDER, seasonEndsAt, seasonGeneral, seasonKey, nextSeasonKey, seasonNumber, seasonStandings, type SeasonStanding } from '../../server/season.mjs'
 import { emptyGuildUi, guildEmblem, royalBadge, guildRankingCard, guildSection, type GuildTab, type GuildUiState } from './guild-ui'
@@ -1471,9 +1472,11 @@ export class StrategyUI {
   showEquipmentResults(rewards: Equipment[]): void {
     this.root.querySelector('.recruit-results')?.remove()
     const overlay = document.createElement('div')
-    overlay.className = 'recruit-results'
-    const cards = rewards.map((item, index) => { const specialty = equipmentSpecialty(item); return `<div class="recruit-result-card equipment-result-card equipment-result-card--${item.grade}" style="--grade:${EQUIPMENT_GRADE_META[item.grade].color};--reveal-delay:${Math.min(index, 9) * 70}ms"><span class="recruit-result-index">${String(index + 1).padStart(2, '0')}</span><div class="equipment-result-icon"><img src="${equipmentImage(item.type)}" alt="${EQUIPMENT_TYPE_META[item.type].label}" /></div><div><b>${escapeHtml(item.name)}</b><small>${EQUIPMENT_GRADE_META[item.grade].label} · ${EQUIPMENT_TYPE_META[item.type].label} · +${equipmentValue(item)}</small><em>${escapeHtml(EQUIPMENT_SET_META[item.set].label)} · ${escapeHtml(item.skillName)}</em>${specialty ? `<strong class="equipment-specialty-badge">특기 · ${escapeHtml(specialty.label)}</strong>` : ''}</div></div>` }).join('')
-    overlay.innerHTML = `<div class="recruit-results-backdrop"></div><div class="recruit-results-panel"><div class="recruit-results-heading"><div><span class="eyebrow">장비 획득 결과</span><h2>${rewards.length}개의 장비를 획득했습니다</h2><p>획득한 장비는 보유 장비에 추가되며, 무장에게 장착하거나 강화할 수 있습니다.</p></div><button class="mini-action" data-action="close-recruit-results">닫기</button></div><div class="recruit-results-grid equipment-results-grid">${cards}</div>${this.drawBalance('equipment')}<div class="recruit-results-actions"><button class="action-button action-button--outline" data-action="extra-equipment-draw" data-count="1"><span>1회 추가 뽑기</span><b class="cost">${this.honorCost(equipmentDrawCost(1))}</b></button><button class="action-button action-button--outline" data-action="extra-equipment-draw" data-count="10"><span>10회 추가 뽑기</span><b class="cost">${this.honorCost(equipmentDrawCost(10))}</b></button><button class="action-button action-button--primary" data-action="close-recruit-results">결과 확인 완료 <span>→</span></button></div></div>`
+    overlay.className = 'recruit-results gear-results'
+    const state = this.renderedState
+    const freeDraws = state?.missions?.freeDraws ?? 0
+    const cost = (count: number) => freeDraws >= count ? '무료권' : this.honorCost(equipmentDrawCost(count))
+    overlay.innerHTML = gearResultsMarkup(rewards, { honor: state?.honor ?? 0, freeDraws, cost: { one: cost(1), ten: cost(10) }, image: item => equipmentImage(item.type), honorIcon: icon('honor') })
     this.root.appendChild(overlay)
     requestAnimationFrame(() => overlay.classList.add('is-visible'))
   }
