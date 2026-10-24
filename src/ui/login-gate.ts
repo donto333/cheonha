@@ -40,11 +40,14 @@ const icon = (name: string, x: number, y: number, s: number) => `<img class="lg-
 export interface LoginGateOptions {
   offline: boolean
   savedId: string
+  /** 이미 접속된 계정 이름(있으면 로그인 단추가 '게임 시작'이 되고 비밀번호 없이 들어간다) */
+  session?: string | null
 }
 
 /** 접속 화면 HTML. 단추는 data-action으로 StrategyUI가 처리한다 */
 export function loginGateHtml(options: LoginGateOptions): string {
   const { offline, savedId } = options
+  const session = options.session ?? null
   const esc = (value: string) => value.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] ?? ch)
   // 패널 묶음(도안 좌표 855,337 · 989 × 449)의 안쪽 좌표
   const P = (x: number, y: number) => [x - 855, y - 337] as const
@@ -61,15 +64,15 @@ export function loginGateHtml(options: LoginGateOptions): string {
     <form class="lg-form" data-login-form autocomplete="on" novalidate>
       <label class="lg-text lg-label" style="${pBox(932, 423, 120, 28)}" for="lg-id">아이디</label>
       ${pi('input', 928, 453, 402, 46)}${pIcon('user', 941, 463, 26)}
-      <input id="lg-id" class="lg-input" name="name" maxlength="12" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="아이디를 입력하세요." value="${esc(savedId)}" style="${pBox(984, 453, 332, 46)}" ${offline ? 'disabled' : ''}>
+      <input id="lg-id" class="lg-input" name="name" maxlength="12" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="아이디를 입력하세요." value="${esc(session ?? savedId)}" style="${pBox(984, 453, 332, 46)}" ${offline || session ? 'disabled' : ''}>
       <label class="lg-text lg-label" style="${pBox(932, 510, 140, 28)}" for="lg-pw">비밀번호</label>
       ${pi('input', 928, 540, 402, 46)}${pIcon('lock', 941, 550, 26)}
-      <input id="lg-pw" class="lg-input" name="password" type="password" maxlength="64" autocomplete="current-password" placeholder="비밀번호를 입력하세요." style="${pBox(984, 540, 294, 46)}" ${offline ? 'disabled' : ''}>
+      <input id="lg-pw" class="lg-input" name="password" type="password" maxlength="64" autocomplete="current-password" placeholder="${session ? '접속된 계정입니다 · 바로 시작' : '비밀번호를 입력하세요.'}" style="${pBox(984, 540, 294, 46)}" ${offline || session ? 'disabled' : ''}>
       <button type="button" class="lg-btn lg-eye" data-action="login-eye" aria-label="비밀번호 보기" aria-pressed="false" style="${pBox(1284, 546, 34, 34)}">${icon('eye', 3, 3, 28)}</button>
       <button type="button" class="lg-btn lg-check" data-action="login-remember" role="checkbox" aria-checked="${savedId ? 'true' : 'false'}" style="${pBox(928, 604, 150, 32)}">${img(savedId ? 'checkbox_on' : 'checkbox_off', 4, 4, 25, 25, 'lg-check__box')}<span>아이디 저장</span></button>
-      <span class="lg-links" style="${pBox(1100, 604, 238, 32)}"><button type="button" class="lg-link" data-action="login-signup">회원가입</button><i>|</i><button type="button" class="lg-link" data-action="login-find">비밀번호 찾기</button></span>
-      <button type="submit" class="lg-btn lg-btn--login" style="${pBox(928, 656, 401, 74)}" ${offline ? 'disabled' : ''}>${img('button_red', 0, 0, 401, 74)}<span>로그인</span></button>
-      <small class="lg-status" role="alert" style="${pBox(928, 730, 402, 26)}">${offline ? '서버에 연결할 수 없어 회원 로그인을 쓸 수 없습니다 · 게스트로 시작할 수 있습니다' : ''}</small>
+      <span class="lg-links" style="${pBox(1100, 604, 238, 32)}">${session ? '<button type="button" class="lg-link" data-action="login-switch">다른 계정으로 로그인</button>' : '<button type="button" class="lg-link" data-action="login-signup">회원가입</button><i>|</i><button type="button" class="lg-link" data-action="login-find">비밀번호 찾기</button>'}</span>
+      <button type="submit" class="lg-btn lg-btn--login${session ? ' lg-btn--continue' : ''}" style="${pBox(928, 656, 401, 74)}" ${offline ? 'disabled' : ''}>${img('button_red', 0, 0, 401, 74)}<span>${session ? '게임 시작' : '로그인'}</span></button>
+      <small class="lg-status" role="alert" style="${pBox(928, 730, 402, 26)}">${offline ? '서버에 연결할 수 없어 회원 로그인을 쓸 수 없습니다 · 게스트로 시작할 수 있습니다' : session ? `${esc(session)} 계정으로 접속되어 있습니다` : ''}</small>
     </form>
     <p class="lg-text lg-guest-desc" style="${pBox(1396, 425, 397, 56)}">아이디만 정하고 바로 시작합니다.<br>${offline ? '지금은 이 기기에만 저장됩니다.' : '서버에 저장되는 모든 콘텐츠를 이용할 수 있습니다.'}</p>
     <button type="button" class="lg-btn lg-btn--guest" data-action="guest-login" style="${pBox(1406, 495, 377, 63)}">${img('button_gold', 0, 0, 377, 63)}<span>게스트로 시작</span>${icon('chevron_right', 329, 19, 25)}</button>

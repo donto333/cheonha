@@ -377,6 +377,8 @@ export interface StrategyUiCallbacks {
   /** 서버 없이 이 기기에만 저장하는 게스트(서버에 연결할 수 없을 때) */
   onLocalGuestLogin: () => void
   onLogin: () => void
+  /** 접속 화면에서 이미 접속된 계정으로 게임 시작 */
+  onContinue: () => void
   /** 접속 화면에서 바로 회원 로그인(오류 문장을 돌려주면 화면에 보여 준다) */
   onMemberLogin: (name: string, password: string) => Promise<string | null>
   /** 회원가입 창 열기 */
@@ -943,6 +945,8 @@ export class StrategyUI {
       const box = button.querySelector<HTMLImageElement>('.lg-check__box')
       if (box) box.src = assetUrl(`/assets/login/v3/checkbox_${on ? 'on' : 'off'}.webp`)
       if (!on) { try { window.localStorage.removeItem(LOGIN_SAVED_ID_KEY) } catch { /* 무시 */ } }
+    } else if (action === 'login-switch') {
+      this.callbacks.onLogout()
     } else if (action === 'login-signup') {
       if (this.auth.status === 'offline') { status('서버에 연결할 수 없어 회원가입을 할 수 없습니다.'); return }
       this.callbacks.onSignup()
@@ -978,6 +982,8 @@ export class StrategyUI {
 
   /** 접속 화면 회원 로그인 폼 */
   private submitLoginGate(form: HTMLFormElement): void {
+    // 이미 접속된 계정: 비밀번호 없이 들어간다
+    if (form.querySelector('.lg-btn--continue')) { this.callbacks.onContinue(); return }
     const name = (form.querySelector<HTMLInputElement>('#lg-id')?.value ?? '').trim()
     const password = form.querySelector<HTMLInputElement>('#lg-pw')?.value ?? ''
     const status = form.querySelector<HTMLElement>('.lg-status')
@@ -1699,7 +1705,7 @@ export class StrategyUI {
   private accessGate(): string {
     let savedId = ''
     try { savedId = window.localStorage.getItem(LOGIN_SAVED_ID_KEY) ?? '' } catch { /* 저장소를 못 쓰면 비워 둔다 */ }
-    return loginGateHtml({ offline: this.auth.status === 'offline', savedId })
+    return loginGateHtml({ offline: this.auth.status === 'offline', savedId, session: this.auth.status === 'authenticated' ? (this.auth.name || '장군') : null })
   }
 
 

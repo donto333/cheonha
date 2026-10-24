@@ -49,6 +49,8 @@ try {
     const shell = await tab.$('iframe.landscape-shell__frame')
     if (shell) page = (await shell.contentFrame()) ?? page
     await page.waitForSelector('.access-gate', { timeout: 20_000 })
+    // 불러오기 화면(src/ui/loader.ts)이 걷힐 때까지
+    await page.waitForFunction(() => !document.querySelector('.boot-loader'), null, { timeout: 60_000 }).catch(() => {})
     await shot('00-access-gate')
     await page.locator('[data-action="login"]').evaluate(b => b.click()).catch(() => {})
     await sleep(500)

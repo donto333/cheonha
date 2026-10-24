@@ -38,6 +38,7 @@ try {
 
   await page.goto(url)
   await page.waitForSelector('.access-gate', { timeout: 10_000 })
+  await page.waitForFunction(() => !document.querySelector('.boot-loader'), null, { timeout: 60_000 }).catch(() => {})
   await page.click('[data-action="guest-login"]')
   await page.waitForSelector('.faction-selection, .app-shell', { timeout: 10_000 })
   if (await page.locator('.faction-selection').count()) {

@@ -373,7 +373,17 @@ const gateAfterReset = (() => { try { const on = window.localStorage.getItem(GAT
 if (STATIC_PREVIEW && !gateAfterReset) { try { window.localStorage.setItem(GUEST_ACCESS_KEY, '1') } catch { /* 저장 불가 */ } }
 // 미리보기 계정은 무장 모집 · 장비 뽑기에 옥패를 쓰지 않는다(연출 · 확률을 마음껏 시험)
 if (STATIC_PREVIEW) setFreeDraws(true)
-let gameAccess: 'member' | 'guest' | null = (STATIC_PREVIEW && !gateAfterReset) || window.localStorage.getItem(GUEST_ACCESS_KEY) === '1' ? 'guest' : null
+/**
+ * 접속하면 언제나 로그인 화면부터(2026.10.24). 로그인 화면에서 로그인 · 게스트 시작 · 아이디 만들기를 눌러
+ * 새로고침한 직후(이 창에서 한 번)만 바로 게임에 들어간다. 이미 접속된 계정은 로그인 화면의 '게임 시작'으로 들어간다.
+ */
+const ENTER_NOW_KEY = 'cheonharo.enterNow.v1'
+const enterNow = (() => { try { const on = window.sessionStorage.getItem(ENTER_NOW_KEY) === '1'; window.sessionStorage.removeItem(ENTER_NOW_KEY); return on } catch { return false } })()
+const markEnterNow = () => { try { window.sessionStorage.setItem(ENTER_NOW_KEY, '1') } catch { /* 저장 불가 */ } }
+/** 로그인 화면에서 시작을 누르기 전(이때는 저절로 게임에 들어가지 않는다) */
+let gateHeld = !enterNow
+// 로그인 화면에서 기다리는 동안은 어느 기록도 불러오거나 저장하지 않는다(새 상태로 이 기기 기록을 덮어쓰지 않게)
+let gameAccess: 'member' | 'guest' | null = !gateHeld && ((STATIC_PREVIEW && !gateAfterReset) || window.localStorage.getItem(GUEST_ACCESS_KEY) === '1') ? 'guest' : null
 const duelDecks = new Map<string, ReturnType<typeof allGenerals>>()
 let pendingSiege: { cityId: string; result: ReturnType<typeof launchConquest>; garrisonId?: string; ticket?: Promise<string | undefined> } | null = null
 
@@ -2130,7 +2140,17 @@ const ui = new StrategyUI(root, {
     void refreshFactionTerritories(true)
   },
   onGuestLogin: () => { void enterGuest() },
+  onContinue: () => {
+    if (authView.status !== 'authenticated') { ui.showAccessGate(); return }
+    gateHeld = false
+    restoreAccessState('member')
+    window.localStorage.removeItem(GUEST_ACCESS_KEY)
+    if (state.factionConfirmed) ui.render(state)
+    else ui.showFactionSelection()
+    void refreshAccount()
+  },
   onLocalGuestLogin: () => {
+    gateHeld = false
     restoreAccessState('guest')
     window.localStorage.setItem(GUEST_ACCESS_KEY, '1')
     if (state.factionConfirmed) ui.render(state)
@@ -2391,7 +2411,7 @@ ui.setUnitLocator((side, lane) => arena.unitScreenPoint(side, lane))
 window.setTimeout(() => preloadStrikeModels(), 2500)
 
 ui.setAuth(authView)
-if (gameAccess) {
+if (gameAccess && !gateHeld) {
   restoreAccessState(gameAccess)
   if (state.factionConfirmed) ui.render(state)
   else ui.showFactionSelection()
@@ -2582,7 +2602,10 @@ window.addEventListener('manus-auth-change', (event: Event) => {
     ui.setAccount(null)
   }
   ui.setAuth(authView)
-  if (authView.status === 'authenticated') {
+  if (gateHeld) {
+    // 로그인 화면을 띄운 채로 둔다(접속 상태만 화면에 반영)
+    if (document.querySelector('.access-gate')) ui.showAccessGate()
+  } else if (authView.status === 'authenticated') {
     restoreAccessState('member')
     window.localStorage.removeItem(GUEST_ACCESS_KEY)
     if (state.factionConfirmed) ui.render(state)
@@ -2610,7 +2633,10 @@ void ManusAuth.prepare().then(session => {
   authView = { status: session.status, name: session.user?.name ?? null }
   ui.setAuth(authView)
   checkGuestRestore(authView.status)
-  if (authView.status === 'authenticated') {
+  if (gateHeld) {
+    // 로그인 화면에서 시작을 누를 때까지 기다린다(접속된 계정이면 '게임 시작' 단추가 뜬다)
+    if (document.querySelector('.access-gate')) ui.showAccessGate()
+  } else if (authView.status === 'authenticated') {
     restoreAccessState('member')
     window.localStorage.removeItem(GUEST_ACCESS_KEY)
     if (state.factionConfirmed) ui.render(state)
@@ -2631,8 +2657,9 @@ void ManusAuth.prepare().then(session => {
 }).catch(() => {
   authView = { status: 'offline', name: null }
   ui.setAuth(authView)
+  if (gateHeld && document.querySelector('.access-gate')) ui.showAccessGate()
   // 서버에 닿지 않는 날에도 이 기기의 게스트는 출석을 받는다
-  if (gameAccess === 'guest') claimLocalGuestAttendance()
+  if (gameAccess === 'guest' && !gateHeld) claimLocalGuestAttendance()
 })
 
 // ── 게스트 계정(서버) ─────────────────────────────────────────
@@ -2664,7 +2691,7 @@ async function restoreGuestSession(): Promise<boolean> {
   const token = readStore(GUEST_TOKEN_KEY)
   if (!token) return false
   const result = await guestApi('/api/guest/restore', { token })
-  if (result.ok) { writeStore(GUEST_ACCESS_KEY, null); writeStore(GUEST_RESTORE_CHECK_KEY, String(Date.now())); window.location.reload(); return true }
+  if (result.ok) { writeStore(GUEST_ACCESS_KEY, null); writeStore(GUEST_RESTORE_CHECK_KEY, String(Date.now())); markEnterNow(); window.location.reload(); return true }
   if (result.status !== 401 && result.status !== 404) ui.notify(`게스트 계정에 접속하지 못했습니다. ${result.reason ?? ''}`.trim(), 'ember')
   if (result.status === 401 || result.status === 404) writeStore(GUEST_TOKEN_KEY, null)
   // 서버에서 지워진 게스트 계정: 이 기기의 옛 진행을 새 아이디로 옮기지 않게 지운다
@@ -2680,7 +2707,7 @@ function startGuestSignup(cancelable: boolean): void {
     // 이 기기의 예전 게스트 진행(무장 · 편성 · 시나리오 등)을 새 계정으로 옮긴다
     if (readStore(GUEST_GAME_SAVE_KEY)) writeStore(GUEST_IMPORT_KEY, '1')
     writeStore(GUEST_ACCESS_KEY, null)
-    window.location.reload()
+    markEnterNow(); window.location.reload()
     return null
   }, cancelable ? () => ui.showAccessGate() : undefined)
 }
@@ -2692,7 +2719,7 @@ async function accountAuth(mode: 'login' | 'signup', name: string, password: str
   if (!result.ok || !result.token) return result.reason ?? (mode === 'signup' ? '계정을 만들지 못했습니다.' : '로그인하지 못했습니다.')
   writeStore(SESSION_TOKEN_KEY, result.token)
   writeStore(GUEST_ACCESS_KEY, null)
-  window.location.reload()
+  markEnterNow(); window.location.reload()
   return null
 }
 function startAccountLogin(signup = false): void {
@@ -2702,7 +2729,10 @@ function startAccountLogin(signup = false): void {
 window.addEventListener('cheonha-login-request', () => startAccountLogin())
 let enteringGuest = false
 async function enterGuest(): Promise<void> {
-  if (authView.status === 'offline') { ui.enterLocalGuest(); return }
+  // 서버 없는 미리보기(GitHub Pages) · 서버에 닿지 않을 때는 이 기기에만 저장하는 게스트로
+  if (authView.status === 'offline' || STATIC_PREVIEW) { ui.enterLocalGuest(); return }
+  // 이미 접속된 계정(게스트 계정 포함)은 그대로 들어간다
+  if (authView.status === 'authenticated') { gateHeld = false; restoreAccessState('member'); window.localStorage.removeItem(GUEST_ACCESS_KEY); if (state.factionConfirmed) ui.render(state); else ui.showFactionSelection(); void refreshAccount(); return }
   if (enteringGuest) return
   enteringGuest = true
   try {
