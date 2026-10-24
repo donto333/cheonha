@@ -629,6 +629,8 @@ html body .terr-search { display: none; }
   html body .page-section--formation > .combo-advice { display: none; }
   /* 추천 덱: '추천 덱' 버튼으로 여는 창(편성 화면 위) */
   html body .page-section--formation .auto-actions .combo-open { display: inline-flex; }
+  /* 2 · 3군은 단추가 하나 더(1군과 바꾸기) 있어 '출정 준비' 표시는 빼고 단추를 다 보이게(인원은 위 군 탭에 3/3으로 보임) */
+  html body .page-section--formation .formation-screen-head:has([data-action="squad-swap"]) .formation-readiness { display: none; }
   html body .page-section--formation .combo-advice .combo-close { display: grid; }
   html body .page-section--formation.is-combo-open > .combo-advice { display: block; position: fixed; z-index: 41; top: calc(10px + var(--safe-t, 0px)); bottom: calc(10px + var(--safe-b, 0px)); left: 50%; transform: translateX(-50%); width: min(860px, calc(100vw - 24px - var(--safe-l, 0px) - var(--safe-r, 0px))); margin: 0; padding: 10px 14px 14px; overflow-y: auto; overscroll-behavior: contain; background: linear-gradient(180deg, rgba(22, 16, 11, .98), rgba(10, 7, 5, .98)); border: 1px solid rgba(212, 175, 55, .7); border-radius: 4px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .7), 0 12px 40px rgba(0, 0, 0, .8); }
   html body .page-section--formation > .combo-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .6); }
