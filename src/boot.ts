@@ -3,6 +3,8 @@
 // 틀 안에서는 화면이 늘 가로이므로 화면 배치 규칙(CSS)과 터치 좌표가 그대로 맞는다.
 // 데스크톱 · 태블릿 · 기타 기기도 휴대폰 가로 크기의 틀에 띄워 키워 보여 준다(mountScaledShell). 안드로이드 앱(이미 가로 고정)은 그대로 띄운다.
 
+import { enableRotatedTouchScroll } from './platform/rotated-scroll'
+
 const isTouchPhone = () => Boolean(window.matchMedia?.('(pointer: coarse)').matches) && Math.min(window.screen.width, window.screen.height) <= 600
 /** 터치가 아니어도 세로로 좁은 창(컴퓨터 개발자 도구의 휴대폰 화면 등)은 휴대폰처럼 가로로 돌려 보여 준다 */
 const isNarrowPortrait = () => window.innerWidth <= 600 && window.innerHeight > window.innerWidth
@@ -22,6 +24,10 @@ function mountLandscapeShell(): void {
   frame.src = window.location.href
   const layout = () => {
     const w = window.innerWidth, h = window.innerHeight
+    // 틀 안 게임이 끌기(스크롤)를 직접 처리하도록 돌렸는지 알린다(src/platform/rotated-scroll.ts)
+    ;(window as Window & { __cheonhaShellRotated?: boolean }).__cheonhaShellRotated = h > w
+    // 돌린 화면에서는 브라우저 기본 끌기(방향이 틀어짐)를 끄고 게임이 직접 넘긴다
+    frame.style.touchAction = h > w ? 'none' : ''
     if (h > w) {
       // 세로로 든 휴대폰: 가로 크기로 만들어 시계 방향 90도로 돌린다(휴대폰을 왼쪽으로 눕히면 바로 보인다)
       frame.style.left = '0'
@@ -72,6 +78,8 @@ function mountScaledShell(): void {
     const h = Math.round(Math.min(SHELL_MAX_H, Math.max(SHELL_MIN_H, SHELL_W * bh / bw)))
     const scale = Math.min(bw / SHELL_W, bh / h)
     shell.__cheonhaShellScale = scale
+    ;(window as Window & { __cheonhaShellRotated?: boolean }).__cheonhaShellRotated = rotate
+    frame.style.touchAction = rotate ? 'none' : ''
     frame.style.width = `${SHELL_W}px`
     frame.style.height = `${h}px`
     // 남는 곳은 가운데 맞춤(위아래 또는 좌우 여백)
@@ -108,7 +116,7 @@ function followShellScale(): void {
 }
 
 const forcePc = new URLSearchParams(window.location.search).has('pc')
-if (inFrame) { followShellScale(); void import('./main') }
+if (inFrame) { followShellScale(); enableRotatedTouchScroll(); void import('./main') }
 else if (inApp || forcePc) void import('./main')
 else if (isTouchPhone() || isNarrowPortrait()) mountLandscapeShell()
 else mountScaledShell()

@@ -1449,3 +1449,7 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   html body .page-section--raid .raid-me { padding: 12px 10px 6px !important; }
   html body .page-section--raid .raid-me strong { font-size: 12px; margin-top: 0; }
 }
+/* 설정(계정): 휴대폰에서 아래로 넘겨 계정 정보까지 볼 수 있게(넘기는 칸이 없어 끌어도 움직이지 않았다) */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--account { height: var(--frame-h); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding-bottom: 12px; }
+}
