@@ -38,17 +38,16 @@ try {
     const info = await frame.evaluate(() => { const d = document.querySelector('.gdetail'); return d && { cls: d.className, grade: d.dataset.grade, fx: !!d.querySelector('.gfx-art'), embers: d.querySelectorAll('.gfx-embers i').length, art: getComputedStyle(d.querySelector('.gfx-art') || d).backgroundImage.slice(0, 60) } })
     log.push(`${tag} ${JSON.stringify(info)}`)
   }
-  await open(`.gtile[data-kind="roster"][data-id="${pick}"]`, 'roster5')
-  // 강화 눌러도 등장 연출이 다시 나오지 않아야 한다
-  await frame.locator('.gdetail .gcard-up').first().evaluate(b => b.click()); await sleep(120)
-  log.push(`after-upgrade ${await frame.evaluate(() => document.querySelector('.gdetail')?.className)}`)
-  await clear(); await tab.screenshot({ path: `${out}/roster5-upgrade.png` })
-  await frame.locator('.gdetail__close').first().evaluate(b => b.click()); await sleep(300)
-  // 낮은 등급
-  const low = await frame.evaluate(() => [...window.__strategy.state.generals].sort((a, b) => a.grade - b.grade)[0].id)
-  await open(`.gtile[data-kind="roster"][data-id="${low}"]`, 'rosterlow')
-  await frame.locator('.gdetail__close').first().evaluate(b => b.click()); await sleep(300)
+  const close = async () => { await frame.locator('.gdetail__close').first().evaluate(b => b.click()); await sleep(300) }
+  const still = async (sel, tag) => { await clear(); await frame.locator(sel).first().evaluate(b => b.click()); await sleep(2200); await clear(); await tab.screenshot({ path: `${out}/${tag}.png` }); log.push(`${tag} ${await frame.evaluate(() => document.querySelector('.gdetail article')?.className)}`); await close() }
+  await still(`.gtile[data-kind="roster"][data-id="${pick}"]`, '1-roster-owned')
   await frame.evaluate(() => { const g = window.__strategy; g.state.section = 'codex'; g.ui.render(g.state) }); await sleep(800)
-  await open('.gtile[data-kind="codex"].is-locked', 'codex')
+  await still(`.gtile[data-kind="codex"][data-id="${pick}"]`, '2-codex-owned')
+  await still('.gtile[data-kind="codex"].is-locked', '3-codex-locked')
+  const ev = await frame.evaluate(() => [...document.querySelectorAll('.gtile[data-kind="codex"].is-locked')].length)
+  log.push(`locked tiles ${ev}`)
+  await frame.locator('.gtile[data-kind="codex"].is-locked').first().evaluate(b => b.click()); await sleep(500)
+  await frame.locator('.gdetail [data-section="recruit"]').first().evaluate(b => b.click()); await sleep(600)
+  log.push(`after recruit button: section=${await frame.evaluate(() => window.__strategy.state.section)} detail=${await frame.locator('.gdetail').count()}`)
   await ctx.close(); await browser.close()
 } finally { writeFileSync(`${out}/log.txt`, log.join('\n')); server.kill() }

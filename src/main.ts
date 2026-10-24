@@ -143,6 +143,8 @@ syncAppHeight()
   window.addEventListener('keydown', unlockSound, true)
 }
 window.addEventListener('resize', syncAppHeight)
+// 전투 깃발 붓글씨(캔버스)는 글꼴을 스스로 내려받지 않으므로, 깃발 한자 · 한글 글꼴을 미리 불러 둔다
+try { void document.fonts?.load('700 48px "Gowun Batang"', '관조제갈여주장마황魏蜀吳群') } catch { /* 글꼴 API가 없으면 기기 글꼴 */ }
 window.addEventListener('orientationchange', () => window.setTimeout(syncAppHeight, 250))
 window.visualViewport?.addEventListener('resize', syncAppHeight)
 
