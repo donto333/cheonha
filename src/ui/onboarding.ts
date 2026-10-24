@@ -9,8 +9,8 @@ export type OnboardEvent = 'honor-buy' | 'recruit10' | 'gear10' | 'auto-formatio
 export interface OnboardStep {
   id: 'welcome' | 'shop' | 'recruit' | 'gear' | 'formation' | 'upgrade' | 'enhance' | 'scenario' | 'finale'
   section?: Section
-  /** 비출 버튼(이 버튼만 누를 수 있다) */
-  target?: string
+  /** 비출 버튼(이 버튼만 누를 수 있다). 여러 개면 화면에 있는 첫 번째(예: 강화 버튼 → 없으면 상세 창 닫기 → 무장 칸) */
+  target?: string | string[]
   title: string
   body: string
   /** 이 일이 일어나면 다음 단계 */
@@ -30,8 +30,8 @@ export const ONBOARD_STEPS: OnboardStep[] = [
   { id: 'recruit', section: 'recruit', target: '[data-action="recruit"][data-count="10"]', title: '2. 무료 10회 모집', body: '첫 10회 모집은 무료이고, 5등급 무장 한 명이 반드시 나옵니다. 빛나는 버튼을 누르십시오.', event: 'recruit10' },
   { id: 'gear', section: 'recruit', target: '[data-action="equipment-draw"][data-count="10"]', title: '3. 장비 10회 뽑기', body: '이번에는 방금 산 옥패로 무기·갑옷·장신구를 10개 뽑습니다.', event: 'gear10' },
   { id: 'formation', section: 'formation', target: '[data-action="auto-formation"]:not([data-with-equipment])', title: '4. 자동 편성', body: '새 무장이 들어왔으니 출전 무장을 다시 고릅니다. 자동 편성을 누르면 전투력·인연·병종을 따져 세 명을 세웁니다. 가운데는 적이 먼저 노리는 전열이라 단단한 무장이 섭니다.', event: 'auto-formation' },
-  { id: 'upgrade', section: 'roster', target: '.roster-grid .gcard .gcard-up:not([disabled])', title: '5. 무장 강화', body: '은전과 병서로 출전 무장의 레벨을 올립니다. 레벨이 오르면 능력치와 병력이 늘어납니다.', event: 'upgrade' },
-  { id: 'enhance', section: 'equipment', target: '.equipment-card [data-action="equipment-enhance"]:not([disabled])', title: '6. 장비 강화', body: '은전과 철로 장비를 강화합니다. 강화할수록 장착한 무장의 능력이 오릅니다.', event: 'enhance' },
+  { id: 'upgrade', section: 'roster', target: ['.roster-grid .gcard .gcard-up:not([disabled])', '.gdetail .gcard .gcard-up:not([disabled])', '.gdetail:not(.eqdetail) .gdetail__close', '.gtile[data-kind="roster"]'], title: '5. 무장 강화', body: '은전과 병서로 무장의 레벨을 올립니다. 무장을 눌러 상세 창을 열고 빛나는 "강화" 버튼을 누르십시오. 레벨이 오르면 능력치와 병력이 늘어납니다.', event: 'upgrade' },
+  { id: 'enhance', section: 'equipment', target: ['.equipment-card [data-action="equipment-enhance"]:not([disabled])', '.eqdetail .gdetail__close', '.eqtile:not([data-grade="mythic"])'], title: '6. 장비 강화', body: '은전과 철로 장비를 강화합니다. 장비를 눌러 상세 창을 열고 빛나는 "강화" 버튼을 누르십시오. 강화할수록 장착한 무장의 능력이 오릅니다.', event: 'enhance' },
   { id: 'scenario', section: 'battle', target: '.scenario-start-button', title: '7. 시나리오 클리어', body: '이제 첫 전투입니다. 출정을 누르고 184년 황건적의 난을 이기십시오. 튜토리얼 전투는 쉽게 맞춰 두었고, 싸우는 동안 방법을 하나씩 알려 드립니다.', event: 'scenario-win' },
   { id: 'finale', title: '천하 제패를 향해', body: '무장을 성장시켜 천하를 제패하세요.', next: '시작하기' },
 ]
@@ -57,6 +57,8 @@ export class Onboarding {
   private shownAt = 0
   private retry = false
   private blocking = false
+  /** 지금 비추고 있는 버튼(target 중 화면에 있는 것) */
+  private shownTarget = ''
 
   constructor(private readonly host: OnboardingHost) {
     // 빛나는 버튼과 안내 말풍선 말고는 누르지 못하게 막는다(캡처 단계에서 먼저 받는다)
@@ -67,13 +69,19 @@ export class Onboarding {
       if (target.closest('.coach-layer--forced .coach-bubble')) return
       // 튜토리얼 위에 뜨는 창(출석 체크 · 아이디 정하기)은 언제나 누를 수 있다
       if (target.closest('.attendance-modal, .guest-signup')) return
-      const step = this.current()
-      if (step?.target && target.closest(step.target)) return
+      const selector = this.shownTarget
+      if (selector && target.closest(selector)) return
       event.preventDefault()
       event.stopPropagation()
       event.stopImmediatePropagation()
     }
     for (const type of ['pointerdown', 'mousedown', 'click', 'dblclick', 'contextmenu']) document.addEventListener(type, guard, { capture: true, passive: false })
+  }
+
+  /** 단계의 비출 버튼 중 지금 화면에 있는 첫 번째(없으면 '') */
+  private resolveTarget(step: OnboardStep): string {
+    const list = Array.isArray(step.target) ? step.target : step.target ? [step.target] : []
+    return list.find(selector => document.querySelector(selector)) ?? ''
   }
 
   private missions() { return ensureMissions(this.host.state) }
@@ -134,9 +142,13 @@ export class Onboarding {
       return
     }
     const index = this.stepIndex()
+    const resolved = this.resolveTarget(step)
     if (this.shownStep === index && this.coach.active) {
+      // 비출 버튼이 바뀌면(상세 창이 열리거나 닫힘) 그 버튼으로 옮긴다
+      if (resolved && this.shownTarget && resolved !== this.shownTarget) { this.shownStep = -1; return }
+      if (resolved) this.shownAt = performance.now()
       // 비출 버튼이 한동안 안 나타나면 막히지 않게 다음으로 넘길 수 있게 한다
-      if (step.target && !document.querySelector(step.target) && performance.now() - this.shownAt > 2500) this.showFallback(step)
+      else if (step.target && this.shownTarget && performance.now() - this.shownAt > 2500) this.showFallback(step)
       return
     }
     if (step.section && this.host.state.section !== step.section) {
@@ -144,9 +156,16 @@ export class Onboarding {
       this.host.openSection(step.section)
       return
     }
-    this.host.prepare(step)
+    // 화면이 막 바뀌어 버튼이 아직 없으면 잠깐 기다린다(2.5초가 지나도 없으면 넘긴다)
+    if (step.target && !resolved) {
+      if (this.shownStep !== index) { this.shownStep = index; this.shownAt = performance.now(); this.prepareOnce(step, index) }
+      if (performance.now() - this.shownAt > 2500) { this.shownTarget = ''; this.blocking = true; this.showFallback(step) }
+      return
+    }
+    this.prepareOnce(step, index)
     this.shownStep = index
     this.shownAt = performance.now()
+    this.shownTarget = resolved
     const total = ONBOARD_STEPS.length - 2
     const number = Math.max(0, Math.min(total, index))
     if (!step.target) {
@@ -156,11 +175,20 @@ export class Onboarding {
     }
     const body = this.retry && step.id === 'scenario' ? '아쉽게 졌습니다. 경고가 뜨면 같은 쪽 무장을 눌러 막아 보십시오. 다시 출정하십시오.' : step.body
     this.blocking = true
-    this.coach.show({ target: step.target, title: step.title, body, expect: 'click' }, { forced: true, seal: '튜토리얼', index: number - 1, total, onNext: () => undefined, onSkip: () => undefined })
+    this.coach.show({ target: resolved, title: step.title, body, expect: 'click' }, { forced: true, seal: '튜토리얼', index: number - 1, total, onNext: () => undefined, onSkip: () => undefined })
+  }
+
+  /** 재료 채우기 · 탭 맞추기는 단계마다 한 번만(상세 창을 열고 닫을 때마다 다시 그리지 않게) */
+  private preparedStep = -1
+  private prepareOnce(step: OnboardStep, index: number): void {
+    if (this.preparedStep === index) return
+    this.preparedStep = index
+    this.host.prepare(step)
   }
 
   /** 버튼을 찾지 못할 때: 설명만 띄우고 다음으로 */
   private showFallback(step: OnboardStep): void {
+    this.shownTarget = ''
     this.coach.show({ title: step.title, body: '이 단계는 지금 진행할 수 없어 다음으로 넘어갑니다.' }, { forced: true, seal: '튜토리얼', nextLabel: '다음', onNext: () => this.advance(), onSkip: () => undefined })
   }
 }
