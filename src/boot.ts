@@ -6,6 +6,44 @@
 const isTouchPhone = () => Boolean(window.matchMedia?.('(pointer: coarse)').matches) && Math.min(window.screen.width, window.screen.height) <= 600
 /** 터치가 아니어도 세로로 좁은 창(컴퓨터 개발자 도구의 휴대폰 화면 등)은 휴대폰처럼 가로로 돌려 보여 준다 */
 const isNarrowPortrait = () => window.innerWidth <= 600 && window.innerHeight > window.innerWidth
+/**
+ * 기기를 세로로 들고 있는가(창 크기가 아니라 기기 방향으로 판단).
+ * 휴대폰 키보드가 올라오면 창 높이가 줄어 창이 가로처럼 보이는데, 창 크기로 판단하면
+ * 그때 화면이 돌아가 버린다(아이디 만들기 등 글자 입력 중 화면 회전 버그). 그래서 기기 방향을 먼저 본다.
+ */
+function devicePortrait(): boolean {
+  // 마우스로 쓰는 좁은 창(개발자 도구 등)은 창 모양 그대로
+  if (!window.matchMedia?.('(pointer: coarse)').matches) return window.innerHeight > window.innerWidth
+  const type = window.screen.orientation?.type
+  if (type) return type.startsWith('portrait')
+  const legacy = (window as { orientation?: unknown }).orientation
+  if (typeof legacy === 'number') return legacy === 0 || legacy === 180
+  return window.innerHeight > window.innerWidth
+}
+
+/** 틀 안 게임에서 글자 입력 칸을 쓰는 중인가(휴대폰 키보드가 올라와 있을 때) */
+function typingIn(frame: HTMLIFrameElement): boolean {
+  try {
+    const el = frame.contentDocument?.activeElement as HTMLElement | null | undefined
+    return Boolean(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable))
+  } catch { return false }
+}
+
+/**
+ * 돌릴지 정한다. 글자 입력 중 창 너비는 그대로인데 높이만 줄었다면(키보드) 직전 결정을 그대로 쓴다.
+ * 일부 브라우저는 키보드가 올라오면 기기 방향 값까지 가로로 바꿔 알려 주므로 이중으로 막는다.
+ */
+function rotationKeeper(frame: HTMLIFrameElement, decide: () => boolean): () => boolean {
+  let last: boolean | null = null, lastW = 0
+  return () => {
+    const w = window.innerWidth
+    const keep = last !== null && w === lastW && typingIn(frame)
+    const rotate = keep ? last! : decide()
+    last = rotate; lastW = w
+    return rotate
+  }
+}
+
 const inFrame = (() => { try { return window.self !== window.top } catch { return true } })()
 const inApp = Boolean((window as { Capacitor?: unknown }).Capacitor)
 
@@ -20,9 +58,10 @@ function mountLandscapeShell(): void {
   frame.allow = 'fullscreen; autoplay; screen-wake-lock'
   frame.setAttribute('allowfullscreen', '')
   frame.src = window.location.href
+  const shouldRotate = rotationKeeper(frame, devicePortrait)
   const layout = () => {
     const w = window.innerWidth, h = window.innerHeight
-    if (h > w) {
+    if (shouldRotate()) {
       // 세로로 든 휴대폰: 가로 크기로 만들어 시계 방향 90도로 돌린다(휴대폰을 왼쪽으로 눕히면 바로 보인다)
       frame.style.left = '0'
       frame.style.width = `${h}px`
@@ -64,10 +103,11 @@ function mountScaledShell(): void {
   frame.allow = 'fullscreen; autoplay; screen-wake-lock'
   frame.src = window.location.href
   const shell = window as Window & { __cheonhaShellScale?: number }
+  const shouldRotate = rotationKeeper(frame, () => devicePortrait() && Boolean(window.matchMedia?.('(pointer: coarse)').matches))
   const layout = () => {
     const vw = window.innerWidth, vh = window.innerHeight
     // 세로로 든 터치 기기(태블릿)는 휴대폰처럼 돌려서 가로로 보여 준다
-    const rotate = vh > vw && Boolean(window.matchMedia?.('(pointer: coarse)').matches)
+    const rotate = shouldRotate()
     const bw = rotate ? vh : vw, bh = rotate ? vw : vh
     const h = Math.round(Math.min(SHELL_MAX_H, Math.max(SHELL_MIN_H, SHELL_W * bh / bw)))
     const scale = Math.min(bw / SHELL_W, bh / h)
