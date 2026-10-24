@@ -1038,3 +1038,6 @@ html body .terr-search { display: none; }
   html body .app-shell .main-content .page-section--mshop .shop-item { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; display: flex; flex-direction: column; }
   html body .app-shell .main-content .page-section--mshop .shop-item > .action-button, html body .app-shell .main-content .page-section--mshop .shop-item > button { margin-top: auto; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell .main-content .page-section--mshop .mshop-body > .shop-grid { flex: 0 0 auto; min-height: auto; height: auto; overflow: visible; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: max-content; align-content: start; }
+}
