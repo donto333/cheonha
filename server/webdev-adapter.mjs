@@ -350,6 +350,20 @@ async function setPasswordHash(openId, passwordHash) {
   if (!db) throw new Error("Database is not available");
   await db.execute(sql`UPDATE users SET passwordHash = ${passwordHash} WHERE openId = ${openId} AND passwordHash IS NOT NULL`);
 }
+/** 비밀번호 재설정: 아이디(대소문자 무시)로 계정을 찾는다(게스트 포함) */
+async function findAccountByName(name) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const result = await db.execute(sql`SELECT id, openId, name, passwordHash FROM users WHERE LOWER(name) = ${String(name).toLowerCase()} ORDER BY (passwordHash IS NULL), id LIMIT 1`);
+  const rows = Array.isArray(result?.[0]) ? result[0] : Array.isArray(result?.rows) ? result.rows : result;
+  return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+/** 비밀번호 재설정: 게스트 계정에 비밀번호를 붙여 회원 계정으로(다른 표는 userId로 이어져 기록이 그대로 남는다) */
+async function convertToMember(id, openId, passwordHash) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.execute(sql`UPDATE users SET openId = ${openId}, passwordHash = ${passwordHash}, loginMethod = 'password' WHERE id = ${id} AND passwordHash IS NULL`);
+}
 /** 로그인용: 아이디(대소문자 무시)로 비밀번호 해시를 찾는다 */
 async function findPasswordLogin(name) {
   const db = await getDb();
@@ -2403,6 +2417,8 @@ export {
   createPasswordUser,
   findPasswordLogin,
   setPasswordHash,
+  findAccountByName,
+  convertToMember,
   grantAdminByName,
   getUserByOpenId,
   setSessionCookie,

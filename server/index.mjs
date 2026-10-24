@@ -3,7 +3,7 @@ import { createGameApp } from './app.mjs'
 import { leaderboard } from './leaderboard.mjs'
 import { gameRouter } from './routers.mjs'
 import { applyPasswordResetFromEnv } from './password-reset.mjs'
-import { findPasswordLogin, setPasswordHash } from './webdev-adapter.mjs'
+import { convertToMember, createPasswordUser, findAccountByName, setPasswordHash } from './webdev-adapter.mjs'
 
 // 자체 서버: DATABASE_URL(MySQL)과 세션 서명용 JWT_SECRET만 있으면 된다(예전 MANUS_JWT_SECRET도 받는다).
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required')
@@ -16,4 +16,4 @@ const port = Number(process.env.PORT || 3000)
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid PORT')
 app.listen(port, '0.0.0.0', () => console.log(`천하 서버: http://0.0.0.0:${port}`))
 // 운영자 비밀번호 재설정(PASSWORD_RESET="아이디:새비밀번호")
-applyPasswordResetFromEnv({ findPasswordLogin, setPasswordHash }).catch(error => console.error('[password-reset] 실패', error instanceof Error ? error.message : error))
+applyPasswordResetFromEnv({ findAccountByName, setPasswordHash, convertToMember, createPasswordUser }).catch(error => console.error('[password-reset] 실패', error instanceof Error ? error.message : error))
