@@ -215,7 +215,7 @@ try {
     if (await chat.count()) { await tab.keyboard.press('Escape'); await chat.first().evaluate(b => b.click()); await shot('91-chat') }
     // 유저 대련: 상대 카드가 뜰 때까지 기다린다(서버가 없으면 훈련 상대)
     try {
-      await page.evaluate(() => { const g = window.__strategy; g.state.section = 'battle'; g.ui.render(g.state) })
+      await page.evaluate(() => { document.querySelector('.social-fab.is-open')?.click(); const g = window.__strategy; g.state.section = 'battle'; g.ui.render(g.state) })
       await page.evaluate(() => { const b = document.querySelector('[data-action="section"][data-section="duel"]'); if (b) b.click() })
       await page.locator('.mduel-card, .duel-opponent').first().waitFor({ timeout: 12000 }).catch(() => {})
       await sleep(1200); await shot('99f-duel')

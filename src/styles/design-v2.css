@@ -1303,6 +1303,9 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   .mduel-chip--normal { background-image: url('/assets/ui/v2/duel/reward-chip-amber.webp'); color: #f1c873; }
   .mduel-chip--hard { background-image: url('/assets/ui/v2/duel/reward-chip-red.webp'); color: #ff9a86; }
   .mduel-left { position: absolute; left: 82.74%; top: 11.67%; width: 12.96%; height: 5.14%; display: grid; place-items: center; grid-auto-flow: column; gap: .5cqw; font-size: 1.17cqw; color: #e7c778; background: url('/assets/ui/v2/duel/attempts-pill.webp') 0 0 / 100% 100% no-repeat; white-space: nowrap; }
+  .mduel-tools { position: absolute; right: 4.3%; top: 0.6%; display: flex; gap: .7cqw; }
+  .mduel-tool { height: 3.4cqw; padding: 0 1.6cqw; font-size: 1.2cqw; font-weight: 700; color: #f1e3bf; white-space: nowrap; background: url('/assets/ui/v2/duel/action-button.webp') 0 0 / 100% 100% no-repeat; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; }
+  .mduel-tool:active { filter: brightness(.85); }
   .mduel-left b { font-weight: 700; color: #ffe2a0; }
   .mduel-card { position: absolute; top: 20.33%; width: 29.89%; aspect-ratio: 535 / 565; container-type: inline-size; overflow: hidden; }
   .mduel-card > * { position: absolute; }

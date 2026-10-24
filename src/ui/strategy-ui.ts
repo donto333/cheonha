@@ -3884,6 +3884,7 @@ export class StrategyUI {
     return `<section class="page-section page-section--mduel"><div class="mduel">
       <div class="mduel-title"><h2>대련 상대 선택</h2><p>상대를 선택하고 전술을 시험하세요</p></div>
       <div class="mduel-rewards"><b>승리 보상</b><i></i><span class="mduel-chip mduel-chip--easy">쉬움 +1</span><span class="mduel-chip mduel-chip--normal">보통 +2</span><span class="mduel-chip mduel-chip--hard">어려움 +3</span><i></i><small>신화장비 조각 · ${MYTHIC_FRAGMENT_COST}개로 장비 교환</small></div>
+      <div class="mduel-tools"><button class="mduel-tool" data-action="duel-refresh">상대 새로고침</button><button class="mduel-tool" data-action="menu-guide">유저 대련 설명</button></div>
       <div class="mduel-left">오늘 남은 대련 <b>${left} / ${DUEL_DAILY_LIMIT}</b></div>
       ${cards}
       <p class="mduel-foot"><i></i>전투 시작 전 편성을 확인하세요</p>
