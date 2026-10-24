@@ -1343,3 +1343,62 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   .mduel-foot i { width: 1.56cqw; height: 1.56cqw; background: url('/assets/ui/v2/duel/icon-notice.webp') center / contain no-repeat; }
   .mduel-empty { position: absolute; inset: 30% 0 auto; text-align: center; font-size: 1.6cqw; color: #e2d8c0; }
 }
+
+/* ════════════════ 주간 레이드(휴대폰 가로) · 2026.10.24 도안 1672 × 941 — 그림: public/assets/ui/v2/raid/ ════════════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell:has(.page-section--raid) { background: linear-gradient(180deg, rgba(10, 6, 3, .35), rgba(10, 6, 3, .7)), url('/assets/ui/v2/raid/battlefield_sunset.webp') center / cover no-repeat, #120a06 !important; }
+  /* 위 안내 띠 */
+  html body .page-section--raid > .raid-message { position: relative; padding: 5px 26px; color: #f1d385; font-size: 12px; font-weight: 700; text-shadow: 0 1px 2px #000; background: url('/assets/ui/v2/raid/top_notice_bar.webp') center / 100% 100% no-repeat; border: 0; border-radius: 0; box-shadow: none; }
+  /* 판넬: 금테 · 위 가운데 장식 */
+  html body .page-section--raid .raid-boss, html body .page-section--raid .raid-start, html body .page-section--raid .raid-me, html body .page-section--raid .raid-rewards, html body .page-section--raid .raid-side > :nth-child(2) { background-color: transparent !important; background-position: center !important; background-size: 100% 100% !important; background-repeat: no-repeat !important; border: 0; border-image: none; border-radius: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  html body .page-section--raid .raid-boss { background-image: url('/assets/ui/v2/raid/left_generals.webp') !important; padding: 14px 12px 8px !important; }
+  html body .page-section--raid .raid-start { background-image: url('/assets/ui/v2/raid/left_armies.webp') !important; padding: 13px 12px 8px !important; }
+  html body .page-section--raid .raid-me { background-image: url('/assets/ui/v2/raid/left_stats.webp') !important; padding: 14px 12px 8px !important; column-gap: 0; align-self: stretch; align-content: center; }
+  html body .page-section--raid .raid-rewards { background-image: url('/assets/ui/v2/raid/center_rewards.webp') !important; padding: 20px 14px 10px !important; }
+  html body .page-section--raid .raid-side > :nth-child(2) { background-image: url('/assets/ui/v2/raid/right_ranking.webp') !important; padding: 20px 14px 10px !important; }
+  /* 제목 */
+  html body .page-section--raid .raid-boss__head h2 { font-size: 17px; font-weight: 800; color: #ffe3c6; text-shadow: 0 2px 2px #000; }
+  html body .page-section--raid .raid-boss__reset small { color: #e8d6b5; }
+  html body .page-section--raid .raid-boss__reset strong { color: #f7b2a0; font-weight: 800; }
+  html body .page-section--raid .raid-rewards .card-header, html body .page-section--raid .raid-side > :nth-child(2) .card-header { display: block; padding: 0 0 4px; margin: 0 0 4px; border: 0; background: url('/assets/ui/v2/raid/divider.webp') left bottom / 100% 2px no-repeat; }
+  html body .page-section--raid .raid-rewards .eyebrow, html body .page-section--raid .raid-side > :nth-child(2) .eyebrow { color: #f4cb71; font-size: 11px; font-weight: 800; }
+  html body .page-section--raid .raid-rewards h3, html body .page-section--raid .raid-side > :nth-child(2) h3 { margin: 0; font-size: 15px; font-weight: 800; color: #ffe3c6; text-shadow: 0 2px 2px #000; }
+  /* 보스 무장 카드: 금테(오른쪽은 푸른 테) */
+  html body .page-section--raid .raid-boss__units { gap: 7px; }
+  html body .page-section--raid .raid-boss__unit { padding: 4px 4px 3px; gap: 0; background: url('/assets/ui/v2/raid/general_card_gold.webp') center / 100% 100% no-repeat; border: 0; border-radius: 0; box-shadow: none; }
+  html body .page-section--raid .raid-boss__unit--lane2 { background-image: url('/assets/ui/v2/raid/general_card_blue.webp'); filter: drop-shadow(0 0 4px rgba(90, 150, 255, .45)); }
+  html body .page-section--raid .raid-boss__frame { position: relative; display: block; width: 100%; aspect-ratio: 176 / 120; overflow: hidden; }
+  html body .page-section--raid .raid-boss__frame::after { content: ''; position: absolute; inset: 0; background: url('/assets/ui/v2/raid/portrait_gold.webp') center / 100% 100% no-repeat; pointer-events: none; }
+  html body .page-section--raid .raid-boss__unit--lane2 .raid-boss__frame::after { background-image: url('/assets/ui/v2/raid/portrait_blue.webp'); }
+  html body .page-section--raid .raid-boss__frame .raid-boss__portrait, html body .page-section--raid .raid-boss__frame .general-portrait { width: 100%; height: 100%; border: 0; border-radius: 0; box-shadow: none; }
+  html body .page-section--raid .raid-boss__frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
+  html body .page-section--raid .raid-boss__unit > span:not(.raid-boss__frame) { margin-top: 2px; color: #efab89; font-size: 10.5px; }
+  html body .page-section--raid .raid-boss__unit strong { font-size: 12px; font-weight: 800; color: #fff1e6; }
+  html body .page-section--raid .raid-boss__unit small { color: #ffcd64; font-size: 11px; }
+  /* 출전 군 · 출전 단추 */
+  html body .page-section--raid .raid-squads li b { color: #eec36a; font-weight: 800; }
+  html body .page-section--raid .raid-squads li span { color: #dfc3a7; }
+  html body .page-section--raid .raid-squads li em { color: #86d49e; }
+  html body .page-section--raid .raid-start__cta strong { color: #f9e4c2; font-weight: 700; }
+  html body .page-section--raid .raid-go { position: relative; min-height: 40px; padding: 0 18px; color: #32180b; font-size: 15px; font-weight: 900; text-shadow: 0 1px 0 rgba(255, 240, 200, .6); background: url('/assets/ui/v2/raid/gold_action_button.webp') center / 100% 100% no-repeat; border: 0; border-image: none; border-radius: 0; box-shadow: 0 3px 8px rgba(0, 0, 0, .5); }
+  html body .page-section--raid .raid-go:hover { filter: brightness(1.08); }
+  html body .page-section--raid .raid-go:active { filter: brightness(.9); transform: translateY(1px); }
+  html body .page-section--raid .raid-go:disabled { filter: grayscale(.55) brightness(.75); }
+  html body .page-section--raid .raid-go__icon { display: inline-block; width: 18px; height: 18px; margin-left: 6px; font-size: 0; vertical-align: -3px; background: url('/assets/ui/v2/raid/crossed_swords.webp') center / contain no-repeat; filter: brightness(.35) sepia(1) saturate(3) hue-rotate(-20deg); }
+  /* 내 기록: 가운데 세로 줄 */
+  html body .page-section--raid .raid-me > div { padding: 0 8px; }
+  html body .page-section--raid .raid-me > div:nth-child(2n) { border-left: 1px solid rgba(212, 175, 55, .35); }
+  html body .page-section--raid .raid-me small { color: #e0bf96; }
+  html body .page-section--raid .raid-me strong { color: #f0c778; font-weight: 800; }
+  /* 순위 보상 표 */
+  html body .page-section--raid .raid-rewards td { border-bottom: 1px solid rgba(103, 74, 45, .9); color: #ead9bd; }
+  html body .page-section--raid .raid-rewards td:first-child { color: #e7b958; font-weight: 800; }
+  html body .page-section--raid .raid-side > :nth-child(2) .rank-empty { color: #e6d6ba; text-shadow: 0 1px 2px #000; }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  /* 작은 휴대폰: 보스 초상을 낮춰 아래 '내 기록' 판넬이 잘리지 않게 */
+  html body .page-section--raid .raid-boss__frame { aspect-ratio: 176 / 84; }
+  html body .page-section--raid .raid-boss { padding: 12px 10px 6px !important; }
+  html body .page-section--raid .raid-me { padding: 12px 10px 6px !important; }
+  html body .page-section--raid .raid-me strong { font-size: 12px; margin-top: 0; }
+}
