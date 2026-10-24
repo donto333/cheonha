@@ -2429,7 +2429,7 @@ body .underdog-hint { margin: 4px 0 0; color: #a8987a; font-size: 11px; }
 
 /* ── 유저 연맹 ── */
 body .guild-emblem { --emblem: #b8322a; position: relative; display: inline-grid; place-items: center; flex: none; width: 34px; height: 40px; border-radius: 4px 4px 14px 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--emblem) 88%, #fff 12%), var(--emblem) 55%, color-mix(in srgb, var(--emblem) 70%, #000 30%)); border: 1.5px solid #d9b56a; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.4); }
-body .guild-emblem b { font-family: 'Noto Serif KR', serif; font-size: 18px; font-weight: 800; color: #fbf1d6; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+body .guild-emblem b { font-family: 'Gowun Batang', serif; font-size: 18px; font-weight: 800; color: #fbf1d6; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 body .guild-emblem--sm { width: 22px; height: 26px; border-radius: 3px 3px 9px 9px; border-width: 1px; }
 body .guild-emblem--sm b { font-size: 12px; }
 body .guild-emblem--lg { width: 64px; height: 76px; border-radius: 6px 6px 26px 26px; border-width: 2px; }
@@ -2470,7 +2470,7 @@ body .guild-swatches, body .guild-patterns { display: flex; flex-wrap: wrap; gap
 body .guild-swatch input, body .guild-pattern input { position: absolute; opacity: 0; pointer-events: none; }
 body .guild-swatch span { display: block; width: 26px; height: 26px; border-radius: 50%; background: var(--emblem); border: 2px solid rgba(255, 255, 255, 0.15); cursor: pointer; }
 body .guild-swatch input:checked + span { border-color: #f3d58a; box-shadow: 0 0 0 2px rgba(243, 213, 138, 0.35); }
-body .guild-pattern span { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(214, 178, 106, 0.3); border-radius: 6px; color: #e6dcc2; font-family: 'Noto Serif KR', serif; font-weight: 700; cursor: pointer; }
+body .guild-pattern span { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(214, 178, 106, 0.3); border-radius: 6px; color: #e6dcc2; font-family: 'Gowun Batang', serif; font-weight: 700; cursor: pointer; }
 body .guild-pattern input:checked + span { border-color: #f3d58a; background: rgba(214, 178, 106, 0.2); color: #fff3d0; }
 body .guild-hero { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 16px 18px; margin-bottom: 12px; }
 body .guild-hero h2 { margin: 2px 0 6px; color: #fbf3df; font-size: 22px; }

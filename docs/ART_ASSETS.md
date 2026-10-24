@@ -129,3 +129,12 @@ calm ambient motion only, no camera movement, seamless loop
 1. 위 이름대로 저장합니다.
 2. GitHub 저장소 `public/assets/ui/v2/` 폴더에서 **Add file → Upload files**로 올립니다(아이콘은 `icons/` 안으로).
 3. 또는 채팅에 그림을 첨부해 주시면 제가 크기를 맞춰 넣고 올립니다.
+
+## 5. 단추 · 판 그림 이음새(가는 줄) 메움 · 글꼴
+
+- 단추 · 판 그림은 CSS `border-image`(9칸 늘이기)로 그리는데, 휴대폰 화면 배율(2.625 등)에서 칸 사이에 가는 줄이 보인다.
+  그래서 같은 그림을 9조각(`public/assets/ui/v2/slice/`)으로 잘라 1px씩 겹쳐 배경으로 깔아 두었다(`design-v2.css`의 `/* 9칸 이음새 메움 */`).
+- 새 `border-image` 규칙을 넣거나 그림을 바꾸면: `python3 scripts/tools/nineslice.py` (Pillow 필요, 이미 메운 규칙은 건너뜀).
+  그림만 바꾸는 규칙(`border-image-source`만 있는 `.is-active` 등)은 스크립트 위쪽 `SOURCE_ONLY_SLICE`에 자르기 값을 적는다.
+- 글꼴: 본문 Pretendard · 제목 고운바탕(부분 글꼴). 한자(진영 깃발 등) · 한글 낱자 · 「」는 본고딕/본명조(Noto CJK KR)에서 쓰는 글자만 잘라
+  `HanjaSans-*` · `HanjaSerif-*`로 같은 글꼴 이름에 붙였다(`fonts.css`). 화면에 새 한자를 쓰면 이 부분 글꼴을 다시 만든다.
