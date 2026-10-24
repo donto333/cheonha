@@ -1,0 +1,18 @@
+[land] territory chip=1 visible=true
+[land] territory open=1
+[land] territory closed=true
+[land] rank chip=1 visible=true
+[land] rank open=1
+[land] rank closed=true
+[land] raid chip=1 visible=true
+[land] raid open=1
+[land] raid closed=true
+[small] territory chip=1 visible=true
+[small] territory open=1
+[small] territory closed=true
+[small] rank chip=1 visible=true
+[small] rank open=1
+[small] rank closed=true
+[small] raid chip=1 visible=true
+[small] raid open=1
+[small] raid closed=true
