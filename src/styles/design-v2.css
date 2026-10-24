@@ -411,7 +411,6 @@ html body .terr-search { display: none; }
   html body .gtile .gtile__art { inset: 2.6% 3.2% 2.6% 3.2%; background-color: #120c0a; background-position: center 14%; }
   html body .gtile .gtile__frame { position: absolute; inset: 0; z-index: 1; background: url('/assets/ui/v2/kit/card-frame.webp') 0 0 / 100% 100% no-repeat; pointer-events: none; }
   html body .gtile--g5 .gtile__frame { filter: drop-shadow(0 0 3px #ffb347) drop-shadow(0 0 6px rgba(255, 150, 40, .7)) brightness(1.08); }
-  html body .gtile .gtile__grade { z-index: 2; top: -1%; left: 2.4%; width: 23%; min-width: 0; height: auto; aspect-ratio: 90 / 105; padding: 0 0 6% 0; display: grid; place-items: center; font-size: 15cqw; font-weight: 900; line-height: 1; color: #fff; background: url('/assets/ui/v2/kit/shield.webp') 0 0 / 100% 100% no-repeat; border-radius: 0; box-shadow: none; text-shadow: 0 0 2px #4a2a05, 0 1px 1px #4a2a05, 0 0 4px #6b4108; }
   html body .gtile .gtile__role { z-index: 2; top: 22%; left: 3.5%; width: 21%; height: auto; aspect-ratio: 1; font-size: 0; background: center / contain no-repeat; border: 0; box-shadow: none; }
   html body .gtile[data-role="cavalry"] .gtile__role { background-image: url('/assets/ui/v2/kit/role-cavalry.webp'); }
   html body .gtile[data-role="infantry"] .gtile__role { background-image: url('/assets/ui/v2/kit/role-infantry.webp'); }
