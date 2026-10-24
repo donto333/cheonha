@@ -1059,3 +1059,10 @@ html body .terr-search { display: none; }
   html body .bt-stage .bt-callout { align-self: center; width: min(300px, 40vw) !important; max-width: 300px; padding: 3px 10px 4px !important; }
   html body .bt-stage .bt-callout .bt-lanes { gap: 4px; margin: 2px 0; }
 }
+
+/* ════════ 장수 · 도감: 무장 카드를 항상 2줄로(칸 높이에 맞춰 카드 크기를 정함, 넘치면 쪽 넘기기) ════════ */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .page-section--mroster .gtile-grid { container-type: size; --tile-h: calc((100cqh - 30px - 10px) / 2); grid-template-columns: repeat(auto-fill, minmax(calc(var(--tile-h) * 300 / 406), 1fr)); grid-auto-rows: var(--tile-h); align-content: start; gap: 5px 6px; }
+  html body .page-section--mroster .gtile-grid > .gtile { aspect-ratio: auto; height: var(--tile-h); width: auto; }
+  html body .page-section--mroster .gtile-grid > .gtile .gtile__frame { background-size: 100% 100%; }
+}
