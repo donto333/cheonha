@@ -169,6 +169,29 @@ export class TerritoryMapController {
 
   queueFocus(id: string): void { this.pendingFocus = id }
 
+  /** 전체 화면에서 도시를 누르기 전의 보기(정보 창을 닫으면 여기로 돌아간다) */
+  private savedView: MapViewState | null = null
+  /**
+   * 전체 화면: 누른 도시로 다가간다(클로즈업). 오른쪽 정보 창(rightCover: 화면 너비 비율)에 가리지 않게
+   * 도시를 남은 왼쪽 칸의 가운데에 둔다. 처음 누를 때의 보기를 기억해 restoreView()로 돌아간다.
+   */
+  closeUp(id: string, rightCover = 0): void {
+    const city = this.cities.find(c => c.id === id)
+    if (!city || !this.viewport) return
+    if (!this.savedView) this.savedView = { ...this.view }
+    const { width: vw, height: vh } = this.layoutSize(this.viewport)
+    const zoom = Math.min(MAX_ZOOM, Math.max(this.view.zoom, 2.4))
+    const scale = computeTransform({ cx: city.x / 100, cy: city.y / 100, zoom }, vw, vh).transform.scale
+    const targetX = (vw * (1 - rightCover)) / 2
+    this.animateTo({ cx: city.x / 100 + (vw / 2 - targetX) / (MAP_WIDTH * scale), cy: city.y / 100, zoom })
+  }
+  /** 클로즈업 전 보기로 돌아간다(전체 지도) */
+  restoreView(): void {
+    const view = this.savedView
+    this.savedView = null
+    if (view) this.animateTo(view)
+  }
+
   zoomBy(factor: number, ax?: number, ay?: number): void {
     if (!this.viewport) return
     const { width, height } = this.layoutSize(this.viewport)
@@ -177,6 +200,9 @@ export class TerritoryMapController {
   }
 
   setFullscreen(on: boolean): void {
+    // 클로즈업한 채로 전체 화면을 닫으면 원래 보기로
+    if (!on && this.savedView) { this.view = this.savedView; this.savedView = null }
+    if (on) this.savedView = null
     this.fullscreen = on
     this.viewport?.closest('.territory-map')?.classList.toggle('is-fullscreen', on)
     document.body.classList.toggle('map-fullscreen-open', on)
