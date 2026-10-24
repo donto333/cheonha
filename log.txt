@@ -1,0 +1,7 @@
+t=400 {"loader":true,"pct":"34%","status":"그림을 불러오는 중… 24 / 290","gate":true}
+t=1500 {"loader":true,"pct":"37%","status":"그림을 불러오는 중… 35 / 290","gate":true}
+t=3000 {"loader":true,"pct":"53%","status":"그림을 불러오는 중… 99 / 290","gate":true}
+loader gone after 7467ms, gate=1
+entered: shell=1
+after reload: gate=1 shell=0
+re-enter: faction=0 shell=1
