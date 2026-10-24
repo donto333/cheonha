@@ -137,6 +137,11 @@ try {
       const btn = page.locator(`[data-action="lobby-panel"][data-panel="${panel}"]`)
       if (await btn.count()) { await btn.first().evaluate(b => b.click()); await shot(label); await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click()) }
     }
+    // 편성: 추천 덱 창 · 2군 편성
+    await page.evaluate(() => { const g = window.__strategy; g.state.section = 'formation'; g.ui.render(g.state) })
+    await clearOverlays()
+    if (await page.locator('[data-action="combo-open"]').count()) { await page.locator('[data-action="combo-open"]').first().evaluate(b => b.click()); await shot('14b-formation-combo'); await page.locator('[data-action="combo-close"]').first().evaluate(b => b.click()) }
+    if (await page.locator('[data-action="squad-tab"][data-squad="1"]').count()) { await page.locator('[data-action="squad-tab"][data-squad="1"]').first().evaluate(b => b.click()); await clearOverlays(); await shot('14c-formation-squad2') }
     // 대표 무장 그림을 끈 본영
     await page.evaluate(() => { const g = window.__strategy; g.state.profileHeroHidden = true; g.state.section = 'overview'; g.ui.render(g.state) })
     await clearOverlays(); await shot('10-overview-nohero')
