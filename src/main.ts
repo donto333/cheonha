@@ -2651,6 +2651,8 @@ void ManusAuth.prepare().then(session => {
 const GUEST_TOKEN_KEY = 'cheonharo.guestToken.v1'
 const GUEST_IMPORT_KEY = 'cheonharo.guestImport.v1'
 const GUEST_RESTORE_CHECK_KEY = 'cheonharo.guestRestoreCheck.v1'
+/** 운영자 계정 안내(정상 동작임을 알림) */
+const OPERATOR_NOTICE = '운영자 계정은 시험 플레이용이라 영토전 · 랭킹 · 레이드 순위에 기록되지 않습니다(정상).'
 const SEASON_ASSIGN_SEEN_KEY = 'cheonharo.seasonAssignSeen.v1'
 const readStore = (key: string) => { try { return window.localStorage.getItem(key) } catch { return null } }
 const writeStore = (key: string, value: string | null) => { try { if (value === null) window.localStorage.removeItem(key); else window.localStorage.setItem(key, value) } catch { /* 저장 불가 */ } }
@@ -2836,7 +2838,14 @@ async function refreshAccount(): Promise<void> {
     accountView = account
     accountLoaded = true
     ui.setAccount(accountView)
-    if (isOperatorAccount() && !wasOperator) window.setTimeout(() => ui.notify('운영자 계정입니다 · 랭킹 · 영토전 · 레이드 순위에 반영되지 않습니다.', 'ember'), 2400)
+    // 운영자 안내: 이 기기에서 계정마다 한 번만(아래쪽 알림)
+    if (isOperatorAccount() && !wasOperator) {
+      const seenKey = `cheonharo.operatorNoticeSeen.${account.id}`
+      if (readStore(seenKey) !== '1') {
+        writeStore(seenKey, '1')
+        window.setTimeout(() => ui.notify(OPERATOR_NOTICE, 'jade'), 2400)
+      }
+    }
     if (!state.factionConfirmed) {
       ui.showFactionSelection()
       return

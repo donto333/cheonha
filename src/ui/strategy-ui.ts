@@ -1112,10 +1112,9 @@ export class StrategyUI {
   }
 
   /** 운영자 계정이면 랭킹 · 영토전에 반영되지 않는다는 안내 */
-  private operatorNote(where: string): string {
-    const account = this.account
-    if (!account || !(account.operator || account.role === 'admin')) return ''
-    return `<p class="operator-note">운영자 계정 · ${where}</p>`
+  private operatorNote(_where: string): string {
+    // 화면마다 붙던 운영자 안내는 게임을 가려서 뺐다. 접속할 때 아래쪽 알림으로 한 번만 알린다(main.ts).
+    return ''
   }
 
   setAccount(account: AccountView | null): void {
