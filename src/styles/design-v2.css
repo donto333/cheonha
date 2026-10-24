@@ -1001,7 +1001,7 @@ html body .terr-search { display: none; }
   html body .attendance-v2 .attendance-day__count { position: absolute; right: 2%; bottom: 4%; z-index: 2; padding: 0 4px; font-size: 9.5px; font-weight: 900; font-style: normal; line-height: 1.35; color: #fff; background: linear-gradient(180deg, #e8392c, #a3170f); border: 1px solid #ffd685; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, .8); text-shadow: 0 1px 1px #500; }
   html body .attendance-v2 .attendance-day__trio { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
   html body .attendance-v2 .attendance-day__trio img { width: 38%; height: 70%; margin: 0 -4px; }
-  html body .attendance-v2 .attendance-day__mystery { z-index: 2; font-size: 26px; }
+  html body .attendance-v2 .attendance-day__mystery { z-index: 2; bottom: 34%; font-size: 26px; background: none; }
   html body .attendance-v2 .attendance-day__art img.is-stone { filter: hue-rotate(160deg) saturate(1.4) drop-shadow(0 2px 3px rgba(0, 0, 0, .9)); }
   /* 무장 보상: 초상이 칸을 채우고 이름은 아래 금빛 띠 */
   html body .attendance-v2 .attendance-day.is-hero { border-image-source: url('/assets/ui/v2/attendance/day-selected.webp'); }
