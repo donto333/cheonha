@@ -2163,24 +2163,7 @@ const ui = new StrategyUI(root, {
   },
   onMemberLogin: (name, password) => authView.status === 'offline' ? Promise.resolve('서버에 연결할 수 없습니다. 인터넷 연결을 확인하거나 게스트로 시작하십시오.') : accountAuth('login', name, password),
   onSignup: () => startAccountLogin(true),
-  onLogout: () => {
-    void ManusAuth.logout().then(session => {
-      gameAccess = null
-      window.localStorage.removeItem(GUEST_ACCESS_KEY)
-      Object.assign(state, createInitialState())
-      ensureCityRoster(state)
-      syncResearchRoster()
-      ensureEquipmentState(state)
-      ensureSquads(state)
-      localSaveDirty = false
-      authView = { status: session.status, name: session.user?.name ?? null }
-      accountView = null
-      ui.setAccount(null)
-      ui.setAuth(authView)
-      ui.showAccessGate()
-      ui.notify('로그아웃했습니다.')
-    }).catch(() => ui.notify('로그아웃을 완료하지 못했습니다.', 'ember'))
-  },
+  onLogout: () => { void logoutToLoginScreen() },
   onAccountRefresh: () => {
     void refreshAccount()
   },
@@ -2966,6 +2949,33 @@ function queueAccountSave(immediate = false): void {
     saveTimer = null
     void flushAccountSave()
   }, delay)
+}
+
+/**
+ * 로그아웃: 진행을 저장한 뒤 서버 로그인을 끊고 새로고침해 불러오기 화면 → 로그인 화면으로 돌아간다.
+ * 게스트 아이디는 이 기기의 게스트 토큰을 남겨 두어 로그인 화면에서 다시 게스트로 시작하면 그대로 들어온다.
+ * 이 기기에만 저장하는 게스트(서버 없는 미리보기)는 저장만 하고 로그인 화면으로 돌아간다.
+ */
+let loggingOut = false
+async function logoutToLoginScreen(): Promise<void> {
+  if (loggingOut) return
+  loggingOut = true
+  try {
+    if (localSaveDirty && !guestResetting) {
+      persistLocalGame()
+      if (saveTimer !== null) { window.clearTimeout(saveTimer); saveTimer = null }
+      await flushAccountSave().catch(() => undefined)
+      localSaveDirty = false
+    }
+    if (authView.status === 'authenticated') await ManusAuth.logout().catch(() => undefined)
+    window.localStorage.removeItem(GUEST_ACCESS_KEY)
+    // 새로고침하는 사이 남은 저장이 빈 상태로 덮어쓰지 않게
+    gameAccess = null
+    window.location.reload()
+  } catch {
+    loggingOut = false
+    ui.notify('로그아웃을 완료하지 못했습니다. 잠시 뒤 다시 시도하십시오.', 'ember')
+  }
 }
 
 async function flushAccountSave(): Promise<void> {
