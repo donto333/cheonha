@@ -52,7 +52,8 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html:not(.has-title-video) .access-gate__backdrop { animation: v2-kenburns 26s ease-in-out infinite alternate; }
   html:not([data-fx="reduced"]) .access-gate__art { animation: gate-art-in 1.2s ease-out both, v2-drift 18s ease-in-out 1.2s infinite alternate; }
 }
-@keyframes v2-kenburns { from { background-position: 45% 50%; background-size: 108% auto; } to { background-position: 55% 45%; background-size: 118% auto; } }
+/* 화면 비율과 상관없이 화면을 다 덮도록(세로로 긴 태블릿 · 창에서 그림이 띠처럼 남던 문제) 크기는 cover로 두고 확대는 transform으로 */
+@keyframes v2-kenburns { from { background-position: 45% 50%; background-size: cover; transform: scale(1.08); } to { background-position: 55% 45%; background-size: cover; transform: scale(1.18); } }
 @keyframes v2-drift { from { background-position: 50% 20%; } to { background-position: 46% 26%; } }
 @keyframes v2-breathe { from { transform: translateX(-38%) scale(1); } to { transform: translateX(-37%) scale(1.04); } }
 @keyframes v2-mist { from { transform: translateX(-6%); opacity: .35; } to { transform: translateX(6%); opacity: .6; } }

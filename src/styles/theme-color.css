@@ -488,7 +488,7 @@ body .bt-view-fab .tb-view-v { font-size: 13px; white-space: nowrap; }
 /* 휴대폰 가로: 조작판이 왼쪽 세로 칸이므로 화면 오른쪽 아래(전장 모서리)에 */
 @media (orientation: landscape) and (max-height: 500px) {
   html body .bt-view-fab { position: fixed; left: auto; right: calc(8px + env(safe-area-inset-right, 0px)); bottom: 8px; top: auto; }
-  html body .app-shell--battle .bt-controls { backdrop-filter: none; -webkit-backdrop-filter: none; } /* 흐림 효과가 있으면 fixed가 조작판 기준이 된다 */
+  html body .app-shell--battle .bt-controls { } /* 흐림 효과가 있으면 fixed가 조작판 기준이 된다 */
 }
 body .tb-btn.is-on { background: var(--gold); color: #3a1d08; border-color: var(--gold); }
 body .tb-btn--stop { border-color: rgba(255, 128, 102, .6); color: #ffb39a; }
@@ -2639,3 +2639,25 @@ body .combo-winrate b { color: #7fd6b0; font-weight: 700; }
 /* 진영 선택: 삼국(자동 배정) · 재야 두 장(2026.10.22) */
 @media (min-width: 761px) { html body .faction-selection__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 920px; margin-inline: auto; } }
 html body .faction-choice--realm { --faction-color: #52e0c4; }
+
+/* ───────── 접속 화면: 모든 기기에서 휴대폰 가로 배치 ─────────
+   PC · 태블릿 · 기타 기기도 휴대폰 가로 화면과 같은 배치(그림 왼쪽, 고르기 오른쪽)로 보여 준다.
+   배치는 휴대폰 크기(--gate-w × --gate-h, 높이 390 기준)의 무대에 그리고, 큰 화면에서는 무대를 통째로 키운다(strategy-ui fitAccessGate). */
+html body .access-gate { display: block; padding: 0; overflow: hidden; }
+html body .access-gate__stage { position: absolute; left: 50%; top: 50%; z-index: 1; width: var(--gate-w, 100%); height: var(--gate-h, 100%); display: grid; place-items: center; box-sizing: border-box; padding: 8px calc(8px + env(safe-area-inset-right, 0px)) 8px calc(8px + env(safe-area-inset-left, 0px)); transform: translate(-50%, -50%) scale(var(--gate-scale, 1)); transform-origin: center; }
+html body .access-gate__stage .access-gate__panel { width: min(860px, 100%); max-height: calc(var(--gate-h, 100vh) - 16px); overflow-y: auto; display: grid; grid-template-columns: 42% minmax(0, 1fr); column-gap: 22px; align-content: center; padding: 14px 20px 14px 0; text-align: center; }
+html body .access-gate__stage .access-gate__panel > * { grid-column: 2; }
+html body .access-gate__stage .access-gate__art { grid-column: 1; grid-row: 1 / span 9; margin: -14px 0 -14px 0; aspect-ratio: auto; height: auto; min-height: 100%; background-position: 50% 20%; -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent); mask-image: linear-gradient(90deg, #000 78%, transparent); }
+html body .access-gate__stage .access-gate__art + .access-gate__seal { display: none; }
+html body .access-gate__stage .access-gate__panel .eyebrow { margin-top: 2px; }
+html body .access-gate__stage .access-gate__panel h1 { margin-top: 4px; font-size: 26px; }
+html body .access-gate__stage .access-gate__lead { margin-top: 6px; font-size: 12px; line-height: 1.5; }
+html body .access-gate__stage .access-gate__divider { margin: 10px 0 8px; }
+html body .access-gate__stage .access-gate__actions { grid-template-columns: 1fr 1fr; gap: 8px; }
+html body .access-gate__stage .access-choice { min-height: 0; padding: 11px 12px; }
+html body .access-gate__stage .access-choice strong { font-size: 15px; }
+html body .access-gate__stage .access-choice span { margin-top: 4px; font-size: 12px; }
+html body .access-gate__stage .access-choice b { margin-top: 8px; font-size: 12px; }
+html body .access-gate__stage .access-gate__note { margin-top: 8px; font-size: 12px; }
+html body .access-gate__stage .access-gate__lang { margin-top: 8px; }
+html body .access-gate__backdrop { background-attachment: scroll; background-repeat: no-repeat; }

@@ -600,6 +600,7 @@ export class StrategyUI {
     root.addEventListener('change', this.handleChange)
     root.addEventListener('submit', this.handleSubmit)
     root.addEventListener('scroll', this.handleScroll, true)
+    window.addEventListener('resize', this.fitAccessGate)
     root.addEventListener('input', this.handleInput)
     root.addEventListener('pointerdown', this.handleUnitPress)
     // 가로 휴대폰 화면으로 들어가거나 나오면(회전 · 창 크기) 본영 배치가 달라지므로 다시 그린다
@@ -880,6 +881,22 @@ export class StrategyUI {
     this.root.innerHTML = this.accessGate()
     // 접속 화면 움직이는 배경(영상 파일이 있을 때만)
     mountBgVideo(this.root.querySelector('.access-gate__backdrop'), 'title', 'has-title-video')
+    this.fitAccessGate()
+  }
+
+  /**
+   * 접속 화면은 PC · 태블릿 · 휴대폰 어디서나 휴대폰 가로 화면(844 × 390) 배치로 그리고,
+   * 큰 화면에서는 그 배치를 통째로 키워 보여 준다(휴대폰에서는 크기 그대로).
+   */
+  private fitAccessGate = (): void => {
+    const gate = this.root.querySelector<HTMLElement>('.access-gate')
+    if (!gate) return
+    const w = gate.clientWidth || window.innerWidth
+    const h = gate.clientHeight || window.innerHeight
+    const scale = Math.max(1, Math.min(h / 390, w / 844))
+    gate.style.setProperty('--gate-scale', String(scale))
+    gate.style.setProperty('--gate-w', `${w / scale}px`)
+    gate.style.setProperty('--gate-h', `${h / scale}px`)
   }
 
   /** 게스트: 처음 들어올 때 아이디(표시 이름)를 정한다. onSubmit이 오류 문구를 돌려주면 그대로 보여 준다 */
@@ -1577,7 +1594,7 @@ export class StrategyUI {
 
   private accessGate(): string {
     const offline = this.auth.status === 'offline'
-    return `<section class="access-gate"><div class="access-gate__backdrop"></div><div class="access-gate__panel"><div class="access-gate__art" aria-hidden="true"></div><div class="access-gate__seal"><span>✦</span></div><span class="eyebrow">천하 · 패왕의 시대</span><h1>천하: 패왕의 시대</h1><p class="access-gate__lead">무장을 모으고, 진형을 지휘하고,<br>당신의 이름을 전장에 새기십시오.</p><div class="access-gate__divider"><i></i><span>접속 방식 선택</span><i></i></div><div class="access-gate__actions"><button class="access-choice access-choice--member" data-action="login"><strong>회원 로그인</strong><span>계정·전적·랭킹을 안전하게 저장합니다.</span><b>아이디 · 비밀번호로 계속 <em>→</em></b></button><button class="access-choice access-choice--guest" data-action="guest-login"><strong>게스트 로그인</strong><span>아이디만 정하고 바로 시작합니다.</span><b>${offline ? '이 기기에서만 로컬 저장' : '서버에 저장 · 모든 콘텐츠 이용'} <em>→</em></b></button></div><p class="access-gate__note">${offline ? '현재 회원 인증 서버에 연결할 수 없습니다. 게스트 모드로 플레이할 수 있습니다.' : '회원 로그인 후에도 기존 게스트 진행 데이터는 이 기기에 보존됩니다.'}</p><div class="setting-seg access-gate__lang" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div></section>`
+    return `<section class="access-gate"><div class="access-gate__backdrop"></div><div class="access-gate__stage"><div class="access-gate__panel"><div class="access-gate__art" aria-hidden="true"></div><div class="access-gate__seal"><span>✦</span></div><span class="eyebrow">천하 · 패왕의 시대</span><h1>천하: 패왕의 시대</h1><p class="access-gate__lead">무장을 모으고, 진형을 지휘하고,<br>당신의 이름을 전장에 새기십시오.</p><div class="access-gate__divider"><i></i><span>접속 방식 선택</span><i></i></div><div class="access-gate__actions"><button class="access-choice access-choice--member" data-action="login"><strong>회원 로그인</strong><span>계정·전적·랭킹을 안전하게 저장합니다.</span><b>아이디 · 비밀번호로 계속 <em>→</em></b></button><button class="access-choice access-choice--guest" data-action="guest-login"><strong>게스트 로그인</strong><span>아이디만 정하고 바로 시작합니다.</span><b>${offline ? '이 기기에서만 로컬 저장' : '서버에 저장 · 모든 콘텐츠 이용'} <em>→</em></b></button></div><p class="access-gate__note">${offline ? '현재 회원 인증 서버에 연결할 수 없습니다. 게스트 모드로 플레이할 수 있습니다.' : '회원 로그인 후에도 기존 게스트 진행 데이터는 이 기기에 보존됩니다.'}</p><div class="setting-seg access-gate__lang" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div></div></section>`
   }
 
   private factionSelection(): string {
