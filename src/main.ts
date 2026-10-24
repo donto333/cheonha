@@ -363,10 +363,13 @@ let activeDifficulty: ScenarioDifficulty = 'normal'
 let accountLoaded = false
 /** GitHub Pages 정적 미리보기: 서버가 없으니 모든 무장을 보유한 이 기기의 미리보기 계정으로 바로 들어간다 */
 const STATIC_PREVIEW = /\.github\.io$/i.test(window.location.hostname)
-if (STATIC_PREVIEW) { try { window.localStorage.setItem(GUEST_ACCESS_KEY, '1') } catch { /* 저장 불가 */ } }
+/** 게스트 기록을 초기화한 뒤 다시 불러올 때는 바로 들어가지 않고 로그인 화면부터 보여 준다(한 번만) */
+const GATE_AFTER_RESET_KEY = 'cheonharo.gateAfterReset.v1'
+const gateAfterReset = (() => { try { const on = window.localStorage.getItem(GATE_AFTER_RESET_KEY) === '1'; window.localStorage.removeItem(GATE_AFTER_RESET_KEY); if (on) window.localStorage.removeItem(GUEST_ACCESS_KEY); return on } catch { return false } })()
+if (STATIC_PREVIEW && !gateAfterReset) { try { window.localStorage.setItem(GUEST_ACCESS_KEY, '1') } catch { /* 저장 불가 */ } }
 // 미리보기 계정은 무장 모집 · 장비 뽑기에 옥패를 쓰지 않는다(연출 · 확률을 마음껏 시험)
 if (STATIC_PREVIEW) setFreeDraws(true)
-let gameAccess: 'member' | 'guest' | null = STATIC_PREVIEW || window.localStorage.getItem(GUEST_ACCESS_KEY) === '1' ? 'guest' : null
+let gameAccess: 'member' | 'guest' | null = (STATIC_PREVIEW && !gateAfterReset) || window.localStorage.getItem(GUEST_ACCESS_KEY) === '1' ? 'guest' : null
 const duelDecks = new Map<string, ReturnType<typeof allGenerals>>()
 let pendingSiege: { cityId: string; result: ReturnType<typeof launchConquest>; garrisonId?: string; ticket?: Promise<string | undefined> } | null = null
 
@@ -880,6 +883,8 @@ async function resetGuestProgress(): Promise<void> {
   const keep = new Set([PENDING_TERRITORY_BATTLES_KEY, 'cheonharo.lang', 'cheonharo.quality', 'cheonharo.effects', 'cheonharo.balance.config.v1', ...(serverGuest ? [] : [LOCAL_GAME_SAVE_KEY])])
   try {
     Object.keys(window.localStorage).filter(key => key.startsWith('cheonharo.') && !keep.has(key)).forEach(key => window.localStorage.removeItem(key))
+    // 다시 불러오면 게임으로 바로 들어가지 않고 로그인 화면부터(미리보기도 마찬가지)
+    window.localStorage.setItem(GATE_AFTER_RESET_KEY, '1')
   } catch { /* 저장소를 못 쓰면 지울 것도 없다 */ }
   window.location.reload()
 }
