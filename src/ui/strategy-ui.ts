@@ -18,7 +18,7 @@ import { branchActive, researchBranchesFor, canPay, activeResearch, formatDurati
 import { academyCut, percentText, scholarCut, scholarGeneral } from '../game/offices'
 import { emptyOfficeUi, officeSection, type OfficeUiState } from './office-ui'
 import { GUILD_HELP_MAX, type GuildMe } from '../../server/guild.mjs'
-import { ensureEquipmentState, DRAW_LOG_LIMIT, EARLY_RECRUIT_PULLS, isEventGeneral, currentCityGarrison, codexOrder, deployedIds, isFemaleGeneral, equipmentDrawCost, plunderTake, wandererDailyPlunder, factionInfluence, underdogBuff, type CityFaction, statsAt, STARTER_PACKS, starterPackBought, type StarterPack, LEVEL_RESET_GOLD, levelResetRefund, growthWeights, affordableUpgrades, upgradeCost, templateGeneral, MYTHIC_FRAGMENT_COST, dayKey, CITY_ADJACENCY, FACTION_CAPITALS, homeCityId, isWanderer, wandererPlunderLeft, WANDERER_DAILY_PLUNDER, WANDERER_PLUNDER_RATE, FACTION_CHANGE_COOLDOWN_MS, RAZE_REBUILD_MS, LEGENDARY_SPECIALTY_LEVEL, trackGoldChange, GOLD_LOG_LIMIT, PASSES, PASS_PAYMENT_ENABLED, passUntil, passGoldClaimedToday, cityOccupation, cityCaptureBanned, OCCUPY_MS, EQUIPMENT_GRADE_META, EQUIPMENT_SET_META, EQUIPMENT_TYPE_META, FACTION_WAR_GOLD_REWARD, FACTION_WAR_HONOR_COST, GOLD_PACKAGES, GOLD_PURCHASE_ENABLED, GRADE_META, MYTHIC_EVENT_EQUIPMENT, MYTHIC_SHOP_EQUIPMENT, capitalFactionForCity, cityWallCapacity, conquestEligibility, duelAttemptsRemaining, RESOURCE_META, allGenerals, equipmentInventoryCount, equipmentSetCounts, equipmentSpecialty, skillDetail, type City, type CityBuilding, type Grade, type Equipment, type EquipmentGrade, type EquipmentType, type Faction, type General, type Role, type ResearchNode, type Section, type StrategyState, buildingCost, buildingDurationMs, cityIncome, combatPower, conquestCost, conquestPower, equipmentBonus, equipmentCost, recruitCost, equipmentValue, formatNumber, incomeCooldownRemaining, researchCost, skillPower, skillRank, skillUnlockLevel, MAX_GENERAL_LEVEL, isMaxLevel } from '../game/strategy'
+import { ensureEquipmentState, DRAW_LOG_LIMIT, EARLY_RECRUIT_PULLS, isEventGeneral, currentCityGarrison, codexOrder, deployedIds, isFemaleGeneral, equipmentDrawCost, plunderTake, wandererDailyPlunder, factionInfluence, underdogBuff, type CityFaction, statsAt, STARTER_PACKS, starterPackBought, type StarterPack, LEVEL_RESET_GOLD, levelResetRefund, growthWeights, affordableUpgrades, upgradeCost, templateGeneral, MYTHIC_FRAGMENT_COST, dayKey, CITY_ADJACENCY, FACTION_CAPITALS, homeCityId, isWanderer, wandererPlunderLeft, WANDERER_DAILY_PLUNDER, WANDERER_PLUNDER_RATE, FACTION_CHANGE_COOLDOWN_MS, RAZE_REBUILD_MS, LEGENDARY_SPECIALTY_LEVEL, trackGoldChange, GOLD_LOG_LIMIT, PASSES, PASS_PAYMENT_ENABLED, passUntil, passGoldClaimedToday, cityOccupation, cityCaptureBanned, OCCUPY_MS, EQUIPMENT_GRADE_META, EQUIPMENT_SET_META, EQUIPMENT_TYPE_META, FACTION_WAR_GOLD_REWARD, FACTION_WAR_HONOR_COST, GOLD_PACKAGES, GOLD_PURCHASE_ENABLED, GRADE_META, MYTHIC_EVENT_EQUIPMENT, MYTHIC_SHOP_EQUIPMENT, capitalFactionForCity, cityWallCapacity, conquestEligibility, duelAttemptsRemaining, DUEL_DAILY_LIMIT, RESOURCE_META, allGenerals, equipmentInventoryCount, equipmentSetCounts, equipmentSpecialty, skillDetail, type City, type CityBuilding, type Grade, type Equipment, type EquipmentGrade, type EquipmentType, type Faction, type General, type Role, type ResearchNode, type Section, type StrategyState, buildingCost, buildingDurationMs, cityIncome, combatPower, conquestCost, conquestPower, equipmentBonus, equipmentCost, recruitCost, equipmentValue, formatNumber, incomeCooldownRemaining, researchCost, skillPower, skillRank, skillUnlockLevel, MAX_GENERAL_LEVEL, isMaxLevel } from '../game/strategy'
 import type { BattleOpponent, BattleSnapshot, UnitEffectChip } from '../game/arena'
 import { ATTENDANCE_REWARDS, type AttendanceReward } from '../../server/attendance.mjs'
 import { HARD_LEVEL_BONUS, HARD_RULE_INFO, SCENARIOS, hardClearReward, hardCleared, hardClearedCount, hardScenarioStars, hardUnlocked, scenarioEnemyIds, scenarioEnemyLevel, scenarioEnemyLevelFor, scenarioHardRule, scenarioStars, type ScenarioDifficulty } from '../game/scenarios'
@@ -3846,7 +3846,52 @@ export class StrategyUI {
       </div></div></section>`
   }
 
+  /** 휴대폰 가로: 대련 상대 선택(시안 — 성곽 카드 3장 · 승리 보상 줄 · 남은 횟수). 1790×797 기준 좌표를 % · cqw 로 줄인다 */
+  private mobileDuel(state: StrategyState): string {
+    const TIERS = { easy: { label: '쉬움', reward: 1, glyph: '蜀', flag: [375, 103, 55, 67], fx: 'green' }, normal: { label: '보통', reward: 2, glyph: '魏', flag: [260, 107, 62, 67], fx: 'amber' }, hard: { label: '어려움', reward: 3, glyph: '吳', flag: [294, 105, 62, 72], fx: 'red' } } as const
+    const left = duelAttemptsRemaining(state)
+    const mine = deployedIds(state.formation).length >= 3 ? deckStyle(deployedIds(state.formation)) : null
+    const pct = (v: number, of: number) => `${(v / of * 100).toFixed(3)}%`
+    const cardBox = (x: number, y: number, w: number, h: number) => `left:${pct(x, 535)};top:${pct(y, 565)};width:${pct(w, 535)};height:${pct(h, 565)}`
+    const card = (opponent: DuelOpponent, index: number) => {
+      const tier = opponent.tier ?? 'normal'
+      const meta = TIERS[tier]
+      const deck = opponent.deck ?? []
+      const avg = deck.length ? Math.round(deck.reduce((sum, general) => sum + general.level, 0) / deck.length) : 0
+      const theirs = deck.length === 3 ? deckStyle(deck.map(general => general.id)) : null
+      const edge = theirs ? styleEdge(mine, theirs) : 0
+      const tag = theirs ? `${ARCHETYPE_META[theirs].label} 덱${edge > 0 ? ' · 유리' : edge < 0 ? ' · 불리' : ''}` : ''
+      const sub = opponent.isDummy ? '훈련 상대' : (opponent.guildName ? ugc(opponent.guildName) : '지휘관')
+      const [fx, fy, fw, fh] = meta.flag
+      const portraits = [0, 1, 2].map(j => {
+        const general = deck[j]
+        return `<span class="mduel-card__pt" style="${cardBox(44 + j * 157, 351, 142, 118)}">${general ? `<img src="${this.portraitAsset(general)}" alt="${escapeHtml(general.name)}" loading="lazy">` : ''}<i></i></span>`
+      }).join('')
+      return `<article class="mduel-card mduel-card--${tier}" style="left:${pct(78 + index * 550, 1790)}">
+        <span class="mduel-card__castle"></span><b class="mduel-card__glyph" style="${cardBox(fx, fy, fw, fh)}" data-no-tr>${meta.glyph}</b>
+        <span class="mduel-card__lower"></span><span class="mduel-card__glow"></span><span class="mduel-card__frame"></span>
+        <span class="mduel-card__badge">${meta.label}</span>
+        <strong class="mduel-card__name">${ugc(opponent.displayName)}${royalBadge(this.guildUi.royal, { name: opponent.displayName })}</strong>
+        <span class="mduel-card__sub">${sub}</span><span class="mduel-card__lv">${avg ? `평균 Lv.${avg}` : ''}</span><i class="mduel-card__rule"></i>
+        <span class="mduel-card__plabel">전력</span><b class="mduel-card__power">${formatNumber(opponent.power ?? 0)}</b>
+        ${tag ? `<span class="mduel-card__tag${edge < 0 ? ' is-dis' : edge > 0 ? ' is-adv' : ''}">${tag}</span>` : ''}
+        ${portraits}
+        <button class="mduel-card__go" data-action="duel-start" data-opponent-id="${escapeHtml(opponent.id)}" ${left > 0 ? '' : 'disabled'}>대련 신청</button>
+      </article>`
+    }
+    const opponents = this.duelOpponents.slice(0, 3)
+    const cards = opponents.length ? opponents.map(card).join('') : `<div class="mduel-empty">상대를 찾는 중입니다…</div>`
+    return `<section class="page-section page-section--mduel"><div class="mduel">
+      <div class="mduel-title"><h2>대련 상대 선택</h2><p>상대를 선택하고 전술을 시험하세요</p></div>
+      <div class="mduel-rewards"><b>승리 보상</b><i></i><span class="mduel-chip mduel-chip--easy">쉬움 +1</span><span class="mduel-chip mduel-chip--normal">보통 +2</span><span class="mduel-chip mduel-chip--hard">어려움 +3</span><i></i><small>신화장비 조각 · ${MYTHIC_FRAGMENT_COST}개로 장비 교환</small></div>
+      <div class="mduel-left">오늘 남은 대련 <b>${left} / ${DUEL_DAILY_LIMIT}</b></div>
+      ${cards}
+      <p class="mduel-foot"><i></i>전투 시작 전 편성을 확인하세요</p>
+    </div></section>`
+  }
+
   private duelSection(state: StrategyState): string {
+    if (isPhoneLandscape()) return this.mobileDuel(state)
     const formationReady = deployedIds(state.formation).length >= 3
     const opponents = this.duelOpponents
     return `<section class="page-section page-section--duel"><div class="section-heading section-heading--compact"><div><span class="eyebrow">전투</span><h1>유저 대련</h1><p class="heading-copy">다른 지휘관이 저장한 덱과 겨룹니다. 이기면 신화장비 조각을 받습니다.</p></div><button class="ghost-button" data-action="duel-refresh">상대 새로고침 ↻</button></div><div class="duel-hero glass-card"><div><span class="pill pill--jade">실시간 대련 · ${formationReady ? '출전 준비 완료' : '편성 필요'}</span><h2>상대 덱을 선택하십시오</h2><p>${opponents.some(opponent => !opponent.isDummy) ? '내 덱 전력과 비슷한 지휘관이 저장한 출전 덱과 겨룹니다.' : '덱을 저장한 지휘관이 20명이 될 때까지는 내 덱 전력에 맞춘 훈련 상대와 겨룹니다.'}${this.duelMyPower ? ` <b>내 덱 전력 ${formatNumber(this.duelMyPower)}</b>` : ''}</p><div class="duel-daily-limit"><strong>오늘 남은 대련 ${duelAttemptsRemaining(state)}회</strong><span>매일 5회 · 승리 시 신화장비 조각 쉬움 +1 · 보통 +2 · 어려움 +3 (신화장비 1개 = 조각 ${MYTHIC_FRAGMENT_COST}개)</span></div></div><div class="duel-hero-mark">⚔</div></div><div class="duel-list">${opponents.length ? '' : '<div class="rank-empty">상대를 찾는 중입니다…</div>'}${opponents.map((opponent, index) => `<article class="duel-opponent glass-card ${opponent.isDummy ? 'is-dummy' : ''}"><div class="duel-rank">${String(index + 1).padStart(2, '0')}</div><div class="duel-avatar">${escapeHtml(opponent.displayName.slice(0, 1))}</div><div class="duel-opponent-copy"><strong>${ugc(opponent.displayName)}${royalBadge(this.guildUi.royal, { name: opponent.displayName })}${opponent.guildName ? ` <small class="guild-tag">${ugc(opponent.guildName)}</small>` : ''}</strong><span>${opponent.isDummy ? `훈련 상대 · ${escapeHtml(opponent.note ?? '')}` : `지휘관 · 전력 ${formatNumber(opponent.power ?? 0)}${this.duelMyPower && opponent.power ? ` (내 덱 대비 ${opponent.power >= this.duelMyPower ? '+' : '−'}${Math.round(Math.abs(opponent.power / this.duelMyPower - 1) * 100)}%)` : ''} · 전적 점수 ${formatNumber(opponent.score)}`}</span></div>${this.duelStyleBadge(state, opponent)}<span class="duel-reward duel-reward--${opponent.tier ?? 'normal'}">${{ easy: '쉬움', normal: '보통', hard: '어려움' }[opponent.tier ?? 'normal']} · 조각 +${{ easy: 1, normal: 2, hard: 3 }[opponent.tier ?? 'normal']}</span><button class="action-button action-button--primary" data-action="duel-start" data-opponent-id="${escapeHtml(opponent.id)}">대련 신청 <span>→</span></button></article>`).join('')}</div></section>`
