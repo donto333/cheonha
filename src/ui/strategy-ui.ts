@@ -683,6 +683,13 @@ export class StrategyUI {
       panel.remove()
     })
     document.body.appendChild(panel)
+    // 실제 크기로 다시 맞춘다: 화면 밖으로 나가지 않게(휴대폰 가로에서는 판이 더 넓다)
+    const box = panel.getBoundingClientRect()
+    const scale = box.width / Math.max(1, panel.offsetWidth)
+    const leftPx = Math.min(Math.max(6, rect.right - box.width), window.innerWidth - box.width - 6)
+    panel.style.left = `${Math.round(Math.max(6, leftPx) / scale)}px`
+    const room = (above ? rect.top : window.innerHeight - rect.bottom) - 12
+    if (box.height > room) { panel.style.maxHeight = `${Math.round(room / scale)}px`; panel.style.overflowY = 'auto' }
     // 판 밖을 누르면 닫는다
     const close = (event: Event) => {
       if (!panel.isConnected) { document.removeEventListener('pointerdown', close, true); return }
