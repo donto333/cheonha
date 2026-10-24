@@ -527,7 +527,7 @@ export class StrategyUI {
   }
   /** 휴대폰: 업데이트 기록은 최근 것부터 조금씩 */
   private updatesShown = 6
-  private codexFilter: 'all' | 'owned' | 'missing' | '5' | '4' | Role = 'all'
+  private codexFilter: 'all' | 'owned' | 'missing' | `${'owned' | 'missing'}-${Realm}` = 'all'
   private codexQuery = ''
   /** 출전 편성 · 대기 무장 찾기(이름 · 칭호 · 병종 · 진영 · 등급 · 스킬) */
   private formationQuery = ''
@@ -2008,10 +2008,8 @@ export class StrategyUI {
     const catalog = allGenerals()
     const owned = new Map(state.generals.map(general => [general.id, general]))
     const ownedCount = catalog.filter(general => owned.has(general.id)).length
-    const f = this.codexFilter
-    const visible = codexOrder(catalog).filter(general => (f === 'all' ? true : f === 'owned' ? owned.has(general.id) : f === 'missing' ? !owned.has(general.id) : f === '5' ? general.grade === 5 : f === '4' ? general.grade === 4 : general.role === f))
-    const filters: Array<[typeof f, string, number]> = [['all', '전체', catalog.length], ['owned', '영입', ownedCount], ['missing', '미영입', catalog.length - ownedCount], ['5', '천명', catalog.filter(g => g.grade === 5).length], ['4', '명장', catalog.filter(g => g.grade === 4).length], ...(['기병', '보병', '궁병', '책사'] as Role[]).map(role => [role, role, catalog.filter(g => g.role === role).length] as [Role, string, number])]
-    const toolbar = `<div class="mroster-bar"><div class="filter-tabs">${filters.map(([id, label, count]) => `<button class="filter-tab ${f === id ? 'is-active' : ''}" data-action="codex-filter" data-filter="${id}">${label} <b>${count}</b></button>`).join('')}</div></div>`
+    const visible = codexOrder(catalog).filter(general => this.codexMatch(general, owned.has(general.id)))
+    const toolbar = `<div class="mroster-bar mroster-bar--codex">${this.codexFilterTabs(catalog, owned)}</div>`
     const grid = `<div class="gtile-grid">${visible.map(general => { const mine = owned.get(general.id); return this.generalTile(mine ?? general, 'codex', { locked: !mine }) }).join('')}</div>`
     const foot = `<div class="mscreen-foot"><span>수집 현황 <b>${ownedCount} / ${catalog.length}</b></span><button class="mscreen-foot__btn" data-action="section" data-section="recruit">모집</button><button class="mscreen-foot__btn" data-action="section" data-section="roster">보유 무장</button></div>`
     return `<section class="page-section page-section--codex page-section--mroster">${toolbar}${grid}${foot}</section>${this.generalDetailPanel(state)}`
@@ -2061,15 +2059,32 @@ export class StrategyUI {
     resetPage('gtile'); applyPagers(this.root, isPhoneLandscape())
   }
 
+  /** 도감 거르기: 전체 · 영입(위 · 촉 · 오 · 군웅) · 미영입(위 · 촉 · 오 · 군웅) */
+  private codexMatch(general: General, isOwned: boolean): boolean {
+    const f = this.codexFilter
+    if (f === 'all') return true
+    const [own, realm] = f.split('-') as ['owned' | 'missing', Realm | undefined]
+    if ((own === 'owned') !== isOwned) return false
+    return !realm || generalRealm(general.id) === realm
+  }
+  private codexFilterTabs(catalog: General[], owned: Map<string, General>): string {
+    const f = this.codexFilter
+    const tab = (id: typeof f, cls: string, label: string, count: number) => `<button class="filter-tab filter-tab--${cls} ${f === id ? 'is-active' : ''}" data-action="codex-filter" data-filter="${id}"><i class="filter-tab__ico" aria-hidden="true"></i>${label} <b>${count}</b></button>`
+    const group = (own: 'owned' | 'missing', label: string) => {
+      const list = catalog.filter(g => owned.has(g.id) === (own === 'owned'))
+      const realms = (['wei', 'shu', 'wu', 'qun'] as Realm[]).map(realm => tab(`${own}-${realm}`, realm, REALM_LABEL[realm], list.filter(g => generalRealm(g.id) === realm).length)).join('')
+      return `<div class="filter-tabs filter-tabs--realm filter-tabs--codex"><button class="filter-tab filter-tab--head ${f === own ? 'is-active' : ''}" data-action="codex-filter" data-filter="${own}">${label} <b>${list.length}</b></button>${realms}</div>`
+    }
+    return `<div class="filter-tabs filter-tabs--realm filter-tabs--codex">${tab('all', 'all', '전체', catalog.length)}</div>${group('owned', '영입')}${group('missing', '미영입')}`
+  }
+
   private codexSection(state: StrategyState): string {
     if (isPhoneLandscape()) return this.mobileCodex(state)
     const catalog = allGenerals()
     const owned = new Map(state.generals.map(general => [general.id, general]))
     const ownedCount = catalog.filter(general => owned.has(general.id)).length
-    const f = this.codexFilter
-    const visible = codexOrder(catalog).filter(general => (f === 'all' ? true : f === 'owned' ? owned.has(general.id) : f === 'missing' ? !owned.has(general.id) : f === '5' ? general.grade === 5 : f === '4' ? general.grade === 4 : general.role === f)).filter(general => !this.codexQuery.trim() || general.name.includes(this.codexQuery.trim()))
-    const filters: Array<[typeof f, string, number]> = [['all', '전체', catalog.length], ['owned', '영입', ownedCount], ['missing', '미영입', catalog.length - ownedCount], ['5', '천명', catalog.filter(g => g.grade === 5).length], ['4', '명장', catalog.filter(g => g.grade === 4).length], ...(['기병', '보병', '궁병', '책사'] as Role[]).map(role => [role, role, catalog.filter(g => g.role === role).length] as [Role, string, number])]
-    return `<section class="page-section page-section--codex"><div class="section-heading section-heading--compact"><div><span class="eyebrow">본진</span><h1>무장 도감</h1><p class="heading-copy">천하에 이름을 남긴 ${catalog.length}명의 무장과 영입 현황입니다.</p></div><div class="section-counter"><span>수집 현황</span><strong>${ownedCount}<small> / ${catalog.length}</small></strong></div></div><div class="codex-toolbar"><div class="filter-tabs">${filters.map(([id, label, count]) => `<button class="filter-tab ${f === id ? 'is-active' : ''}" data-action="codex-filter" data-filter="${id}">${label} <b>${count}</b></button>`).join('')}</div><label class="codex-search"><span>찾기</span><input data-codex-search type="search" placeholder="무장 이름" value="${escapeHtml(this.codexQuery)}"></label><div class="codex-progress"><i><b style="width:${(ownedCount / catalog.length) * 100}%"></b></i><small>${Math.round((ownedCount / catalog.length) * 100)}% · ${ownedCount}명 영입</small></div></div><div class="codex-grid">${visible.map((general, index) => {
+    const visible = codexOrder(catalog).filter(general => this.codexMatch(general, owned.has(general.id))).filter(general => !this.codexQuery.trim() || general.name.includes(this.codexQuery.trim()))
+    return `<section class="page-section page-section--codex"><div class="section-heading section-heading--compact"><div><span class="eyebrow">본진</span><h1>무장 도감</h1><p class="heading-copy">천하에 이름을 남긴 ${catalog.length}명의 무장과 영입 현황입니다.</p></div><div class="section-counter"><span>수집 현황</span><strong>${ownedCount}<small> / ${catalog.length}</small></strong></div></div><div class="codex-toolbar">${this.codexFilterTabs(catalog, owned)}<label class="codex-search"><span>찾기</span><input data-codex-search type="search" placeholder="무장 이름" value="${escapeHtml(this.codexQuery)}"></label><div class="codex-progress"><i><b style="width:${(ownedCount / catalog.length) * 100}%"></b></i><small>${Math.round((ownedCount / catalog.length) * 100)}% · ${ownedCount}명 영입</small></div></div><div class="codex-grid">${visible.map((general, index) => {
       // 등급이 바뀌는 자리에 등급 머리말(그 등급 몇 명 · 남성/여성)
       const head = index === 0 || visible[index - 1].grade !== general.grade
         ? (() => { const group = visible.filter(item => item.grade === general.grade); const women = group.filter(item => isFemaleGeneral(item.id)).length; return `<div class="codex-grade-head" data-codex-grade="${general.grade}" style="--grade:${GRADE_META[general.grade].color}"><b>${GRADE_META[general.grade].label}</b><span>${general.grade}등급 · ${group.length}명</span>${women ? `<small>남성 ${group.length - women} · 여성 ${women}</small>` : ''}</div>` })()
