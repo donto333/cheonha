@@ -6,6 +6,7 @@ import { easeIn2, easeInOut, track } from './motion-math'
 import { strikeInfluences } from './battle-rig'
 import type { General } from './strategy'
 import { loadModel } from './battle-models'
+import type { BattleTime } from './battle-view'
 
 export type Team = 'player' | 'enemy'
 export type SceneQuality = 'low' | 'high'
@@ -622,34 +623,41 @@ export interface Environment {
   sun: THREE.DirectionalLight
   /** 화면 비율이 바뀌면 배경 그림을 다시 맞춘다 */
   setAspect: (aspect: number) => void
+  /** 시간대(노을 · 아침): 배경 그림과 빛을 바꾼다 */
+  setTime: (time: BattleTime) => void
 }
 
-export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Environment {
+export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality, initialTime: BattleTime = 'dusk'): Environment {
   const updaters: Array<(t: number, delta: number) => void> = []
   // 배경: 사용자 제공 전장 그림 한 장(화면에 꽉 차게). 하늘 · 산 · 성채 · 풀 · 나무 · 깃발 모델은 쓰지 않고, 전장(섬) 모델만 얹는다.
   scene.fog = null
   scene.background = new THREE.Color(0x2a1a0e)
-  let bgAspect = 16 / 9
   let viewAspect = 16 / 9
   let bg: THREE.Texture | null = null
+  let time: BattleTime = initialTime
   const fitBackground = () => {
     if (!bg) return
     // CSS background-size: cover 와 같게 자른다
-    const ratio = viewAspect / bgAspect
+    const image = bg.image as { width: number; height: number }
+    const ratio = viewAspect / (image.width / Math.max(1, image.height))
     if (ratio > 1) { bg.repeat.set(1, 1 / ratio); bg.offset.set(0, (1 - 1 / ratio) * 0.5) }
     else { bg.repeat.set(ratio, 1); bg.offset.set((1 - ratio) * 0.5, 0) }
   }
-  new THREE.TextureLoader().load('/assets/battlefield/battle-bg.webp', texture => {
-    texture.colorSpace = THREE.SRGBColorSpace
-    const image = texture.image as { width: number; height: number }
-    bgAspect = image.width / Math.max(1, image.height)
-    bg = texture
-    fitBackground()
-    scene.background = texture
-  })
+  const BG_FILE: Record<BattleTime, string> = { dusk: '/assets/battlefield/battle-bg.webp', morning: '/assets/battlefield/battle-bg-morning.webp' }
+  const textures = new Map<BattleTime, THREE.Texture>()
+  const showBackground = (which: BattleTime) => {
+    const ready = textures.get(which)
+    if (ready) { bg = ready; fitBackground(); scene.background = ready; return }
+    new THREE.TextureLoader().load(BG_FILE[which], texture => {
+      texture.colorSpace = THREE.SRGBColorSpace
+      textures.set(which, texture)
+      if (time === which) showBackground(which)
+    })
+  }
 
-  // 빛: 노을 햇빛 + 하늘빛 + 테두리 빛
-  scene.add(new THREE.HemisphereLight(0xffe0bc, 0x5a3a22, 1.6))
+  // 빛: 햇빛 + 하늘빛 + 테두리 빛(시간대마다 색 · 세기)
+  const hemi = new THREE.HemisphereLight(0xffe0bc, 0x5a3a22, 1.6)
+  scene.add(hemi)
   const sun = new THREE.DirectionalLight(0xffc68a, 3.4)
   sun.position.set(-18, 16, -22)
   sun.castShadow = true
@@ -661,6 +669,19 @@ export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Env
   const fill = new THREE.DirectionalLight(0xffb070, 0.55)
   fill.position.set(14, 10, 18)
   scene.add(fill)
+  const LIGHTS: Record<BattleTime, { sky: number; groundTone: number; hemi: number; sun: number; sunI: number; fill: number; fillI: number }> = {
+    dusk: { sky: 0xffe0bc, groundTone: 0x5a3a22, hemi: 1.6, sun: 0xffc68a, sunI: 3.4, fill: 0xffb070, fillI: 0.55 },
+    morning: { sky: 0xdfe9ff, groundTone: 0x6a5a48, hemi: 1.7, sun: 0xfff0dc, sunI: 3.2, fill: 0xa8c4ff, fillI: 0.6 },
+  }
+  const applyTime = (which: BattleTime) => {
+    time = which
+    const l = LIGHTS[which]
+    hemi.color.setHex(l.sky); hemi.groundColor.setHex(l.groundTone); hemi.intensity = l.hemi
+    sun.color.setHex(l.sun); sun.intensity = l.sunI
+    fill.color.setHex(l.fill); fill.intensity = l.fillI
+    showBackground(which)
+  }
+  applyTime(initialTime)
 
   // 바닥: 보이지 않고 그림자만 받는 판(병사 · 무장 발밑 그림자)
   const shadowGround = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.ShadowMaterial({ color: 0x1a0c04, opacity: 0.38 }))
@@ -705,5 +726,5 @@ export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Env
     dust.rotation.y = Math.sin(t * 0.05) * 0.05
   })
 
-  return { update: (t, delta) => updaters.forEach(fn => fn(t, delta)), sun, setAspect: (aspect: number) => { viewAspect = aspect; fitBackground() } }
+  return { update: (t, delta) => updaters.forEach(fn => fn(t, delta)), sun, setAspect: (aspect: number) => { viewAspect = aspect; fitBackground() }, setTime: (which: BattleTime) => { if (which !== time) applyTime(which) } }
 }

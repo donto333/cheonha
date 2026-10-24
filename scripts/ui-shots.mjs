@@ -215,7 +215,11 @@ try {
     try {
       await page.evaluate(() => { document.querySelectorAll('.social-panel, .chat-panel').forEach(el => el.remove()); const g = window.__strategy; g.state.section = 'battle'; g.ui.render(g.state) })
       const start = page.locator('[data-action="battle-start"], [data-action="scenario-start"]')
-      if (await start.count()) { await start.first().evaluate(b => b.click()); await sleep(4000); await clearOverlays(); await shot('99c-battle-live') }
+      if (await start.count()) { await start.first().evaluate(b => b.click()); await sleep(4000); await clearOverlays(); await shot('99c-battle-live')
+        // 아침 배경: 시점 판의 ‘시간 · 아침’
+        const viewBtn = page.locator('[data-action="battle-view"]')
+        if (await viewBtn.count()) { await viewBtn.first().evaluate(b => b.click()); await sleep(300); await page.locator('[data-time="morning"]').first().evaluate(b => b.click()); await sleep(300); await shot('99e-battle-picker'); await page.evaluate(() => document.querySelector('.bt-view-picker')?.remove()); await sleep(1500); await shot('99d-battle-morning') }
+      }
     } catch (error) { errors.push(`[${view.name}] battle-live: ${error}`) }
     await context.close()
   }

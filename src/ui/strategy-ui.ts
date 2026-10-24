@@ -1,6 +1,6 @@
 import { assetUrl } from '../asset-url'
 import { OFFICIAL_LAUNCH, isLaunched } from '../../server/launch.mjs'
-import { BATTLE_DISTANCE_LABEL, BATTLE_DISTANCES, loadBattleDistance, saveBattleDistance, type BattleDistance } from '../game/battle-view'
+import { BATTLE_DISTANCE_LABEL, BATTLE_DISTANCES, BATTLE_TIME_LABEL, BATTLE_TIMES, loadBattleDistance, loadBattleTime, saveBattleDistance, saveBattleTime, type BattleDistance, type BattleTime } from '../game/battle-view'
 import { BATTLE_VIEW_ARROW, BATTLE_VIEW_GRID, BATTLE_VIEW_HINT, BATTLE_VIEW_LABEL, BATTLE_VIEWS, loadBattleView, nextBattleView, saveBattleView, type BattleView } from '../game/battle-view'
 import { SQUAD_LABELS, squadIds, squadOf, squadPower } from '../game/squads'
 import { raidBossDeck, raidBossFor } from '../game/raid'
@@ -348,6 +348,7 @@ export interface StrategyUiCallbacks {
   onBattleSpeed: (speed: number) => void
   onBattleView: (view: BattleView) => void
   onBattleDistance?: (distance: BattleDistance) => void
+  onBattleTime?: (time: BattleTime) => void
   onBattleAuto: (on: boolean) => void
   onBattleAutoSkill: (on: boolean) => void
   onBattlePause: (on: boolean) => void
@@ -582,6 +583,7 @@ export class StrategyUI {
   private battleView: BattleView = loadBattleView()
   getBattleView(): BattleView { return this.battleView }
   private battleDistance: BattleDistance = loadBattleDistance()
+  private battleTime: BattleTime = loadBattleTime()
   private noticeSeen: string | undefined
   private noticeAt = 0
   private powerMarked = false
@@ -644,7 +646,7 @@ export class StrategyUI {
     const panel = document.createElement('div')
     panel.className = 'bt-view-picker'
     panel.setAttribute('role', 'menu')
-    panel.innerHTML = `<div class="bt-view-head"><b>${tr('전투 시점')}</b><small>${tr('위가 적진 · 아래가 아군')}</small></div><div class="bt-view-grid">${BATTLE_VIEW_GRID.flat().map(view => `<button type="button" role="menuitemradio" aria-checked="${view === this.battleView}" class="bt-view-cell ${view === this.battleView ? 'is-on' : ''}" data-view="${view}" title="${tr(BATTLE_VIEW_HINT[view])}"><i>${BATTLE_VIEW_ARROW[view]}</i><span>${tr(BATTLE_VIEW_LABEL[view])}</span></button>`).join('')}</div><div class="bt-view-dist"><span>${tr('거리')}</span>${BATTLE_DISTANCES.map(d => `<button type="button" class="bt-view-dist__btn ${d === this.battleDistance ? 'is-on' : ''}" data-distance="${d}">${tr(BATTLE_DISTANCE_LABEL[d])}</button>`).join('')}</div>`
+    panel.innerHTML = `<div class="bt-view-head"><b>${tr('전투 시점')}</b><small>${tr('위가 적진 · 아래가 아군')}</small></div><div class="bt-view-grid">${BATTLE_VIEW_GRID.flat().map(view => `<button type="button" role="menuitemradio" aria-checked="${view === this.battleView}" class="bt-view-cell ${view === this.battleView ? 'is-on' : ''}" data-view="${view}" title="${tr(BATTLE_VIEW_HINT[view])}"><i>${BATTLE_VIEW_ARROW[view]}</i><span>${tr(BATTLE_VIEW_LABEL[view])}</span></button>`).join('')}</div><div class="bt-view-dist"><span>${tr('거리')}</span>${BATTLE_DISTANCES.map(d => `<button type="button" class="bt-view-dist__btn ${d === this.battleDistance ? 'is-on' : ''}" data-distance="${d}">${tr(BATTLE_DISTANCE_LABEL[d])}</button>`).join('')}</div><div class="bt-view-dist bt-view-dist--time"><span>${tr('시간')}</span>${BATTLE_TIMES.map(t => `<button type="button" class="bt-view-dist__btn ${t === this.battleTime ? 'is-on' : ''}" data-time="${t}">${tr(BATTLE_TIME_LABEL[t])}</button>`).join('')}</div>`
     const rect = anchor.getBoundingClientRect()
     // 화면 아래쪽 단추(전투 오른쪽 아래)면 단추 위로 연다
     const above = rect.top > window.innerHeight / 2
@@ -653,6 +655,15 @@ export class StrategyUI {
     // 단추 오른쪽 끝에 맞추되 화면 밖으로 나가지 않게(좁은 휴대폰)
     panel.style.left = `${Math.round(Math.min(Math.max(6, rect.right - 228), window.innerWidth - 234))}px`
     panel.addEventListener('click', event => {
+      const timeBtn = (event.target as HTMLElement).closest<HTMLElement>('[data-time]')
+      if (timeBtn) {
+        event.stopPropagation()
+        this.battleTime = timeBtn.dataset.time as BattleTime
+        saveBattleTime(this.battleTime)
+        this.callbacks.onBattleTime?.(this.battleTime)
+        panel.querySelectorAll('[data-time]').forEach(el => el.classList.toggle('is-on', el === timeBtn))
+        return
+      }
       const dist = (event.target as HTMLElement).closest<HTMLElement>('[data-distance]')
       if (dist) {
         event.stopPropagation()

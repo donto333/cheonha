@@ -1043,6 +1043,7 @@ html body .terr-search { display: none; }
 
 /* ════════ 전투 시점: 거리 고르기 · 휴대폰 가로에서 적 전술 예고를 작게(전장을 덜 가리게) ════════ */
 .bt-view-dist { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); align-items: center; gap: 4px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(240, 194, 106, .3); }
+.bt-view-dist--time { grid-template-columns: auto repeat(2, minmax(0, 1fr)); margin-top: 6px; padding-top: 6px; }
 .bt-view-dist > span { font-size: 11px; color: #e8d6ae; padding-right: 2px; }
 .bt-view-dist__btn { min-height: 30px; padding: 0 2px; font-size: 11px; font-weight: 800; color: #f3e3bd; background: rgba(60, 28, 10, .7); border: 1px solid rgba(240, 194, 106, .45); border-radius: 8px; }
 .bt-view-dist__btn.is-on { color: #3a1d08; background: #f0c26a; border-color: #f0c26a; }

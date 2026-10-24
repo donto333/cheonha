@@ -1992,6 +1992,7 @@ const ui = new StrategyUI(root, {
   },
   onBattleView: view => arena.setView(view),
   onBattleDistance: distance => arena.setDistance(distance),
+  onBattleTime: time => arena.setTime(time),
   onBattleSpeed: speed => {
     arena.setSpeed(speed)
     ui.updateBattle(arena.getSnapshot())

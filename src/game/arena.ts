@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { BATTLE_DISTANCE_SCALE, BATTLE_VIEWS, DIAGONAL_VIEWS, loadBattleDistance, type BattleDistance, type BattleView } from './battle-view'
+import { BATTLE_DISTANCE_SCALE, BATTLE_VIEWS, DIAGONAL_VIEWS, loadBattleDistance, loadBattleTime, type BattleDistance, type BattleTime, type BattleView } from './battle-view'
 import { disposeOwned, markShared } from './gpu-shared'
 import { recruitableGenerals, frontLineOrder, scaleGeneral, type General } from './strategy'
 import { sound, type WeaponSound } from '../engine/sound'
@@ -361,7 +361,7 @@ export class Arena {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.05
-    this.environment = buildEnvironment(this.scene, this.quality)
+    this.environment = buildEnvironment(this.scene, this.quality, loadBattleTime())
     this.camera.position.copy(this.cameraBase)
     this.camera.lookAt(this.cameraLookAt)
     if (this.quality === 'high') {
@@ -556,6 +556,9 @@ export class Arena {
     this.view = view
   }
   getView(): BattleView { return this.view }
+
+  /** 시간대(노을 · 아침): 배경 그림과 빛을 바꾼다 */
+  setTime(value: BattleTime): void { this.environment.setTime(value) }
 
   /** 카메라 거리(가깝게 ~ 아주 멀게): 바꾸면 0.7초 동안 부드럽게 옮긴다 */
   private distance: BattleDistance = loadBattleDistance()
