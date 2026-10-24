@@ -83,13 +83,25 @@ html body .recruit-results.gear-results { padding: 0; place-items: center; overf
 .gear-results .gr-card__set i { flex: 0 0 auto; display: grid; place-items: center; width: calc(28 * var(--u)); height: calc(28 * var(--u)); border: calc(1.5 * var(--u)) solid #c9a35a; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5a3a1a, #23150a); color: #f2d48e; font-size: calc(15 * var(--u)); font-style: normal; font-weight: 900; font-family: 'Noto Serif KR', 'Noto Serif CJK KR', serif; line-height: 1; }
 
 /* 무장 카드: 초상을 카드 위쪽에 넓게, 성급은 오른쪽 위 */
-.gear-results .gr-card__art--portrait { left: calc(20 * var(--u)); top: calc(18 * var(--u)); width: calc(270 * var(--u)); height: calc(144 * var(--u)); overflow: hidden; background: #120c08; border: calc(1.5 * var(--u)) solid color-mix(in srgb, var(--grade), #3a2614 55%); border-radius: calc(3 * var(--u)); }
-.gear-results .gr-card__art--portrait::before { display: none; }
-.gear-results .gr-card__art--portrait::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(10, 6, 3, .75) 100%), radial-gradient(ellipse at 50% 30%, transparent 55%, rgba(0, 0, 0, .35) 100%); pointer-events: none; }
+/* 초상 틀: 카드 금테와 같은 두 줄 금선(바깥 금 · 어두운 틈 · 안쪽 가는 금) + 네 모서리 금 꺾쇠, 안쪽은 등급색이 은은하게 */
+.gear-results .gr-card__art--portrait { left: calc(22 * var(--u)); top: calc(20 * var(--u)); width: calc(266 * var(--u)); height: calc(140 * var(--u)); overflow: visible; background: #120c08; border: 0; border-radius: 0; box-shadow: 0 0 0 calc(1.5 * var(--u)) #e4c47c, 0 0 0 calc(4 * var(--u)) #24160b, 0 0 0 calc(5.5 * var(--u)) #9a7640, 0 calc(5 * var(--u)) calc(10 * var(--u)) rgba(0, 0, 0, .65); }
+.gear-results .gr-card__art--portrait::before { display: block; content: ''; position: absolute; inset: calc(-9 * var(--u)); z-index: 2; border-radius: 0; opacity: 1; pointer-events: none; --c: #f2d58e; --l: calc(20 * var(--u)); --w: calc(3 * var(--u));
+  background:
+    linear-gradient(var(--c), var(--c)) left top / var(--l) var(--w) no-repeat, linear-gradient(var(--c), var(--c)) left top / var(--w) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right top / var(--l) var(--w) no-repeat, linear-gradient(var(--c), var(--c)) right top / var(--w) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) left bottom / var(--l) var(--w) no-repeat, linear-gradient(var(--c), var(--c)) left bottom / var(--w) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right bottom / var(--l) var(--w) no-repeat, linear-gradient(var(--c), var(--c)) right bottom / var(--w) var(--l) no-repeat;
+  filter: drop-shadow(0 calc(1 * var(--u)) calc(1 * var(--u)) rgba(0, 0, 0, .8)); }
+.gear-results .gr-card__art--portrait::after { content: ''; position: absolute; inset: 0; z-index: 1; overflow: hidden; background: linear-gradient(180deg, transparent 58%, rgba(10, 6, 3, .7) 100%), radial-gradient(ellipse at 50% 30%, transparent 55%, rgba(0, 0, 0, .35) 100%); box-shadow: inset 0 0 calc(16 * var(--u)) color-mix(in srgb, var(--grade), transparent 45%); pointer-events: none; }
+.gear-results .gr-card--normal .gr-card__art--portrait::after { box-shadow: inset 0 0 calc(14 * var(--u)) rgba(0, 0, 0, .55); }
+/* 위아래 가운데 작은 마름모 장식 */
+.gear-results .gr-card__art--portrait > i { position: absolute; left: 50%; z-index: 2; width: calc(10 * var(--u)); height: calc(10 * var(--u)); background: #f2d58e; border: calc(1.5 * var(--u)) solid #24160b; transform: translateX(-50%) rotate(45deg); box-shadow: 0 0 calc(4 * var(--u)) rgba(0, 0, 0, .7); }
+.gear-results .gr-card__art--portrait > i:first-of-type { top: calc(-10 * var(--u)); }
+.gear-results .gr-card__art--portrait > i:last-of-type { bottom: calc(-10 * var(--u)); }
 .gear-results .gr-card__art--portrait img { left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 14%; transform: none; filter: none; }
 .gear-results .gr-card.is-open .gr-card__art--portrait img { animation: gr-portrait-in .4s cubic-bezier(.16, 1, .3, 1) both; }
-.gear-results .gr-card--general .gr-card__index { z-index: 2; left: calc(28 * var(--u)); top: calc(20 * var(--u)); }
-.gear-results .gr-card__stars { position: absolute; right: calc(28 * var(--u)); top: calc(22 * var(--u)); z-index: 2; color: #f4cd6e; font-size: calc(18 * var(--u)); letter-spacing: calc(-1 * var(--u)); line-height: 1; text-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) #000; }
+.gear-results .gr-card--general .gr-card__index { z-index: 3; left: calc(30 * var(--u)); top: calc(22 * var(--u)); }
+.gear-results .gr-card__stars { position: absolute; right: calc(30 * var(--u)); top: calc(26 * var(--u)); z-index: 3; color: #f4cd6e; font-size: calc(18 * var(--u)); letter-spacing: calc(-1 * var(--u)); line-height: 1; text-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) #000; }
 .gear-results .gr-card__stars s { text-decoration: none; color: rgba(255, 240, 210, .28); }
 
 /* ───── 결과 연출(playResultReveal) ───── */
@@ -131,7 +143,7 @@ html body .recruit-results.gear-results { padding: 0; place-items: center; overf
 .gear-results .gr-stage { animation: gr-stage-in .45s cubic-bezier(.16, 1, .3, 1) both; }
 @keyframes gr-stage-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes gr-card-in { from { opacity: 0; transform: translateY(calc(16 * var(--u))); } to { opacity: 1; transform: none; } }
-@keyframes gr-portrait-in { from { opacity: 0; transform: scale(1.12); } to { opacity: 1; transform: none; } }
+@keyframes gr-portrait-in { from { opacity: 0; filter: brightness(1.8); } to { opacity: 1; filter: none; } }
 @keyframes gr-icon-pop { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @keyframes gr-card-shine { 0%, 100% { filter: drop-shadow(0 0 calc(4 * var(--u)) color-mix(in srgb, var(--grade), transparent 60%)); } 50% { filter: drop-shadow(0 0 calc(16 * var(--u)) color-mix(in srgb, var(--grade), transparent 20%)); } }
 @media (prefers-reduced-motion: reduce) {
