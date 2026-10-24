@@ -4,6 +4,7 @@
 // 데스크톱 · 태블릿 · 기타 기기도 휴대폰 가로 크기의 틀에 띄워 키워 보여 준다(mountScaledShell). 안드로이드 앱(이미 가로 고정)은 그대로 띄운다.
 
 import { enableRotatedTouchScroll } from './platform/rotated-scroll'
+import { startBootLoader } from './ui/loader'
 
 const isTouchPhone = () => Boolean(window.matchMedia?.('(pointer: coarse)').matches) && Math.min(window.screen.width, window.screen.height) <= 600
 /** 터치가 아니어도 세로로 좁은 창(컴퓨터 개발자 도구의 휴대폰 화면 등)은 휴대폰처럼 가로로 돌려 보여 준다 */
@@ -157,7 +158,12 @@ function followShellScale(): void {
 }
 
 const forcePc = new URLSearchParams(window.location.search).has('pc')
-if (inFrame) { followShellScale(); enableRotatedTouchScroll(); void import('./main') }
-else if (inApp || forcePc) void import('./main')
+/** 게임 시작: 불러오기 화면을 먼저 띄우고 게임 코드 · 그림을 받은 뒤 로그인 화면으로(src/ui/loader.ts) */
+function startGame(): void {
+  const app = import('./main')
+  startBootLoader(app)
+}
+if (inFrame) { followShellScale(); enableRotatedTouchScroll(); startGame() }
+else if (inApp || forcePc) startGame()
 else if (isTouchPhone() || isNarrowPortrait()) mountLandscapeShell()
 else mountScaledShell()
