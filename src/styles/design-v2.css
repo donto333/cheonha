@@ -1526,3 +1526,15 @@ html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__
   html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost { gap: 3px; letter-spacing: -.02em; }
   html body .building-row > .mini-action[data-action="building-upgrade"] .bld-up__cost .gi { width: 12px; height: 12px; }
 }
+/* 강화 단추를 작게(글자 크기는 그대로): 전체 폭 대신 글자만큼, 높이 낮게.
+   설명 바로 아래(아이콘 오른쪽 칸)에 붙여 건물 한 줄의 높이도 줄인다 */
+html body .building-row { grid-template-areas: "glyph copy" ". act"; row-gap: 5px; padding: 8px 0; }
+html body .building-row > .mini-action[data-action="building-upgrade"] { justify-self: start; width: auto; max-width: 100%; }
+html body .building-row > .mini-action[data-action="building-upgrade"], html body .app-shell .main-content .page-section .building-row > .mini-action[data-action="building-upgrade"] { min-height: 0; height: 30px; padding: 0 10px; border-width: 5px; border-image-width: 5px; background-size: 5px 5px, 5px 5px, 5px 5px, 5px 5px, calc(100% - 8px) 5px, calc(100% - 8px) 5px, 5px calc(100% - 8px), 5px calc(100% - 8px), calc(100% - 8px) calc(100% - 8px); background-position: 0 0, 100% 0, 0 100%, 100% 100%, 4px 0, 4px 100%, 0 4px, 100% 4px, 4px 4px; }
+html body .building-row > .mini-action[data-action="building-upgrade"]:disabled { color: #cdbf9f; }
+html body .building-row > .building-actions { grid-area: act; justify-content: flex-start; }
+html body .building-row > .building-actions > .mini-action { flex: 0 0 auto; min-height: 0; height: 30px; }
+@media (max-height: 380px) {
+  /* 작은 휴대폰: 단추가 아이콘 아래부터 시작해 글자가 넘치지 않게 */
+  html body .building-row { grid-template-areas: "glyph copy" "act act"; }
+}
