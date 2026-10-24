@@ -3468,6 +3468,9 @@ export class StrategyUI {
       const head = html.indexOf('<div class="glass-card account-gate">')
       if (head > 0) return `${html.slice(0, head)}${this.deviceSettingsCard()}${html.slice(head)}`
     }
+    // 로그인한 뒤에도 미리보기(게스트)와 같은 순서: 기기 설정(언어 · 소리 · 그래픽 · 초기화)을 위에, 계정 정보를 아래에
+    const body = html.indexOf('<div class="account-layout">')
+    if (body > 0) return `${html.slice(0, body)}${this.deviceSettingsCard()}${html.slice(body)}`
     const at = html.lastIndexOf('</section>')
     return at < 0 ? html : `${html.slice(0, at)}${this.deviceSettingsCard()}${html.slice(at)}`
   }
