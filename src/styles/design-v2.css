@@ -958,75 +958,75 @@ html body .terr-search { display: none; }
   html body .mres-branch.is-active .mres-branch__icon { background-color: transparent !important; background-size: contain !important; background-position: center !important; background-repeat: no-repeat !important; box-shadow: none !important; }
 }
 
-/* ════════ 출석 체크(휴대폰 가로 · 2026.10.24 도안, 그림: public/assets/ui/v2/attendance/) ════════
- * 위쪽은 성곽 배경, 왼쪽은 제목 · 첫 7일(4칸 × 2줄, 7일째는 두 칸) · 받기 단추, 오른쪽은 이어지는 30일(10 × 3).
- * 오늘 칸은 푸른 빛, 무장 보상 칸은 금테, 받은 칸은 어둡게 + ✓ */
+/* ════════ 출석 체크(휴대폰 가로 · 2026.10.24 도안 그대로, 그림: public/assets/ui/v2/attendance/) ════════
+ * 왼쪽: 제목 · 첫 7일(4칸 × 2줄, 7일째는 두 칸) · 받기 단추 / 오른쪽: 위는 성곽 배경, 아래는 금테 안에 이어지는 30일(10 × 3).
+ * 칸: 보통(금 실선) · 오늘(푸른 빛) · 무장 보상(금빛) · 받음(회색 + ✓) */
 @media (orientation: landscape) and (max-height: 500px) {
-  html body .attendance-modal { padding: 6px; background: rgba(4, 3, 2, .72); }
+  html body .attendance-modal { padding: 4px; background: rgba(3, 2, 1, .78); }
   html body .attendance-modal__panel.attendance-v2 {
-    position: relative; isolation: isolate; width: min(100%, calc(100vw - 12px), 900px); height: min(calc(100dvh - 12px), 440px); max-height: calc(100dvh - 12px); overflow: hidden; padding: 16px 18px 14px;
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.3fr); grid-template-rows: minmax(0, auto) auto minmax(0, 1fr) auto; grid-template-areas: "head h30" "h7 g30" "g7 g30" "ok g30"; gap: 4px 10px; align-content: stretch;
-    background: linear-gradient(180deg, #120d09, #070504 60%); border: 2px solid #b8913f; border-radius: 3px;
-    box-shadow: inset 0 0 0 1px #3b2a12, inset 0 0 0 3px rgba(0, 0, 0, .6), inset 0 0 0 4px rgba(212, 175, 55, .35), 0 12px 34px rgba(0, 0, 0, .8);
+    position: relative; isolation: isolate; box-sizing: border-box; width: min(100%, calc(100vw - 8px), 920px); height: min(calc(100dvh - 8px), 430px); max-height: none; overflow: hidden; padding: 12px 12px 10px 14px;
+    display: grid; grid-template-columns: minmax(0, 31fr) minmax(0, 69fr); gap: 8px; align-items: stretch;
+    font-family: 'Noto Sans KR', 'Pretendard', system-ui, sans-serif; background: #0a0806; border: 1px solid #c9a24a; border-radius: 2px;
+    box-shadow: inset 0 0 0 2px #0a0806, inset 0 0 0 3px rgba(201, 162, 74, .75), 0 10px 30px rgba(0, 0, 0, .85);
   }
-  html body .attendance-v2__bg { position: absolute; inset: 0 0 auto 0; height: 62%; z-index: -1; pointer-events: none;
-    background: linear-gradient(180deg, rgba(10, 6, 3, .25) 0%, rgba(10, 6, 3, .45) 45%, #0b0806 100%), linear-gradient(90deg, rgba(8, 5, 3, .95) 0%, rgba(8, 5, 3, .7) 26%, rgba(8, 5, 3, .05) 55%, rgba(8, 5, 3, .25) 100%), url('/assets/ui/v2/duel/castle-normal.webp') 70% 30% / cover no-repeat;
-    filter: sepia(.45) saturate(1.25) hue-rotate(-12deg) brightness(.9); }
-  html body .attendance-v2__corner { position: absolute; z-index: 3; width: 34px; height: 34px; pointer-events: none; background: url('/assets/ui/v2/attendance/frame-corner.webp') 0 0 / contain no-repeat; filter: drop-shadow(0 1px 1px #000); }
-  html body .attendance-v2__corner--tl { left: 1px; top: 1px; }
-  html body .attendance-v2__corner--tr { right: 1px; top: 1px; transform: scaleX(-1); }
-  html body .attendance-v2__corner--bl { left: 1px; bottom: 1px; transform: scaleY(-1); }
-  html body .attendance-v2__corner--br { right: 1px; bottom: 1px; transform: scale(-1, -1); }
-  html body .attendance-v2 .attendance-modal__head { grid-area: head; position: relative; z-index: 1; min-width: 0; padding-left: 10px; text-shadow: 0 2px 4px #000; }
-  html body .attendance-v2 .attendance-modal__head .eyebrow { font-size: 12px; font-weight: 800; color: #f3d98a; letter-spacing: 0; }
-  html body .attendance-v2 .attendance-modal__head h2 { margin: 1px 0 3px; font-size: 20px; font-weight: 900; line-height: 1.15; font-family: 'Gowun Batang', serif; color: #ffe39a; background: linear-gradient(180deg, #fff4c8 0%, #f6cf6a 55%, #c98d2a 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .9)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  html body .attendance-v2 .attendance-modal__head p { margin: 0; font-size: 10.5px; line-height: 1.4; color: #efe4cc; }
-  /* 용 문양 제목 띠 */
-  html body .attendance-v2__tab { position: relative; z-index: 1; display: flex; align-items: center; height: 26px; margin: 0; padding: 0 0 0 40px; font-size: 14px; font-weight: 900; color: #ffd978; text-shadow: 0 1px 2px #000; background: url('/assets/ui/v2/attendance/header-bar.webp') left center / 100% 100% no-repeat; }
-  html body .attendance-v2__tab:not(.attendance-v2__tab--month) { grid-area: h7; }
-  html body .attendance-v2__tab--month { grid-area: h30; align-self: end; width: min(100%, 250px); }
-  html body .attendance-v2 .attendance-grid--week { grid-area: g7; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 4px; align-content: stretch; }
-  html body .attendance-v2 .attendance-grid--month { grid-area: g30; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  /* 배경: 성곽 · 깃발(오른쪽 위), 왼쪽 · 아래로 어둡게 */
+  html body .attendance-v2__bg { position: absolute; inset: 4px 4px auto 4px; height: 44%; z-index: -1; pointer-events: none;
+    background: linear-gradient(180deg, rgba(10, 8, 6, 0) 55%, #0a0806 100%), linear-gradient(90deg, #0a0806 0%, rgba(10, 8, 6, .92) 18%, rgba(10, 8, 6, .35) 34%, rgba(10, 8, 6, 0) 46%), url('/assets/ui/v2/attendance/bg-castle.webp') right top / 72% 100% no-repeat; }
+  html body .attendance-v2__corner { position: absolute; z-index: 4; width: 26px; height: 26px; pointer-events: none; background: url('/assets/ui/v2/attendance/corner.webp') 0 0 / contain no-repeat; }
+  html body .attendance-v2__corner--tl { left: 2px; top: 2px; }
+  html body .attendance-v2__corner--tr { right: 2px; top: 2px; transform: scaleX(-1); }
+  html body .attendance-v2__corner--bl { left: 2px; bottom: 2px; transform: scaleY(-1); }
+  html body .attendance-v2__corner--br { right: 2px; bottom: 2px; transform: scale(-1, -1); }
+  html body .attendance-v2__left, html body .attendance-v2__right { position: relative; z-index: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  /* 제목 */
+  html body .attendance-v2 .attendance-modal__head { flex: 0 0 auto; padding: 6px 0 0 10px; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, .8); }
+  html body .attendance-v2 .attendance-modal__head .eyebrow { display: block; font-size: 13px; font-weight: 900; letter-spacing: 0; color: #f7d76e; }
+  html body .attendance-v2 .attendance-modal__head h2 { margin: 2px 0 5px; font-family: inherit; font-size: 25px; font-weight: 900; line-height: 1.1; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ffe08a; background: linear-gradient(180deg, #fffbe6 0%, #ffe9a6 40%, #f2bf4c 75%, #d99a2b 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .95)); }
+  html body .attendance-v2 .attendance-modal__head p { margin: 0; font-size: 9.5px; font-weight: 500; line-height: 1.5; color: #f3ecdc; }
+  /* 용 문양 제목 띠(글자는 그림에 들어 있다) */
+  html body .attendance-v2__tab { flex: 0 0 auto; height: 24px; margin: 0; font-size: 0; color: transparent; background: left center / contain no-repeat; }
+  html body .attendance-v2__tab--week { margin: 8px 0 3px; background-image: url('/assets/ui/v2/attendance/tab-first7.webp'); }
+  html body .attendance-v2__tab--month { margin: auto 0 2px -6px; height: 26px; background-image: url('/assets/ui/v2/attendance/tab-month.webp'); }
+  /* 칸 묶음 */
+  html body .attendance-v2 .attendance-grid { list-style: none; margin: 0; padding: 0; min-height: 0; display: grid; gap: 3px; }
+  html body .attendance-v2 .attendance-grid--week { flex: 1 1 auto; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 1.08fr 1fr; }
+  html body .attendance-v2 .attendance-grid--month { flex: 0 0 74%; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); padding: 4px; background: rgba(8, 6, 4, .82); border: 1px solid #b8913f; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .8); }
   html body .attendance-v2 .attendance-day.is-wide { grid-column: span 2; }
-  /* 칸: 날짜는 왼쪽 위, 그림은 가운데를 크게, 이름은 아래(겹치지 않게 자리를 나눔) */
-  html body .attendance-v2 .attendance-day { position: relative; display: block; min-width: 0; min-height: 0; overflow: hidden; padding: 0; text-align: center; background: linear-gradient(180deg, #17110c, #050403); border: 1px solid rgba(201, 160, 70, .55); border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .8), inset 0 0 12px rgba(0, 0, 0, .7); opacity: 1; }
-  html body .attendance-v2 .attendance-day > b { position: absolute; left: 4px; top: 2px; z-index: 2; font-size: 12px; font-weight: 900; line-height: 1.2; color: #fff3d6; text-shadow: 0 1px 2px #000; }
-  html body .attendance-v2 .attendance-day__art { position: absolute; inset: 17px 3px 24px; display: flex; align-items: center; justify-content: center; width: auto; height: auto; min-height: 0; overflow: visible; }
-  html body .attendance-v2 .attendance-day__art img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .85)); }
-  html body .attendance-v2 .attendance-day__trio { display: flex; justify-content: center; align-items: center; height: 100%; }
-  html body .attendance-v2 .attendance-day__trio img { width: 40%; height: 80%; margin: 0 -3px; }
-  html body .attendance-v2 .attendance-day__label { position: absolute; left: 1px; right: 1px; bottom: 2px; z-index: 2; height: 23px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 9.5px; font-weight: 700; line-height: 1.2; letter-spacing: -.02em; color: #f1e6cc; text-shadow: 0 1px 2px #000; background: none; }
-  html body .attendance-v2 .attendance-day__count { position: absolute; right: 0; bottom: -2px; min-width: 24px; padding: 0 4px; font-size: 9px; font-weight: 900; font-style: normal; line-height: 1.3; color: #fff; text-align: center; background: linear-gradient(180deg, #e0332a, #8f1410); border: 1px solid #ffd27a; border-radius: 9px; box-shadow: 0 1px 3px rgba(0, 0, 0, .8); text-shadow: 0 1px 1px #400; }
-  /* 무장 보상: 초상이 칸을 채우고 이름은 금빛 띠 */
-  html body .attendance-v2 .attendance-day.is-hero { border: 2px solid #e8b94c; box-shadow: 0 0 6px rgba(240, 185, 70, .55), inset 0 0 0 1px rgba(0, 0, 0, .6); background: #120c08; }
-    html body .attendance-v2 .attendance-day.is-hero .attendance-day__art { inset: 0; }
-  html body .attendance-v2 .attendance-day.is-hero .attendance-day__art img.is-portrait { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; object-position: center 18%; filter: none; }
-  html body .attendance-v2 .attendance-day.is-hero .attendance-day__label { left: 0; right: 0; bottom: 0; height: auto; min-height: 18px; display: -webkit-box; padding: 3px 2px 2px; font-size: 10px; font-weight: 900; line-height: 1.15; color: #fff3cc; background: linear-gradient(180deg, rgba(30, 18, 4, .55), rgba(30, 18, 4, .94) 45%); border-top: 1px solid rgba(232, 185, 76, .7); -webkit-line-clamp: 2; }
-  html body .attendance-v2 .attendance-day.is-hero .attendance-day__mystery { font-size: 30px; }
+  /* 칸 */
+  html body .attendance-v2 .attendance-day { position: relative; display: block; min-width: 0; min-height: 0; overflow: hidden; padding: 0; margin: 0; text-align: center; opacity: 1; background: none; border: 5px solid transparent; border-image: url('/assets/ui/v2/attendance/day-normal.webp') 22 fill / 5px / 0 stretch; border-radius: 0; box-shadow: none; }
+  html body .attendance-v2 .attendance-day > b { position: absolute; left: 1px; top: 0; z-index: 3; font-size: 12px; font-weight: 900; line-height: 1.2; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+  html body .attendance-v2 .attendance-day__art { position: absolute; inset: 14px 0 21px; display: flex; align-items: center; justify-content: center; width: auto; height: auto; overflow: visible; animation: none; }
+  html body .attendance-v2 .attendance-day__art img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .9)); }
+  html body .attendance-v2 .attendance-day__label { position: absolute; left: -2px; right: -2px; bottom: 0; z-index: 3; height: 21px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 9px; font-weight: 700; line-height: 1.15; letter-spacing: -.03em; color: #fff; text-shadow: 0 1px 2px #000; background: none; word-break: keep-all; }
+  html body .attendance-v2 .attendance-day__count { position: absolute; right: 2%; bottom: 4%; z-index: 2; padding: 0 4px; font-size: 9.5px; font-weight: 900; font-style: normal; line-height: 1.35; color: #fff; background: linear-gradient(180deg, #e8392c, #a3170f); border: 1px solid #ffd685; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, .8); text-shadow: 0 1px 1px #500; }
+  html body .attendance-v2 .attendance-day__trio { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
+  html body .attendance-v2 .attendance-day__trio img { width: 38%; height: 70%; margin: 0 -4px; }
+  html body .attendance-v2 .attendance-day__mystery { z-index: 2; font-size: 26px; }
+  html body .attendance-v2 .attendance-day__art img.is-stone { filter: hue-rotate(160deg) saturate(1.4) drop-shadow(0 2px 3px rgba(0, 0, 0, .9)); }
+  /* 무장 보상: 초상이 칸을 채우고 이름은 아래 금빛 띠 */
+  html body .attendance-v2 .attendance-day.is-hero { border-image-source: url('/assets/ui/v2/attendance/day-selected.webp'); }
+  html body .attendance-v2 .attendance-day.is-hero .attendance-day__art { inset: 0; }
+  html body .attendance-v2 .attendance-day.is-hero .attendance-day__art img.is-portrait { object-fit: cover; object-position: center 20%; filter: none; }
+  html body .attendance-v2 .attendance-day.is-hero .attendance-day__label { left: -1px; right: -1px; height: auto; min-height: 17px; padding: 2px 1px; font-size: 10px; font-weight: 900; color: #ffe9a8; background: linear-gradient(180deg, rgba(25, 15, 4, .7), rgba(25, 15, 4, .95)); border-top: 1px solid rgba(232, 185, 76, .8); }
   /* 오늘: 푸른 빛 */
-  html body .attendance-v2 .attendance-day.is-today { border: 2px solid #5fb4ff; background: radial-gradient(ellipse at 50% 45%, rgba(40, 120, 255, .55), rgba(6, 24, 70, .9) 70%), #04102a; box-shadow: 0 0 10px rgba(70, 150, 255, .9), inset 0 0 12px rgba(120, 190, 255, .6); animation: att-today 1.8s ease-in-out infinite; }
-  html body .attendance-v2 .attendance-day.is-today > b { color: #fff; background: #1d63d8; padding: 0 4px; border-radius: 2px; }
-  html body .attendance-v2 .attendance-day.is-today.is-hero { background: #04102a; }
-  html body .attendance-v2 .attendance-day.is-today .attendance-day__art { animation: none; }
+  html body .attendance-v2 .attendance-day.is-today { border-image-source: url('/assets/ui/v2/attendance/day-today.webp'); animation: att-today 1.8s ease-in-out infinite; }
   /* 받은 칸 */
-  html body .attendance-v2 .attendance-day.is-done { border-color: rgba(140, 115, 60, .45); }
-  html body .attendance-v2 .attendance-day.is-done .attendance-day__art, html body .attendance-v2 .attendance-day.is-done .attendance-day__label { filter: grayscale(.6) brightness(.55); }
+  html body .attendance-v2 .attendance-day.is-done { border-image-source: url('/assets/ui/v2/attendance/day-complete.webp'); }
+  html body .attendance-v2 .attendance-day.is-done .attendance-day__art, html body .attendance-v2 .attendance-day.is-done .attendance-day__label { filter: grayscale(.7) brightness(.5); }
   html body .attendance-v2 .attendance-day.is-done b::after { content: ' ✓'; color: #7fe0b0; }
-  html body .attendance-v2 .attendance-day.is-done .attendance-day__art::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 900; color: #7fe0b0; text-shadow: 0 0 6px #000, 0 2px 3px #000; filter: none; }
-  /* 붉은 받기 단추 */
-  html body .attendance-v2 .attendance-modal__ok { grid-area: ok; position: relative; z-index: 1; justify-self: stretch; display: flex; align-items: center; justify-content: center; gap: 10px; height: 40px; min-height: 40px; margin-top: 2px; padding: 0 16px; font-size: 16px; font-weight: 900; color: #fff; letter-spacing: .04em; text-shadow: 0 1px 2px #5a0b06; background: url('/assets/ui/v2/attendance/button-red.webp') center / 100% 100% no-repeat; border: 0; border-radius: 0; box-shadow: none; }
-  html body .attendance-v2 .attendance-modal__ok span { position: absolute; right: 16px; font-size: 0; width: 18px; height: 18px; }
-  html body .attendance-v2 .attendance-modal__ok:active { filter: brightness(.9); transform: translateY(1px); }
-  html body .attendance-v2 .attendance-day.is-done .attendance-day__art::after { font-size: 20px; color: rgba(127, 224, 176, .85); }
+  html body .attendance-v2 .attendance-day.is-done .attendance-day__art::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 900; color: rgba(127, 224, 176, .9); text-shadow: 0 0 5px #000; background: none; border: 0; }
+  /* 받기 단추(글자는 그림에 들어 있다) */
+  html body .attendance-v2 .attendance-modal__ok { flex: 0 0 auto; align-self: stretch; height: 38px; min-height: 0; margin: 6px 0 0; padding: 0; font-size: 0; color: transparent; background: url('/assets/ui/v2/attendance/btn-receive.webp') center / 100% 100% no-repeat; border: 0; border-radius: 4px; box-shadow: 0 2px 6px rgba(0, 0, 0, .7); cursor: pointer; }
+  html body .attendance-v2 .attendance-modal__ok:active { filter: brightness(.88); transform: translateY(1px); }
 }
 @media (orientation: landscape) and (max-height: 370px) {
-  html body .attendance-v2 .attendance-day__label { font-size: 8.5px; height: 21px; letter-spacing: -.05em; }
-  html body .attendance-v2 .attendance-day__art { inset: 15px 2px 22px; }
+  html body .attendance-v2 .attendance-modal__head h2 { font-size: 21px; }
+  html body .attendance-v2 .attendance-modal__head p { font-size: 8.5px; }
   html body .attendance-v2 .attendance-day > b { font-size: 10.5px; }
-  html body .attendance-v2 .attendance-modal__head p { font-size: 9.5px; }
-  html body .attendance-v2 .attendance-modal__head h2 { font-size: 18px; }
+  html body .attendance-v2 .attendance-day__label { font-size: 8px; height: 19px; }
+  html body .attendance-v2 .attendance-day__art { inset: 12px 0 19px; }
 }
-@keyframes att-today { 50% { box-shadow: 0 0 16px rgba(90, 170, 255, 1), inset 0 0 16px rgba(140, 200, 255, .8); } }
+@keyframes att-today { 50% { filter: brightness(1.25); } }
 @media (prefers-reduced-motion: reduce) { html body .attendance-v2 .attendance-day.is-today { animation: none; } }
 html[data-fx="reduced"] .attendance-v2 .attendance-day.is-today { animation: none; }
 
