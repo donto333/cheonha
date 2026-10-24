@@ -8,7 +8,7 @@ import { EQUIPMENT_GRADE_META, EQUIPMENT_SET_META, EQUIPMENT_TYPE_META, GRADE_ME
 const KIT = '/assets/ui/v2/gear-result/'
 const art = (name: string): string => assetUrl(`${KIT}${name}`)
 const escapeHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] ?? character))
-const delay = (index: number) => `--reveal-delay:${Math.min(index, 9) * 45}ms`
+const delay = (index: number) => `--reveal-delay:${Math.min(index, 9) * 20}ms`
 const indexLabel = (index: number) => `<span class="gr-card__back" aria-hidden="true"><i></i></span><span class="gr-card__index">${String(index + 1).padStart(2, '0')}</span>`
 
 /** 세트 표식(카드 아래 줄 앞의 작은 인장) */
@@ -122,13 +122,16 @@ export function recruitResultsMarkup(rewards: General[], options: RecruitResults
 }
 
 /* ───── 결과 연출 ─────
-   카드가 뒷면으로 깔린 뒤 차례로 뒤집힌다. 높은 등급은 뒷면이 등급색으로 달아오르고(뒤집기 전 예고),
-   뒤집히는 순간 빛살 · 불꽃이 터진다. 최고 등급은 잠깐 숨을 고른 뒤 화면이 번쩍이고 흔들린다.
+   앞의 전당 연출에서 이미 결과를 봤으므로 짧게(약 1초): 뒷면이 깔리자마자 차례로 빠르게 뒤집히고,
+   높은 등급은 열리는 순간 빛살 · 불꽃, 최고 등급은 화면이 잠깐 번쩍인다. 효과음은 가장 높은 등급 하나만.
    화면(버튼 밖)을 누르면 남은 카드가 한꺼번에 열린다. */
 
 export interface RevealOptions { reduced: boolean }
 
-const SPARKS = 14
+const SPARKS = 12
+/** 뒤집기 반쪽 시간 · 카드 사이 간격(ms) */
+const FLIP_MS = 110
+const STEP_MS = 55
 
 function burst(card: HTMLElement, tier: number): void {
   if (tier < 1) return
@@ -143,7 +146,7 @@ function burst(card: HTMLElement, tier: number): void {
   }
   el.innerHTML = `<i class="gr-burst__rays"></i><i class="gr-burst__ring"></i>${sparks}`
   card.appendChild(el)
-  window.setTimeout(() => el.remove(), tier >= 3 ? 2200 : 1300)
+  window.setTimeout(() => el.remove(), tier >= 3 ? 1300 : 900)
 }
 
 function openSound(tier: number): void {
@@ -172,22 +175,20 @@ export function playResultReveal(overlay: HTMLElement, options: RevealOptions): 
   const open = (card: HTMLElement, quiet = false) => {
     if (!card.classList.contains('is-covered')) return
     const tier = tierOf(card)
-    card.classList.remove('is-charging')
     card.classList.add('is-flipping')
     window.setTimeout(() => {
       card.classList.remove('is-covered')
       card.classList.add('is-open')
       burst(card, tier)
-      if (!quiet) openSound(tier)
       if (tier >= 3 && !quiet) {
         stage.classList.add('is-flash')
-        window.setTimeout(() => stage.classList.remove('is-flash', 'is-dim'), 650)
+        window.setTimeout(() => stage.classList.remove('is-flash'), 460)
       }
-    }, 170)
-    window.setTimeout(() => card.classList.remove('is-flipping'), 420)
+    }, FLIP_MS)
+    window.setTimeout(() => card.classList.remove('is-flipping'), FLIP_MS * 2 + 40)
   }
   const finish = () => {
-    stage.classList.remove('is-revealing', 'is-dim')
+    stage.classList.remove('is-revealing')
     stage.classList.add('is-revealed')
     stage.removeEventListener('click', skip)
   }
@@ -203,17 +204,10 @@ export function playResultReveal(overlay: HTMLElement, options: RevealOptions): 
   }
   stage.addEventListener('click', skip)
 
-  // 뒷면이 다 깔린 뒤부터 차례로 뒤집기
-  let t = 380 + cards.length * 45
-  for (const card of cards) {
-    const tier = tierOf(card)
-    if (tier >= 2) later(Math.max(0, t - 350), () => card.classList.add('is-charging'))
-    if (tier >= 3) {
-      later(t, () => { stage.classList.add('is-dim'); card.classList.add('is-charging') })
-      t += 650
-    } else if (tier === 2) t += 200
-    later(t, () => open(card))
-    t += tier >= 3 ? 950 : tier === 2 ? 480 : 160
-  }
-  later(t + 150, finish)
+  // 뒷면이 깔리는 대로 바로 차례 뒤집기(장당 55ms)
+  const top = Math.max(...cards.map(tierOf))
+  let t = 200
+  cards.forEach(card => { later(t, () => open(card)); t += STEP_MS })
+  later(200 + FLIP_MS, () => openSound(top))
+  later(t + FLIP_MS * 2, finish)
 }
