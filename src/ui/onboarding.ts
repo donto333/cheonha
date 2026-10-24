@@ -1,4 +1,4 @@
-// 첫 입장 튜토리얼(건너뛸 수 없음): 상점 → 무료 10회 모집 → 장비 10회 뽑기 → 자동 편성 → 무장 강화 → 장비 강화 → 시나리오 클리어 → 마무리.
+// 첫 입장 튜토리얼(건너뛸 수 없음): 상점 → 무료 10회 모집 → 장비 10회 뽑기 → 자동 편성 → 무장 강화 → 장비 강화 → 영토전 알아보기 → 시나리오 클리어 → 마무리.
 // 빛나는 버튼 말고는 누를 수 없게 막고, 정해진 행동을 하면 다음 단계로 넘어간다. 진행 단계는 계정(임무 데이터)에 저장된다.
 import type { Section, StrategyState } from '../game/strategy'
 import { ensureMissions } from '../game/missions'
@@ -7,7 +7,7 @@ import { Coach } from './coach'
 export type OnboardEvent = 'honor-buy' | 'recruit10' | 'gear10' | 'auto-formation' | 'upgrade' | 'enhance' | 'scenario-win' | 'scenario-lose'
 
 export interface OnboardStep {
-  id: 'welcome' | 'shop' | 'recruit' | 'gear' | 'formation' | 'upgrade' | 'enhance' | 'scenario' | 'finale'
+  id: 'welcome' | 'shop' | 'recruit' | 'gear' | 'formation' | 'upgrade' | 'enhance' | 'territory' | 'scenario' | 'finale'
   section?: Section
   /** 비출 버튼(이 버튼만 누를 수 있다). 여러 개면 화면에 있는 첫 번째(예: 강화 버튼 → 없으면 상세 창 닫기 → 무장 칸) */
   target?: string | string[]
@@ -32,7 +32,8 @@ export const ONBOARD_STEPS: OnboardStep[] = [
   { id: 'formation', section: 'formation', target: '[data-action="auto-formation"]:not([data-with-equipment])', title: '4. 자동 편성', body: '새 무장이 들어왔으니 출전 무장을 다시 고릅니다. 자동 편성을 누르면 전투력·인연·병종을 따져 세 명을 세웁니다. 가운데는 적이 먼저 노리는 전열이라 단단한 무장이 섭니다.', event: 'auto-formation' },
   { id: 'upgrade', section: 'roster', target: ['.roster-grid .gcard .gcard-up:not([disabled])', '.gdetail .gcard .gcard-up:not([disabled])', '.gdetail:not(.eqdetail) .gdetail__close', '.gtile[data-kind="roster"]'], title: '5. 무장 강화', body: '은전과 병서로 무장의 레벨을 올립니다. 무장을 눌러 상세 창을 열고 빛나는 "강화" 버튼을 누르십시오. 레벨이 오르면 능력치와 병력이 늘어납니다.', event: 'upgrade' },
   { id: 'enhance', section: 'equipment', target: ['.equipment-card [data-action="equipment-enhance"]:not([disabled])', '.eqdetail .gdetail__close', '.eqtile:not([data-grade="mythic"])'], title: '6. 장비 강화', body: '은전과 철로 장비를 강화합니다. 장비를 눌러 상세 창을 열고 빛나는 "강화" 버튼을 누르십시오. 강화할수록 장착한 무장의 능력이 오릅니다.', event: 'enhance' },
-  { id: 'scenario', section: 'battle', target: '.scenario-start-button', title: '7. 시나리오 클리어', body: '이제 첫 전투입니다. 출정을 누르고 184년 황건적의 난을 이기십시오. 튜토리얼 전투는 쉽게 맞춰 두었고, 싸우는 동안 방법을 하나씩 알려 드립니다.', event: 'scenario-win' },
+  { id: 'territory', section: 'territory', title: '7. 영토전 알아보기', body: '진영과 함께 천하의 도시를 다툽니다. 진군로로 맞닿은 적 도시를 공성해 성벽을 무너뜨리고 수비병을 모두 물리치면 우리 진영이 점령합니다. 아군 도시에는 내 덱을 수비병으로 세워 지키고, 내정에서 하루 한 번 자원을 거둡니다. 매주 일요일 20~24시에는 낙양전이 열립니다.', next: '첫 전투로' },
+  { id: 'scenario', section: 'battle', target: '.scenario-start-button', title: '8. 시나리오 클리어', body: '이제 첫 전투입니다. 출정을 누르고 184년 황건적의 난을 이기십시오. 튜토리얼 전투는 쉽게 맞춰 두었고, 싸우는 동안 방법을 하나씩 알려 드립니다.', event: 'scenario-win' },
   { id: 'finale', title: '천하 제패를 향해', body: '무장을 성장시켜 천하를 제패하세요.', next: '시작하기' },
 ]
 

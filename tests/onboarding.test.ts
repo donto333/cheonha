@@ -6,8 +6,8 @@ import { ensureMissions, onboardingPending } from '../src/game/missions'
 import { ONBOARD_GEAR_COST, ONBOARD_HONOR_PACKAGE, ONBOARD_STEPS } from '../src/ui/onboarding'
 
 describe('첫 입장 튜토리얼', () => {
-  it('정해진 순서: 상점 → 모집 → 장비 뽑기 → 자동 편성 → 무장 강화 → 장비 강화 → 시나리오 → 마무리', () => {
-    expect(ONBOARD_STEPS.map(step => step.id)).toEqual(['welcome', 'shop', 'recruit', 'gear', 'formation', 'upgrade', 'enhance', 'scenario', 'finale'])
+  it('정해진 순서: 상점 → 모집 → 장비 뽑기 → 자동 편성 → 무장 강화 → 장비 강화 → 영토전 알아보기 → 시나리오 → 마무리', () => {
+    expect(ONBOARD_STEPS.map(step => step.id)).toEqual(['welcome', 'shop', 'recruit', 'gear', 'formation', 'upgrade', 'enhance', 'territory', 'scenario', 'finale'])
     expect(ONBOARD_STEPS.at(-1)?.body).toBe('무장을 성장시켜 천하를 제패하세요.')
     expect(HONOR_SHOP_PACKAGES.some(item => item.id === ONBOARD_HONOR_PACKAGE)).toBe(true)
   })
