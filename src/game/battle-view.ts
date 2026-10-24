@@ -1,5 +1,5 @@
 // 전투 시점: 화면 위 '시점' 단추를 누르면 전장 둘레 아홉 자리(3×3) 중 하나를 고른다.
-// PC는 V 키로 차례로 바꾼다. 고른 시점은 이 기기에 기억한다.
+// PC는 V 키로 차례로 바꾼다. 고른 시점은 이 기기에 기억한다. 처음(고른 적 없음)은 우후방 · 보통 · 아침.
 export type BattleView = 'default' | 'rearLeft' | 'rearRight' | 'high' | 'side' | 'general' | 'frontLeft' | 'frontRight' | 'enemy'
 /** V 키로 도는 차례 */
 export const BATTLE_VIEWS: BattleView[] = ['default', 'rearLeft', 'rearRight', 'high', 'side', 'frontLeft', 'frontRight', 'enemy', 'general']
@@ -28,7 +28,7 @@ export const BATTLE_VIEW_HINT: Record<BattleView, string> = {
 }
 const KEY = 'cheonharo.battleView.v1'
 export function loadBattleView(): BattleView {
-  try { const v = window.localStorage.getItem(KEY) as BattleView | null; return v && BATTLE_VIEWS.includes(v) ? v : 'default' } catch { return 'default' }
+  try { const v = window.localStorage.getItem(KEY) as BattleView | null; return v && BATTLE_VIEWS.includes(v) ? v : 'rearRight' } catch { return 'rearRight' }
 }
 export function saveBattleView(view: BattleView): void {
   try { window.localStorage.setItem(KEY, view) } catch { /* 저장 불가 */ }
@@ -49,7 +49,7 @@ export const BATTLE_DISTANCE_LABEL: Record<BattleDistance, string> = { near: '�
 export const BATTLE_DISTANCE_SCALE: Record<BattleDistance, number> = { near: 1, mid: 1.25, far: 1.5, farthest: 1.85 }
 const DIST_KEY = 'cheonharo.battleDistance.v1'
 export function loadBattleDistance(): BattleDistance {
-  try { const v = window.localStorage.getItem(DIST_KEY) as BattleDistance | null; return v && BATTLE_DISTANCES.includes(v) ? v : 'far' } catch { return 'far' }
+  try { const v = window.localStorage.getItem(DIST_KEY) as BattleDistance | null; return v && BATTLE_DISTANCES.includes(v) ? v : 'mid' } catch { return 'mid' }
 }
 export function saveBattleDistance(value: BattleDistance): void {
   try { window.localStorage.setItem(DIST_KEY, value) } catch { /* 저장 불가: 이번 접속에만 */ }
