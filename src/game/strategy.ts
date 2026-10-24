@@ -311,6 +311,8 @@ export interface StrategyState {
   equipmentPresets?: Record<string, Array<Partial<Record<EquipmentType, string>> | null>>
   /** 2군·3군(1군은 formation) */
   reserveSquads?: string[][]
+  /** 본영 프로필 · 배경에 쓰는 대표 무장(비면 출전 전투력 1위) */
+  profileGeneralId?: string
   /** 게스트 레이드 연습 기록(하루 3회) */
   raidLocal?: { dayKey: string; attempts: number; weekKey: string; total: number; best: number }
   selectedEquipmentGeneralId: string

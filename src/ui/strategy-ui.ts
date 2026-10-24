@@ -316,6 +316,8 @@ export interface StrategyUiCallbacks {
   onEquipmentBulkDismantle: (grade: 'normal' | 'rare' | 'unique') => void
   onEquipmentPreset: (generalId: string, slot: number, mode: 'save' | 'apply') => void
   onEquipmentSelectGeneral: (id: string) => void
+  /** 본영 프로필 사진(대표 무장) 고르기 */
+  onProfileGeneral: (id: string) => void
   onCitySelect: (id: string) => void
   onCityDamageRankingRefresh: (cityId: string) => void
   onTerritoryRefresh: () => void
@@ -1777,7 +1779,7 @@ export class StrategyUI {
   }
 
   /** 가로 휴대폰 본영: 임무 창 · 이벤트 창 */
-  private lobbyPanel: 'missions' | 'events' | null = null
+  private lobbyPanel: 'missions' | 'events' | 'profile' | null = null
 
   /**
    * 가로 휴대폰 본영(2026.10.23 디자인 도안 · 사용자 배치안)
@@ -1793,7 +1795,8 @@ export class StrategyUI {
     const stars = next ? scenarioStars(state.scenarioCleared, next.id) : 0
     const power = totalPower(state)
     const deployed = state.formation.map(id => state.generals.find(item => item.id === id)).filter((item): item is General => Boolean(item))
-    const leader = [...deployed].sort((a, b) => combatPower(b) - combatPower(a))[0] ?? state.generals[0]
+    const leader = state.generals.find(item => item.id === state.profileGeneralId) ?? [...deployed].sort((a, b) => combatPower(b) - combatPower(a))[0] ?? state.generals[0]
+    const leaderRealm = leader ? generalRealm(leader.id) : null
     const en = isEnglish()
     const name = this.auth.status === 'authenticated' && this.auth.name ? this.auth.name : (en ? 'Guest' : '게스트')
     const cities = state.cities.filter(city => city.owner === state.faction).length
@@ -1806,8 +1809,9 @@ export class StrategyUI {
     const dot = (on: unknown) => on ? '<i class="v2-dot" aria-hidden="true"></i>' : ''
     const coach = (sections: Section[]) => Boolean(this.coachSection && sections.includes(this.coachSection as Section))
     // 왼쪽 위: 유저 프로필(용 틀 초상 + 진영 깃발 + 이름 · 전투력 · 진영 정보)
-    const sealChar = ({ '위': '魏', '촉': '蜀', '오': '吳' } as Record<string, string>)[state.faction.slice(0, 1)] ?? state.faction.slice(0, 1)
-    const profile = `<button class="v2-profile" data-action="section" data-section="account"><span class="v2-profile__face">${leader ? `<i class="v2-profile__portrait" style="background-image:url('${this.portraitAsset(leader)}')"></i>` : ''}<span class="v2-profile__seal" data-no-tr>${escapeHtml(sealChar)}</span></span><span class="v2-profile__body"><strong>${ugc(name)}</strong><span class="v2-profile__power"><small>${en ? 'Power' : '전투력'}</small><b>${formatNumber(power)}</b></span><small class="v2-profile__meta">${escapeHtml(state.faction)} · ${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}</small></span></button>`
+    // 진영 깃발 글자는 대표 무장의 진영을 따른다(배경 그림과 같은 진영)
+    const sealChar = leaderRealm ? ({ wei: '魏', shu: '蜀', wu: '吳', qun: '群' } as Record<string, string>)[leaderRealm] : (({ '위': '魏', '촉': '蜀', '오': '吳' } as Record<string, string>)[state.faction.slice(0, 1)] ?? state.faction.slice(0, 1))
+    const profile = `<button class="v2-profile" data-action="lobby-panel" data-panel="profile" aria-label="${en ? 'Change profile general' : '프로필 무장 바꾸기'}"><span class="v2-profile__face">${leader ? `<i class="v2-profile__portrait" style="background-image:url('${this.portraitAsset(leader)}')"></i>` : ''}<span class="v2-profile__seal" data-no-tr>${escapeHtml(sealChar)}</span></span><span class="v2-profile__body"><strong>${ugc(name)}</strong><span class="v2-profile__power"><small>${en ? 'Power' : '전투력'}</small><b>${formatNumber(power)}</b></span><small class="v2-profile__meta">${escapeHtml(state.faction)} · ${en ? 'Generals' : '무장'} ${state.generals.length} · ${en ? 'Cities' : '영토'} ${cities}</small></span></button>`
     // 가운데 위: 재화 칩(금 테두리 칩 그림 + 숫자, 누르면 상점)
     const res = (kind: 'gold' | 'honor' | 'silver', value: number, title: string) => `<button class="v2-res v2-res--${kind}" data-action="section" data-section="shop" title="${title} ${formatNumber(value)}" aria-label="${title} ${formatNumber(value)} · 상점에서 얻기"><b>${compactNumber(value)}</b></button>`
     const resources = `<div class="v2-resources">${res('gold', state.gold, '금화')}${res('honor', state.honor, '옥패')}${res('silver', state.silver, '은전')}</div>`
@@ -1851,7 +1855,14 @@ export class StrategyUI {
       ].join('')
       panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="이벤트"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-frame"><div class="v2-menu__head"><strong>${en ? 'Events' : '이벤트'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><div class="v2-events">${rows}</div></div></div>`
     }
-    const realm = ({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' } as Record<string, string>)[state.faction] ?? 'none'
+    if (this.lobbyPanel === 'profile') {
+      const order: Record<string, number> = { shu: 0, wei: 1, wu: 2, qun: 3 }
+      const list = [...state.generals].sort((a, b) => (order[generalRealm(a.id)] - order[generalRealm(b.id)]) || (b.grade - a.grade) || a.name.localeCompare(b.name, 'ko'))
+      const picks = list.map(general => { const realmKey = generalRealm(general.id); return `<button class="v2-pick${general.id === leader?.id ? ' is-current' : ''}" data-action="profile-general" data-id="${general.id}" data-realm="${realmKey}" style="--grade:${GRADE_META[general.grade]?.color ?? '#a9b1b8'}"><span class="v2-pick__art" style="background-image:url('${this.portraitAsset(general)}')"></span><span class="v2-pick__realm" title="${REALM_LABEL[realmKey]}"></span><strong>${escapeHtml(general.name)}</strong></button>` }).join('')
+      panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="프로필 무장"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-menu__body--wide v2-frame"><div class="v2-menu__head"><strong>${en ? 'Profile' : '대표 무장'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><p class="v2-pick__hint">${en ? 'The general shown on your profile and home screen. The background follows their realm.' : '프로필과 본영에 나오는 무장입니다. 본영 배경은 그 무장의 진영으로 바뀝니다.'}</p><div class="v2-picks">${picks}</div></div></div>`
+    }
+    // 본영 배경 · 대표 무장 그림은 대표 무장의 진영을 따른다(무장이 없으면 내 진영)
+    const realm = leaderRealm ?? ({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' } as Record<string, string>)[state.faction] ?? 'none'
     return `<section class="page-section page-section--mlobby page-section--v2" data-realm="${realm}"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
   }
 
@@ -3769,7 +3780,8 @@ export class StrategyUI {
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-squad') { this.formationSquad = Math.max(0, Math.min(2, Number(button.dataset.squad ?? 0))); this.lobbyPanel = null; this.callbacks.onSection('formation'); return }
     if (action === 'open-chat') { (document.querySelector('[data-social="toggle"]') as HTMLElement | null)?.click(); return }
-    if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : button.dataset.panel === 'events' ? 'events' : null; if (this.renderedState) this.render(this.renderedState); return }
+    if (action === 'profile-general') { const id = button.dataset.id; this.lobbyPanel = null; if (id) this.callbacks.onProfileGeneral(id); return }
+    if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : button.dataset.panel === 'events' ? 'events' : button.dataset.panel === 'profile' ? 'profile' : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel-close') { this.lobbyPanel = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'scroll-missions') {
       // 같은 화면(본영)의 임무 칸으로 내려가 받을 수 있는 보상을 깜빡여 보여 준다

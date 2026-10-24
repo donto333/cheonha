@@ -179,15 +179,18 @@ export function applyEquipmentPreset(state: StrategyState, generalId: string, sl
 const PRESET_KEY = '__presets'
 /** 2군·3군도 함께 담는다: 서버에 squadData 칸이 생기기 전에도(옛 서버) 계정에 남도록 */
 const SQUAD_KEY = '__squads'
+/** 본영 대표 무장(프로필 사진)도 함께 담는다 */
+const PROFILE_KEY = '__profile'
 export function packLoadouts(state: StrategyState): Record<string, unknown> {
-  return { ...state.equipmentLoadouts, [PRESET_KEY]: ensureEquipmentPresets(state), [SQUAD_KEY]: state.reserveSquads ?? [] }
+  return { ...state.equipmentLoadouts, [PRESET_KEY]: ensureEquipmentPresets(state), [SQUAD_KEY]: state.reserveSquads ?? [], ...(state.profileGeneralId ? { [PROFILE_KEY]: state.profileGeneralId } : {}) }
 }
-export function unpackLoadouts(raw: unknown): { loadouts: StrategyState['equipmentLoadouts']; presets: EquipmentPresets | null; squads: string[][] | null } {
-  if (!raw || typeof raw !== 'object') return { loadouts: {}, presets: null, squads: null }
-  const { [PRESET_KEY]: presets, [SQUAD_KEY]: squads, ...loadouts } = raw as Record<string, unknown>
+export function unpackLoadouts(raw: unknown): { loadouts: StrategyState['equipmentLoadouts']; presets: EquipmentPresets | null; squads: string[][] | null; profile: string | null } {
+  if (!raw || typeof raw !== 'object') return { loadouts: {}, presets: null, squads: null, profile: null }
+  const { [PRESET_KEY]: presets, [SQUAD_KEY]: squads, [PROFILE_KEY]: profile, ...loadouts } = raw as Record<string, unknown>
   return {
     loadouts: loadouts as StrategyState['equipmentLoadouts'],
     presets: presets && typeof presets === 'object' ? presets as EquipmentPresets : null,
     squads: Array.isArray(squads) ? squads.filter(Array.isArray).map(list => (list as unknown[]).filter((id): id is string => typeof id === 'string')) : null,
+    profile: typeof profile === 'string' ? profile : null,
   }
 }

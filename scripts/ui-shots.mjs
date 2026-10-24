@@ -121,13 +121,15 @@ try {
     await clearOverlays()
     const more = page.locator('[data-action="nav-more"]')
     if (await more.count()) { await more.first().evaluate(b => b.click()); await shot('90-nav-more') }
-    // 진영별 본영 배경
-    for (const faction of ['위나라', '촉한', '오나라']) {
-      await page.evaluate(f => { const g = window.__strategy; const keep = g.state.faction; g.state.faction = f; g.state.section = 'overview'; g.ui.render(g.state); g.state.faction = keep }, faction)
-      await clearOverlays(); await shot(`10-overview-${({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' })[faction]}`)
+    // 대표 무장 진영별 본영 배경(대표 무장의 진영을 따른다)
+    const realmPicks = { wei: ['cao-cao', 'simayi', 'xiahou-dun', 'zhang-liao', 'dian-wei', 'xu-chu'], shu: ['guan-yu', 'zhao-yun', 'zhuge-liang', 'liu-bei', 'zhang-fei'], wu: ['sun-quan', 'zhou-yu', 'da-qiao', 'lu-su', 'taishi-ci', 'gan-ning'], qun: ['lu-bu', 'diao-chan', 'dong-zhuo', 'yuan-shao'] }
+    for (const [realm, ids] of Object.entries(realmPicks)) {
+      const ok = await page.evaluate(list => { const g = window.__strategy; const hit = list.find(id => g.state.generals.some(item => item.id === id)); if (!hit) return false; g.__keepProfile ??= [g.state.profileGeneralId]; g.state.profileGeneralId = hit; g.state.section = 'overview'; g.ui.render(g.state); return true }, ids)
+      if (ok) { await clearOverlays(); await shot(`10-overview-${realm}`) }
     }
-    // 본영 임무 창 · 이벤트 창
-    for (const [panel, label] of [['missions', '92-lobby-missions'], ['events', '93-lobby-events']]) {
+    await page.evaluate(() => { const g = window.__strategy; if (g.__keepProfile) { g.state.profileGeneralId = g.__keepProfile[0]; delete g.__keepProfile } })
+    // 본영 임무 창 · 이벤트 창 · 대표 무장 고르기 창
+    for (const [panel, label] of [['missions', '92-lobby-missions'], ['events', '93-lobby-events'], ['profile', '93b-lobby-profile']]) {
       await page.evaluate(() => { const g = window.__strategy; g.state.section = 'overview'; g.ui.render(g.state) })
       await clearOverlays()
       const btn = page.locator(`[data-action="lobby-panel"][data-panel="${panel}"]`)
