@@ -51,7 +51,8 @@ jobs:
           done
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           # 가로 화면 전용 게임: 앱을 가로로 고정(양쪽 가로는 돌려 쓸 수 있게)
-          sed -i 's/<activity /<activity android:screenOrientation="sensorLandscape" /' android/app/src/main/AndroidManifest.xml
+          # (Capacitor 템플릿은 '<activity' 뒤에 줄바꿈이 오므로 공백 없이 첫 activity를 찾는다)
+          sed -i '0,/<activity/s//<activity android:screenOrientation="sensorLandscape"/' android/app/src/main/AndroidManifest.xml
           grep -q 'screenOrientation="sensorLandscape"' android/app/src/main/AndroidManifest.xml
           # 전체 화면(몰입 모드): 상태 표시줄 · 아래 내비게이션 바를 숨긴다(화면 끝을 밀면 잠깐 나타남)
           MAIN=$(find android/app/src/main/java -name MainActivity.java | head -1)
