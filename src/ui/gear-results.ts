@@ -122,15 +122,15 @@ export function recruitResultsMarkup(rewards: General[], options: RecruitResults
 }
 
 /* ───── 결과 연출 ─────
-   앞의 전당 연출에서 이미 결과를 봤으므로 짧게(약 1초): 뒷면이 깔리자마자 차례로 빠르게 뒤집히고,
+   앞의 전당 연출에서 이미 결과를 봤으므로 짧게(약 1초): 뒷면이 깔리자마자 차례로 빠르게 걷히고(돌리지 않음),
    높은 등급은 열리는 순간 빛살 · 불꽃, 최고 등급은 화면이 잠깐 번쩍인다. 효과음은 가장 높은 등급 하나만.
    화면(버튼 밖)을 누르면 남은 카드가 한꺼번에 열린다. */
 
 export interface RevealOptions { reduced: boolean }
 
 const SPARKS = 12
-/** 뒤집기 반쪽 시간 · 카드 사이 간격(ms) */
-const FLIP_MS = 110
+/** 뒷면이 걷히기까지 · 카드 사이 간격(ms). 돌리지 않고 뒷면이 사라지며 앞면이 드러난다 */
+const FLIP_MS = 0
 const STEP_MS = 55
 
 function burst(card: HTMLElement, tier: number): void {
@@ -175,7 +175,6 @@ export function playResultReveal(overlay: HTMLElement, options: RevealOptions): 
   const open = (card: HTMLElement, quiet = false) => {
     if (!card.classList.contains('is-covered')) return
     const tier = tierOf(card)
-    card.classList.add('is-flipping')
     window.setTimeout(() => {
       card.classList.remove('is-covered')
       card.classList.add('is-open')
@@ -185,7 +184,6 @@ export function playResultReveal(overlay: HTMLElement, options: RevealOptions): 
         window.setTimeout(() => stage.classList.remove('is-flash'), 460)
       }
     }, FLIP_MS)
-    window.setTimeout(() => card.classList.remove('is-flipping'), FLIP_MS * 2 + 40)
   }
   const finish = () => {
     stage.classList.remove('is-revealing')
@@ -204,10 +202,10 @@ export function playResultReveal(overlay: HTMLElement, options: RevealOptions): 
   }
   stage.addEventListener('click', skip)
 
-  // 뒷면이 깔리는 대로 바로 차례 뒤집기(장당 55ms)
+  // 뒷면이 깔리는 대로 바로 차례로 열기(장당 55ms)
   const top = Math.max(...cards.map(tierOf))
   let t = 200
   cards.forEach(card => { later(t, () => open(card)); t += STEP_MS })
   later(200 + FLIP_MS, () => openSound(top))
-  later(t + FLIP_MS * 2, finish)
+  later(t + 200, finish)
 }
