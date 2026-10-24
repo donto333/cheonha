@@ -1,0 +1,7 @@
+pageerror NetworkError: A network error occurred.
+pick guan-yu
+1-roster-owned gcard gcard--aura gcard--g5  
+2-codex-owned gcard gcard--aura gcard--g5  
+3-codex-locked gcard gcard--locked gcard--aura gcard--g5
+locked tiles 73
+after recruit button: section=recruit detail=0
