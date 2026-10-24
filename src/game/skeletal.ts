@@ -493,6 +493,7 @@ class TianmingAura {
     this.flag.castShadow = true
     this.flagRest = (flagGeo.getAttribute('position').array as Float32Array).slice()
     holder.add(pole, finial, this.flag)
+    holder.visible = false // 등 깃발은 쓰지 않는다
     back.add(holder)
     this.materials = [sealMat, emberMat, flagMat, pole.material as THREE.MeshStandardMaterial, finial.material as THREE.MeshStandardMaterial]
   }

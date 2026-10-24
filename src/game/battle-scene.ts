@@ -1,12 +1,10 @@
-// 전투 장면 그래픽: 하늘·원경 산·성채·지형·풀·깃발·연기·후방 대군, 무장·병사 모델.
+// 전투 장면 그래픽: 배경 그림 · 빛 · 불티, 무장·병사 모델.
 // 외부 3D 파일 없이 도형과 직접 그린 질감으로 만든다. 전투 규칙(battle-core)과는 무관하다.
 import * as THREE from 'three'
 import { markShared } from './gpu-shared'
 import { easeIn2, easeInOut, track } from './motion-math'
 import { strikeInfluences } from './battle-rig'
 import type { General } from './strategy'
-import { loadModel } from './battle-models'
-import { grassTexture, grassTuftGeometry, mountainMaterial, pineTrees, rockGeometry } from './scenery'
 
 export type Team = 'player' | 'enemy'
 export type SceneQuality = 'low' | 'high'
@@ -149,15 +147,12 @@ export function soldierGeometry(kind: 'infantry' | 'archer' | 'cavalry' | 'pike'
   add(new THREE.SphereGeometry(0.11, 9, 6, 0, Math.PI * 2, 0, Math.PI * 0.62), c.armor, M(0, riderY + 1.01, 0.01))
   add(new THREE.CylinderGeometry(0.125, 0.13, 0.03, 9), c.dark, M(0, riderY + 0.98, 0.01))
   add(new THREE.ConeGeometry(0.035, 0.12, 5), c.cloth, M(0, riderY + 1.14, 0.03, 0.4))
-  add(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 3), wood, M(0, riderY + 1.18, 0.15))
-  add(new THREE.BoxGeometry(0.01, 0.3, 0.16), c.banner, M(0, riderY + 1.32, 0.23))
   if (kind === 'archer') {
     add(new THREE.TorusGeometry(0.28, 0.014, 4, 10, Math.PI * 1.2), wood, M(-0.22, riderY + 0.8, -0.05, 0, Math.PI / 2, -Math.PI * 0.6))
     add(new THREE.CylinderGeometry(0.045, 0.04, 0.34, 6), wood, M(0.1, riderY + 0.76, 0.14, 0.25))
   } else if (kind === 'pike' || kind === 'cavalry') {
     add(new THREE.CylinderGeometry(0.012, 0.012, 1.9, 4), wood, M(0.2, riderY + 0.95, -0.05, -0.12))
     add(new THREE.ConeGeometry(0.03, 0.16, 4), metal, M(0.2 + Math.sin(0.12) * 0, riderY + 1.92, -0.17, -0.12))
-    if (kind === 'cavalry') add(new THREE.BoxGeometry(0.08, 0.1, 0.02), c.banner, M(0.2, riderY + 1.75, -0.12))
   } else {
     add(new THREE.CylinderGeometry(0.012, 0.012, 1.45, 4), wood, M(0.2, riderY + 0.82, -0.04, -0.1))
     add(new THREE.ConeGeometry(0.03, 0.14, 4), metal, M(0.2, riderY + 1.58, -0.11, -0.1))
@@ -580,11 +575,6 @@ export function createGeneralModel(general: General, team: Team): GeneralRig {
       shieldArm.rotation.set(-0.6, 0, -0.1)
     }
   }
-  // 등 뒤 작은 장수기(진영 색)
-  const flag = new THREE.Group(); flag.position.set(0.12, hipY + 0.55, 0.3)
-  flag.add(mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.3, 5), mats.wood, 0, 0.65, 0))
-  flag.add(mesh(new THREE.PlaneGeometry(0.28, 0.5), new THREE.MeshStandardMaterial({ color: TEAM_COLORS[team].banner, side: THREE.DoubleSide, roughness: 0.85 }), 0.15, 1.05, 0, 0, Math.PI / 2))
-  if (!sig.robe) body.add(flag)
   body.add(weaponArm, shieldArm)
   root.add(body)
   root.scale.setScalar(mounted ? 1.3 : 1.45)
@@ -629,31 +619,37 @@ export function animateGeneral(rig: GeneralRig, t: number, moving: boolean, atta
 export interface Environment {
   update: (t: number, delta: number) => void
   sun: THREE.DirectionalLight
+  /** 화면 비율이 바뀌면 배경 그림을 다시 맞춘다 */
+  setAspect: (aspect: number) => void
 }
 
 export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Environment {
   const updaters: Array<(t: number, delta: number) => void> = []
-  const horizon = new THREE.Color(0xeaa874)
-  scene.background = new THREE.Color(0x3a2a33)
-  scene.fog = new THREE.Fog(0xa48876, 34, 170)
+  // 배경: 사용자 제공 전장 그림 한 장(화면에 꽉 차게). 하늘 · 산 · 성채 · 지형 · 풀 · 나무 · 깃발 모델은 쓰지 않는다.
+  scene.fog = null
+  scene.background = new THREE.Color(0x2a1a0e)
+  let bgAspect = 16 / 9
+  let viewAspect = 16 / 9
+  let bg: THREE.Texture | null = null
+  const fitBackground = () => {
+    if (!bg) return
+    // CSS background-size: cover 와 같게 자른다
+    const ratio = viewAspect / bgAspect
+    if (ratio > 1) { bg.repeat.set(1, 1 / ratio); bg.offset.set(0, (1 - 1 / ratio) * 0.5) }
+    else { bg.repeat.set(ratio, 1); bg.offset.set((1 - ratio) * 0.5, 0) }
+  }
+  new THREE.TextureLoader().load('/assets/battlefield/battle-bg.webp', texture => {
+    texture.colorSpace = THREE.SRGBColorSpace
+    const image = texture.image as { width: number; height: number }
+    bgAspect = image.width / Math.max(1, image.height)
+    bg = texture
+    fitBackground()
+    scene.background = texture
+  })
 
-  // 하늘: 지평선은 노을, 위로 갈수록 짙은 남보라, 해 주변은 밝게
-  const sunDir = new THREE.Vector3(-0.35, 0.16, -1).normalize()
-  const sky = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 16), new THREE.ShaderMaterial({
-    side: THREE.BackSide, depthWrite: false, fog: false,
-    uniforms: { sunDir: { value: sunDir }, top: { value: new THREE.Color(0x26344f) }, mid: { value: new THREE.Color(0x9a6a68) }, low: { value: horizon }, sun: { value: new THREE.Color(0xffe6b8) } },
-    vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-    fragmentShader: `uniform vec3 sunDir, top, mid, low, sun; varying vec3 vDir;
-      void main(){ float h = vDir.y; vec3 c = mix(low, mid, smoothstep(0.0, 0.18, h)); c = mix(c, top, smoothstep(0.16, 0.6, h));
-      c = mix(c, low * 0.55, smoothstep(0.0, -0.2, h)); float s = max(dot(vDir, sunDir), 0.0);
-      c += sun * (pow(s, 600.0) * 2.5 + pow(s, 24.0) * 0.45 + pow(s, 4.0) * 0.12); gl_FragColor = vec4(c, 1.0); }`,
-  }))
-  sky.renderOrder = -20
-  scene.add(sky)
-
-  // 빛: 낮게 깔린 노을 햇빛 + 하늘빛 + 뒤에서 비추는 테두리 빛
-  scene.add(new THREE.HemisphereLight(0xc8d4f0, 0x4a3a2a, 1.5))
-  const sun = new THREE.DirectionalLight(0xffd6a6, 3.4)
+  // 빛: 노을 햇빛 + 하늘빛 + 테두리 빛
+  scene.add(new THREE.HemisphereLight(0xffe0bc, 0x5a3a22, 1.6))
+  const sun = new THREE.DirectionalLight(0xffc68a, 3.4)
   sun.position.set(-18, 16, -22)
   sun.castShadow = true
   sun.shadow.mapSize.set(quality === 'high' ? 2048 : 1024, quality === 'high' ? 2048 : 1024)
@@ -661,267 +657,19 @@ export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Env
   sun.shadow.bias = -0.0008
   sun.shadow.normalBias = 0.03
   scene.add(sun, sun.target)
-  const fill = new THREE.DirectionalLight(0x8aa8ff, 0.55)
+  const fill = new THREE.DirectionalLight(0xffb070, 0.55)
   fill.position.set(14, 10, 18)
   scene.add(fill)
 
-  // 원경 산맥 3겹(멀수록 하늘색에 묻힌다)
-  const ridge = (radius: number, height: number, color: number, seed: number, hazeAmount: number, from = -Math.PI * 0.98, to = -Math.PI * 0.02) => {
-    const segments = 600
-    const positions: number[] = []
-    const r = rng(seed)
-    const offsets = Array.from({ length: 6 }, () => r() * 10)
-    for (let i = 0; i <= segments; i += 1) {
-      const a = from + (to - from) * (i / segments)
-      const x = Math.cos(a) * radius, z = Math.sin(a) * radius
-      // 봉우리 · 능선: 큰 굴곡 위에 날카로운 능선(절댓값 사인)과 잔 굴곡을 겹친다
-      const n = Math.sin(a * 5 + offsets[0]) * 0.38 + Math.sin(a * 11 + offsets[1]) * 0.2 + (1 - Math.abs(Math.sin(a * 19 + offsets[2]))) * 0.18 + Math.sin(a * 37 + offsets[3]) * 0.06 + Math.sin(a * 83 + offsets[4]) * 0.025 + Math.sin(a * 171 + offsets[5]) * 0.012
-      const y = height * (0.55 + n)
-      positions.push(x, -4, z, x, y, z)
-    }
-    const index: number[] = []
-    for (let i = 0; i < segments; i += 1) { const a = i * 2; index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2) }
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-    geometry.setIndex(index)
-    // 바위 결 · 골짜기 그늘 · 공기 원근(멀수록 하늘빛에 묻힌다)은 셰이더가 그린다
-    const ridgeMesh = new THREE.Mesh(geometry, mountainMaterial(color, 0xc89a86, hazeAmount))
-    ridgeMesh.renderOrder = -15
-    scene.add(ridgeMesh)
-  }
-  ridge(140, 26, 0x7a6a74, 3, 0.5)
-  ridge(110, 18, 0x5a5058, 7, 0.32)
-  ridge(82, 11, 0x3e3834, 11, 0.16)
-
-  // 적 뒤의 성채: 성벽·성가퀴·문루(2층 기와지붕)·등불
-  const fort = new THREE.Group()
-  const stone = new THREE.MeshStandardMaterial({ color: 0x5a4a40, roughness: 0.95 })
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x2a2224, roughness: 0.7, metalness: 0.1 })
-  const timber = new THREE.MeshStandardMaterial({ color: 0x6a1e18, roughness: 0.8 })
-  const wall = new THREE.Mesh(new THREE.BoxGeometry(90, 6, 3), stone)
-  wall.position.set(0, 3, 0); wall.castShadow = false; wall.receiveShadow = true
-  fort.add(wall)
-  const merlon = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, 1, 0.6), stone, 60)
-  const tmp = new THREE.Matrix4()
-  for (let i = 0; i < 60; i += 1) { tmp.makeTranslation(-44 + i * 1.5, 6.5, -1.2); merlon.setMatrixAt(i, tmp) }
-  fort.add(merlon)
-  const roof = (w: number, d: number, y: number) => {
-    const g = new THREE.Group()
-    const r = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 1, 1, 4, 1), roofMat)
-    r.rotation.y = Math.PI / 4; r.scale.set(w * 0.78, 1.6, d * 0.78); r.position.y = y + 0.8
-    const eave = new THREE.Mesh(new THREE.BoxGeometry(w * 1.12, 0.18, d * 1.12), roofMat)
-    eave.position.y = y
-    g.add(r, eave)
-    return g
-  }
-  for (const x of [0, -26, 26]) {
-    const tower = new THREE.Group()
-    const big = x === 0
-    const base = new THREE.Mesh(new THREE.BoxGeometry(big ? 12 : 7, big ? 8 : 7, 5), stone)
-    base.position.y = big ? 4 : 3.5
-    tower.add(base)
-    const hall = new THREE.Mesh(new THREE.BoxGeometry(big ? 9 : 5, 2.6, 3.6), timber)
-    hall.position.y = (big ? 8 : 7) + 1.3
-    tower.add(hall, roof(big ? 11 : 6.4, 5, (big ? 8 : 7) + 2.7))
-    if (big) {
-      const hall2 = new THREE.Mesh(new THREE.BoxGeometry(6.4, 1.8, 2.8), timber)
-      hall2.position.y = 13.4
-      tower.add(hall2, roof(8, 3.8, 14.5))
-      const gate = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.4, 0.4), new THREE.MeshStandardMaterial({ color: 0x1a120e, roughness: 1 }))
-      gate.position.set(0, 2.2, 2.55)
-      tower.add(gate)
-    }
-    for (const lx of big ? [-3, 3] : [0]) {
-      const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffa64a }))
-      lantern.position.set(lx, (big ? 8 : 7) + 0.4, 2.2)
-      tower.add(lantern)
-    }
-    tower.position.x = x
-    fort.add(tower)
-  }
-  fort.position.set(0, 0, -112); fort.scale.setScalar(1.6)
-  // 먼 성채는 아지랑이에 반쯤 묻힌 실루엣으로(가까이서 보이는 상자 모양이 도드라지지 않게)
-  for (const material of [stone, roofMat, timber]) material.color.lerp(new THREE.Color(0x9a7a70), 0.7)
-  scene.add(fort)
-  const fortGlow = new THREE.PointLight(0xff9a4a, 30, 30, 2)
-  fortGlow.position.set(0, 14, -104)
-  scene.add(fortGlow)
-
-  // 지형: 가운데 전장은 평평, 바깥은 완만한 언덕. 흙길·풀밭을 정점 색으로 칠한다.
-  const size = 200, seg = quality === 'high' ? 140 : 90
-  const groundGeo = new THREE.PlaneGeometry(size, size, seg, seg)
-  groundGeo.rotateX(-Math.PI / 2)
-  const gp = groundGeo.getAttribute('position')
-  const colors: number[] = []
-  const grass = new THREE.Color(0x4f5a34), dry = new THREE.Color(0x857a4c), dirt = new THREE.Color(0x6a5038), dark = new THREE.Color(0x2e3420)
-  const col = new THREE.Color()
-  for (let i = 0; i < gp.count; i += 1) {
-    const x = gp.getX(i), z = gp.getZ(i)
-    const dist = Math.max(Math.abs(x) / 16, Math.abs(z + 2) / 15)
-    const lift = terrainLift(x, z)
-    const h = noise2(x, z) * Math.min(2.2, lift * 1.4) + lift * lift * 0.6
-    gp.setY(i, h - 0.02)
-    const n = noise2(x * 2.3, z * 2.1) * 0.5 + 0.5
-    col.copy(grass).lerp(dry, n * 0.7).lerp(dark, Math.max(0, noise2(x * 4, z * 4)) * 0.35)
-    const road = Math.max(0, 1 - Math.abs(x - Math.sin(z * 0.12) * 1.6) / 3.6)
-    col.lerp(dirt, Math.min(1, road * 1.4))
-    const battle = Math.max(0, 1 - dist)
-    col.lerp(dirt, battle * 0.18)
-    colors.push(col.r, col.g, col.b)
-  }
-  groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
-  groundGeo.computeVertexNormals()
-  const grain = canvasTexture(256, (ctx, s) => {
-    const img = ctx.createImageData(s, s)
-    const r = rng(42)
-    for (let i = 0; i < s * s; i += 1) { const v = 150 + r() * 105; img.data[i * 4] = v; img.data[i * 4 + 1] = v; img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255 }
-    ctx.putImageData(img, 0, 0)
-    for (let i = 0; i < 260; i += 1) { ctx.fillStyle = `rgba(40,30,20,${0.08 + r() * 0.12})`; ctx.beginPath(); ctx.arc(r() * s, r() * s, 1 + r() * 4, 0, Math.PI * 2); ctx.fill() }
-  }, 60)
-  const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ vertexColors: true, map: grain, roughness: 0.96, metalness: 0 }))
-  ground.receiveShadow = true
-  scene.add(ground)
-
-  // 사용자 제공 실사 전장(2:1 섬 지형): 긴 쪽을 앞뒤로, 땅 높이가 0이 되게 얹는다
-  const ISLAND = { scale: 3.6, halfX: 8.82 * 3.6 / 2 + 0.6, halfZ: 17.66 * 3.6 / 2 + 0.6, z: -4 }
-  const inIsland = (x: number, z: number) => Math.abs(x) < ISLAND.halfX && Math.abs(z - ISLAND.z) < ISLAND.halfZ
-  void loadModel('battlefield').then(gltf => {
-    const island = gltf.scene
-    island.scale.setScalar(ISLAND.scale)
-    island.rotation.y = Math.PI / 2
-    island.position.set(0, 0.867 * ISLAND.scale + 0.02, ISLAND.z)
-    scene.add(island)
-  }).catch(() => { /* 모델이 없으면 기본 지형만 */ })
-
-  // 풀 덤불(인스턴스) — 전장 가운데는 비운다
-  const tuftCount = quality === 'high' ? 2600 : 900
-  // 가는 풀잎을 그린 그림 두 장을 열십자로(원뿔 풀 대신)
-  const tufts = new THREE.InstancedMesh(grassTuftGeometry(), new THREE.MeshStandardMaterial({ map: grassTexture(), alphaTest: 0.4, roughness: 1 }), tuftCount)
+  // 바닥: 보이지 않고 그림자만 받는 판(병사 · 무장 발밑 그림자)
+  const shadowGround = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.ShadowMaterial({ color: 0x1a0c04, opacity: 0.38 }))
+  shadowGround.rotation.x = -Math.PI / 2
+  shadowGround.position.y = 0.001
+  shadowGround.receiveShadow = true
+  scene.add(shadowGround)
   const tr = rng(9)
-  const dummy = new THREE.Object3D()
-  let placed = 0
-  for (let tries = 0; placed < tuftCount && tries < tuftCount * 4; tries += 1) {
-    const x = (tr() - 0.5) * 110, z = (tr() - 0.5) * 90 - 6
-    if (Math.abs(x) < 9 && z > -12 && z < 12) continue
-    if (inIsland(x, z)) continue
-    if (Math.abs(x - Math.sin(z * 0.12) * 1.6) < 2.6) continue
-    dummy.position.set(x, terrainHeight(x, z), z)
-    dummy.rotation.set(0, tr() * 6.28, 0)
-    dummy.scale.setScalar(0.7 + tr() * 1.1)
-    dummy.updateMatrix()
-    tufts.setMatrixAt(placed, dummy.matrix)
-    placed += 1
-  }
-  tufts.count = placed
-  scene.add(tufts)
 
-  // 바위
-  // 울퉁불퉁하게 일그러진 둥근 돌(이끼 · 흙 얼룩) — 각진 다면체 대신
-  const rocks = new THREE.InstancedMesh(rockGeometry(23), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }), 40)
-  for (let i = 0; i < 40; i += 1) {
-    const a = tr() * Math.PI * 2, rr = 15 + tr() * 30
-    let rx = Math.cos(a) * rr, rz = Math.sin(a) * rr * 0.8 - 8
-    if ((rz > 4 && Math.abs(rx) < 24) || inIsland(rx, rz)) rx = Math.sign(rx || 1) * (24 + tr() * 8)
-    dummy.position.set(rx, terrainHeight(rx, rz) + 0.1, rz)
-    dummy.rotation.set(tr(), tr() * 6, tr())
-    dummy.scale.set(0.4 + tr() * 1.4, 0.3 + tr() * 0.8, 0.4 + tr() * 1.2)
-    dummy.updateMatrix(); rocks.setMatrixAt(i, dummy.matrix)
-  }
-  rocks.castShadow = false; rocks.receiveShadow = true
-  scene.add(rocks)
-
-  // 소나무(양옆 언덕)
-  // 그림으로 그린 소나무를 열십자로 세운다(원뿔을 쌓은 장난감 나무 대신)
-  const pines = pineTrees(46, (_i, d) => {
-    const side = _i % 2 ? 1 : -1
-    const x = side * (30 + tr() * 30), z = -50 + tr() * 50
-    d.position.set(x, terrainHeight(x, z) - 0.2, z)
-    d.rotation.set(0, tr() * 6, 0); d.scale.setScalar(0.6 + tr() * 0.7)
-  }, quality === 'high')
-  scene.add(pines)
-
-  // 깃발 줄(양 진영 뒤) — 천은 바람에 흔들린다
-  const flags: Array<{ mesh: THREE.Mesh; base: Float32Array; phase: number }> = []
-  const addFlagRow = (team: Team, z: number, count: number, spread: number, gapHalf = 0) => {
-    for (let i = 0; i < count; i += 1) {
-      let x = (i - (count - 1) / 2) * spread + (tr() - 0.5) * 0.6
-      if (gapHalf && Math.abs(x) < gapHalf) x = Math.sign(x || 1) * (gapHalf + Math.abs(x))
-      const poleH = 4.2 + tr() * 1.2
-      const poleMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, poleH, 5), new THREE.MeshStandardMaterial({ color: 0x3a2618, roughness: 0.8 }))
-      poleMesh.position.set(x, poleH / 2, z)
-      const geo = new THREE.PlaneGeometry(1.1, 1.7, 6, 4)
-      geo.translate(0.55, 0, 0)
-      const cloth = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: TEAM_COLORS[team].banner, side: THREE.DoubleSide, roughness: 0.85 }))
-      cloth.position.set(x + 0.04, poleH - 0.95, z)
-      cloth.rotation.y = team === 'player' ? 0.3 : Math.PI - 0.3
-      const trim = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 0.03), new THREE.MeshStandardMaterial({ color: TEAM_COLORS[team].trim, metalness: 0.6, roughness: 0.4 }))
-      trim.position.set(x + 0.6 * Math.cos(cloth.rotation.y), poleH - 0.08, z - 0.6 * Math.sin(cloth.rotation.y))
-      trim.rotation.y = cloth.rotation.y
-      scene.add(poleMesh, cloth, trim)
-      flags.push({ mesh: cloth, base: Float32Array.from(geo.getAttribute('position').array as Float32Array), phase: tr() * 6 })
-    }
-  }
-  addFlagRow('player', 9.5, quality === 'high' ? 8 : 6, 2.6, 9)
-  addFlagRow('enemy', -19.5, quality === 'high' ? 11 : 7, 3.2)
-  updaters.push(t => {
-    for (const flag of flags) {
-      const pos = flag.mesh.geometry.getAttribute('position') as THREE.BufferAttribute
-      for (let i = 0; i < pos.count; i += 1) {
-        const x = flag.base[i * 3], y = flag.base[i * 3 + 1]
-        pos.setZ(i, Math.sin(t * 3 + x * 3.2 + y * 0.8 + flag.phase) * 0.18 * (x / 1.1))
-      }
-      pos.needsUpdate = true
-      flag.mesh.geometry.computeVertexNormals()
-    }
-  })
-
-  // 후방 대군: 양 진영 뒤에 늘어선 병사 수백 명(움직임은 가볍게)
-  const host = (team: Team, z: number, facing: number, gapHalf: number) => {
-    const rows = quality === 'high' ? 6 : 4, cols = quality === 'high' ? 34 : 22
-    const geos = [soldierGeometry('pike', team), soldierGeometry('infantry', team)]
-    geos.forEach((geo, gi) => {
-      const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.15 }), rows * cols)
-      const items: Array<{ x: number; z: number; ph: number }> = []
-      for (let r = 0; r < rows; r += 1) for (let c = 0; c < cols; c += 1) {
-        if ((r + c) % 2 !== gi) continue
-        let x = (c - (cols - 1) / 2) * 0.62 + (tr() - 0.5) * 0.15
-        if (gapHalf && Math.abs(x) < gapHalf) x = Math.sign(x || 1) * (gapHalf + Math.abs(x) * 0.9)
-        items.push({ x, z: z + r * 0.62 * Math.sign(facing === 0 ? 1 : -1) + (tr() - 0.5) * 0.15, ph: tr() * 6 })
-      }
-      mesh.count = items.length
-      const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, facing, 0)), one = new THREE.Vector3(1.05, 1.05, 1.05), pv = new THREE.Vector3()
-      const write = (t: number) => {
-        items.forEach((it, i) => { pv.set(it.x, Math.sin(t * 1.6 + it.ph) * 0.02, it.z); m4.compose(pv, qq, one); mesh.setMatrixAt(i, m4) })
-        mesh.instanceMatrix.needsUpdate = true
-      }
-      write(0)
-      let acc = 0
-      updaters.push((t, delta) => { acc += delta; if (acc > 0.1) { acc = 0; write(t) } })
-      scene.add(mesh)
-    })
-  }
-  // 후방 대군(줄지어 선 장식 병사)은 쓰지 않는다: 실제 병사 부대가 무장 뒤에서 싸운다
-  void host
-
-  // 원경 연기 기둥(불타는 들판)과 먼지·불티
-  const smokeMat = new THREE.SpriteMaterial({ map: softSprite(), color: 0x4a3a36, transparent: true, opacity: 0.32, depthWrite: false })
-  const smokes: Array<{ sprite: THREE.Sprite; base: THREE.Vector3; speed: number; life: number }> = []
-  for (let i = 0; i < (quality === 'high' ? 34 : 16); i += 1) {
-    const sprite = new THREE.Sprite(smokeMat.clone())
-    const column = i % 4
-    const base = new THREE.Vector3([-34, -18, 22, 38][column], 0, [-52, -60, -58, -48][column])
-    smokes.push({ sprite, base, speed: 0.8 + tr() * 0.6, life: tr() })
-    scene.add(sprite)
-  }
-  updaters.push((_t, delta) => {
-    for (const s of smokes) {
-      s.life = (s.life + delta * 0.06 * s.speed) % 1
-      s.sprite.position.set(s.base.x + Math.sin(s.life * 3) * 2 + s.life * 6, s.base.y + s.life * 26, s.base.z)
-      const k = 3 + s.life * 12
-      s.sprite.scale.set(k, k, 1)
-      ;(s.sprite.material as THREE.SpriteMaterial).opacity = 0.34 * Math.sin(s.life * Math.PI)
-    }
-  })
+  // 불티 · 먼지(가벼운 입자)
   const emberCount = quality === 'high' ? 220 : 90
   const emberGeo = new THREE.BufferGeometry()
   const emberPos = new Float32Array(emberCount * 3), emberSeed = new Float32Array(emberCount)
@@ -947,5 +695,5 @@ export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Env
     dust.rotation.y = Math.sin(t * 0.05) * 0.05
   })
 
-  return { update: (t, delta) => updaters.forEach(fn => fn(t, delta)), sun }
+  return { update: (t, delta) => updaters.forEach(fn => fn(t, delta)), sun, setAspect: (aspect: number) => { viewAspect = aspect; fitBackground() } }
 }

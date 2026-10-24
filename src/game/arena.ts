@@ -2064,6 +2064,7 @@ export class Arena {
     this.camera.aspect = width / Math.max(height, 1)
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(width, height, false)
+    this.environment?.setAspect(this.camera.aspect)
     this.composer?.setPixelRatio(this.renderer.getPixelRatio())
     this.composer?.setSize(width, height)
   }
