@@ -93,11 +93,12 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
       url('/assets/ui/v2/lobby-city.webp') center / cover no-repeat, #2a160b;
   }
   html.has-lobby-city body .page-section--v2 .ml-hero { display: none; }
-  /* 내 진영에 따라 본영 배경: 위(푸른 깃발 도성) · 촉(산악 관문) · 오(강가 항구). 재야는 관문 그림 그대로 */
+  /* 대표 무장의 진영에 따라 본영 배경: 위(푸른 깃발 도성) · 촉(산악 관문) · 오(강가 항구) · 군웅(성 공격 전장). 그 밖에는 관문 그림 */
   html body .page-section--v2[data-realm] .ml-bg { background: linear-gradient(90deg, rgba(14, 6, 2, .6) 0%, rgba(14, 6, 2, .1) 26%, rgba(14, 6, 2, 0) 60%, rgba(14, 6, 2, .55) 100%), linear-gradient(0deg, rgba(14, 6, 2, .75) 0%, rgba(14, 6, 2, 0) 30%), linear-gradient(180deg, rgba(14, 6, 2, .55) 0%, rgba(14, 6, 2, 0) 20%), var(--realm-bg, url('/assets/battlefield/huanghun-gate.webp')) center 45% / cover no-repeat, #2a160b; }
   html body .page-section--v2[data-realm="wei"] { --realm-bg: url('/assets/ui/v2/lobby/bg-wei.webp'); }
   html body .page-section--v2[data-realm="shu"] { --realm-bg: url('/assets/ui/v2/lobby/bg-shu.webp'); }
   html body .page-section--v2[data-realm="wu"] { --realm-bg: url('/assets/ui/v2/lobby/bg-wu.webp'); }
+  html body .page-section--v2[data-realm="qun"] { --realm-bg: url('/assets/ui/v2/lobby/bg-qun.webp'); }
   /* 진영 배경이 있으면 네모난 초상 그림은 빼고 풍경을 온전히 보여 준다(대표 무장은 왼쪽 위 프로필에) */
   /* 대표 무장(프로필에서 고른 무장)을 본영 가운데에 세운다: 진영 풍경 위로 가장자리는 흐리게 */
   html body .page-section--v2 .ml-hero { z-index: 1; top: auto; bottom: 0; left: 46%; height: 92%; transform: translateX(-50%); pointer-events: none; -webkit-mask-image: radial-gradient(ellipse 50% 62% at 50% 42%, #000 58%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 26%); -webkit-mask-composite: source-in; mask-image: radial-gradient(ellipse 50% 62% at 50% 42%, #000 58%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 26%); mask-composite: intersect; }
