@@ -1149,3 +1149,14 @@ html body .terr-search { display: none; }
 .mythic-tile:hover, .mythic-tile:focus-visible { box-shadow: inset 0 0 0 1px rgba(255, 236, 170, .5), inset 0 0 10px rgba(0, 0, 0, .55), 0 0 10px rgba(246, 200, 90, .7); }
 .mythic-tile:active { box-shadow: inset 0 0 0 1px rgba(255, 244, 200, .7), inset 0 0 8px rgba(0, 0, 0, .5), 0 0 14px rgba(255, 210, 100, .9); }
 .mythic-tile::before { left: 2px; right: 2px; top: 2px; }
+/* 신화 장비 뒤 반짝임: 장비 모양(가는 검 · 큰 갑옷)과 상관없이 모두 같은 크기 · 밝기로(가장 밝던 갑옷 기준) */
+.mythic-glow { position: relative; display: grid; place-items: center; isolation: isolate; }
+.mythic-glow::before { content: ''; position: absolute; z-index: -1; inset: -22%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 228, 140, .95) 0%, rgba(255, 196, 80, .7) 26%, rgba(255, 165, 52, .32) 50%, rgba(255, 165, 52, 0) 70%); animation: mythic-glow-pulse 2.6s ease-in-out infinite; pointer-events: none; }
+.mythic-glow::after { content: ''; position: absolute; z-index: -1; inset: -30%; background: conic-gradient(from 0deg, transparent 0 8%, rgba(255, 240, 190, .55) 10%, transparent 12% 33%, rgba(255, 240, 190, .5) 35%, transparent 37% 58%, rgba(255, 240, 190, .55) 60%, transparent 62% 83%, rgba(255, 240, 190, .5) 85%, transparent 87%); -webkit-mask: radial-gradient(circle, #000 20%, transparent 68%); mask: radial-gradient(circle, #000 20%, transparent 68%); animation: mythic-glow-spin 9s linear infinite; pointer-events: none; }
+.mythic-glow .equipment-image--mythic { position: relative; animation: none; filter: drop-shadow(0 0 6px rgba(255, 214, 91, .85)) drop-shadow(0 4px 8px rgba(255, 165, 52, .4)); }
+.mythic-detail__art .mythic-glow { width: 78%; height: 78%; }
+.mythic-detail__art .mythic-glow img { width: 100%; height: 100%; object-fit: contain; }
+@keyframes mythic-glow-pulse { 0%, 100% { opacity: .75; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes mythic-glow-spin { to { transform: rotate(360deg); } }
+html[data-fx="reduced"] .mythic-glow::before, html[data-fx="reduced"] .mythic-glow::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mythic-glow::before, .mythic-glow::after { animation: none; } }
