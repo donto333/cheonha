@@ -1,19 +1,24 @@
 // 뽑기 결과창(장비 뽑기 · 무장 모집 10회): 1672×941 도안(5열 × 2행 카드 · 금테 버튼)을 화면 크기에 맞춰 그대로 줄이고 늘린다.
 // 틀 · 버튼 · 배경 그림은 /assets/ui/v2/gear-result/, 장비 · 무장 그림은 게임의 그림을 쓴다.
 import { assetUrl } from '../asset-url'
+import { sound } from '../engine/sound'
 import { generalRealm, type Realm } from '../game/general-factions'
 import { EQUIPMENT_GRADE_META, EQUIPMENT_SET_META, EQUIPMENT_TYPE_META, GRADE_META, equipmentSpecialty, equipmentValue, formatNumber, type Equipment, type EquipmentSet, type General } from '../game/strategy'
 
 const KIT = '/assets/ui/v2/gear-result/'
 const art = (name: string): string => assetUrl(`${KIT}${name}`)
 const escapeHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] ?? character))
-const delay = (index: number) => `--reveal-delay:${Math.min(index, 9) * 70}ms`
-const indexLabel = (index: number) => `<span class="gr-card__index">${String(index + 1).padStart(2, '0')}</span>`
+const delay = (index: number) => `--reveal-delay:${Math.min(index, 9) * 45}ms`
+const indexLabel = (index: number) => `<span class="gr-card__back" aria-hidden="true"><i></i></span><span class="gr-card__index">${String(index + 1).padStart(2, '0')}</span>`
 
 /** 세트 표식(카드 아래 줄 앞의 작은 인장) */
 const SET_SEAL: Record<EquipmentSet, string> = { command: '軍', martial: '霸', stratagem: '策', speed: '疾' }
 /** 무장 진영 표식 */
 const REALM_SEAL: Record<Realm, string> = { wei: '魏', shu: '蜀', wu: '吳', qun: '群' }
+
+/** 연출 등급: 0 보통 · 1 좋음(테 반짝) · 2 높음(빛살) · 3 최고(화면 섬광 · 흔들림) */
+const GEAR_TIER: Record<Equipment['grade'], number> = { normal: 0, rare: 1, unique: 2, legendary: 3, mythic: 3 }
+const GENERAL_TIER: Record<number, number> = { 1: 0, 2: 1, 3: 1, 4: 2, 5: 3 }
 
 interface ShellAction { label: string; value: string; action: string; count: number }
 interface ShellOptions {
@@ -30,13 +35,13 @@ interface ShellOptions {
 /** 그림 · 글자 크기를 도안 기준으로 쓰기 위한 CSS 변수(카드 틀 그림 등) */
 export function gearResultsStyle(): string {
   const url = (name: string) => `url('${art(name)}')`
-  return `--gr-panel:${url('panel.png')};--gr-card-normal:${url('card_normal.png')};--gr-card-rare:${url('card_rare.png')};--gr-slot:${url('card_inner_slot.png')};--gr-glow:${url('card_rare_glow.png')};--gr-banner:${url('title_banner.png')};--gr-btn:${url('button_brown.png')};--gr-btn-red:${url('button_red.png')};--gr-btn-close:${url('button_close.png')}`
+  return `--gr-panel:${url('panel.png')};--gr-card-normal:${url('card_normal.png')};--gr-card-rare:${url('card_rare.png')};--gr-slot:${url('card_inner_slot.png')};--gr-glow:${url('card_rare_glow.png')};--gr-banner:${url('title_banner.png')};--gr-btn:${url('button_brown.png')};--gr-btn-red:${url('button_red.png')};--gr-btn-close:${url('button_close.png')};--gr-back:url('${assetUrl('/assets/ui/v2/kit/card-back.webp')}')`
 }
 
 function shell(o: ShellOptions): string {
   const rows = o.count > 5 ? 2 : 1
   const actions = o.actions.map(a => `<button class="gr-btn gr-btn--action" data-action="${a.action}" data-count="${a.count}"><span>${a.label}</span><b>${a.value}</b></button>`).join('')
-  return `<div class="recruit-results-backdrop gr-backdrop"></div><section class="gr-stage" role="dialog" aria-modal="true" aria-label="${o.label}" style="${gearResultsStyle()}"><header class="gr-head"><img class="gr-head__dragon" src="${art('title_dragon.png')}" alt="" draggable="false"><span class="gr-head__banner">${o.label}</span><h2 class="gr-head__title">${o.title}</h2></header><button class="gr-btn gr-btn--close" data-action="close-recruit-results"><span>닫기</span></button><div class="gr-grid gr-grid--rows-${rows}${o.count === 1 ? ' gr-grid--single' : ''}">${o.cards}</div><div class="gr-balance"><i class="gr-balance__icon" aria-hidden="true">${o.honorIcon}</i><span>보유 옥패</span><b>${formatNumber(o.honor)}</b>${o.freeNote ? `<em>${o.freeNote}</em>` : ''}</div><div class="gr-actions">${actions}<button class="gr-btn gr-btn--confirm" data-action="close-recruit-results"><span>결과 확인 완료</span><b aria-hidden="true">→</b></button></div></section>`
+  return `<div class="recruit-results-backdrop gr-backdrop"></div><section class="gr-stage" role="dialog" aria-modal="true" aria-label="${o.label}" style="${gearResultsStyle()}"><header class="gr-head"><img class="gr-head__dragon" src="${art('title_dragon.png')}" alt="" draggable="false"><span class="gr-head__banner">${o.label}</span><h2 class="gr-head__title">${o.title}</h2></header><button class="gr-btn gr-btn--close" data-action="close-recruit-results"><span>닫기</span></button><div class="gr-grid gr-grid--rows-${rows}${o.count === 1 ? ' gr-grid--single' : ''}">${o.cards}</div><p class="gr-skip">화면을 누르면 모두 열립니다</p><div class="gr-balance"><i class="gr-balance__icon" aria-hidden="true">${o.honorIcon}</i><span>보유 옥패</span><b>${formatNumber(o.honor)}</b>${o.freeNote ? `<em>${o.freeNote}</em>` : ''}</div><div class="gr-actions">${actions}<button class="gr-btn gr-btn--confirm" data-action="close-recruit-results"><span>결과 확인 완료</span><b aria-hidden="true">→</b></button></div></section>`
 }
 
 /* ───── 장비 뽑기 ───── */
@@ -57,7 +62,7 @@ function gearCard(item: Equipment, index: number, image: (item: Equipment) => st
   const grade = EQUIPMENT_GRADE_META[item.grade]
   const set = EQUIPMENT_SET_META[item.set]
   const specialty = equipmentSpecialty(item)
-  return `<article class="gr-card gr-card--${item.grade}" style="--grade:${grade.color};${delay(index)}">${indexLabel(index)}${specialty ? `<strong class="gr-card__badge">특기 · ${escapeHtml(specialty.label)}</strong>` : ''}<div class="gr-card__art"><img src="${image(item)}" alt="${EQUIPMENT_TYPE_META[item.type].label}" draggable="false"></div><b class="gr-card__name">${escapeHtml(item.name)}</b><small class="gr-card__stat">${grade.label} · ${EQUIPMENT_TYPE_META[item.type].label} · +${equipmentValue(item)}</small><em class="gr-card__set"><i aria-hidden="true">${SET_SEAL[item.set]}</i><span>${escapeHtml(set.label)} · ${escapeHtml(item.skillName)}</span></em></article>`
+  return `<article class="gr-card gr-card--${item.grade}" data-tier="${GEAR_TIER[item.grade]}" style="--grade:${grade.color};${delay(index)}">${indexLabel(index)}${specialty ? `<strong class="gr-card__badge">특기 · ${escapeHtml(specialty.label)}</strong>` : ''}<div class="gr-card__art"><img src="${image(item)}" alt="${EQUIPMENT_TYPE_META[item.type].label}" draggable="false"></div><b class="gr-card__name">${escapeHtml(item.name)}</b><small class="gr-card__stat">${grade.label} · ${EQUIPMENT_TYPE_META[item.type].label} · +${equipmentValue(item)}</small><em class="gr-card__set"><i aria-hidden="true">${SET_SEAL[item.set]}</i><span>${escapeHtml(set.label)} · ${escapeHtml(item.skillName)}</span></em></article>`
 }
 
 /** 장비 결과창 속 내용(바깥 .recruit-results 안에 넣는다) */
@@ -96,7 +101,7 @@ function generalCard(general: General, index: number, portrait: (general: Genera
   const meta = GRADE_META[general.grade]
   const realm = generalRealm(general.id)
   const stars = Math.max(0, Math.min(5, general.stars ?? 1))
-  return `<article class="gr-card gr-card--general gr-card--${GENERAL_FRAME[general.grade] ?? 'normal'}" style="--grade:${meta.color};${delay(index)}">${indexLabel(index)}<span class="gr-card__stars" aria-label="${stars}성">${'★'.repeat(stars)}<s>${'★'.repeat(5 - stars)}</s></span><div class="gr-card__art gr-card__art--portrait"><img src="${portrait(general)}" alt="" draggable="false" loading="eager" decoding="async"></div><b class="gr-card__name">${escapeHtml(general.name)}</b><small class="gr-card__stat">${general.grade}등급 · ${meta.label} · Lv.${general.level}</small><em class="gr-card__set"><i aria-hidden="true">${REALM_SEAL[realm]}</i><span>${escapeHtml(general.role)} · ${escapeHtml(general.epithet)}</span></em></article>`
+  return `<article class="gr-card gr-card--general gr-card--${GENERAL_FRAME[general.grade] ?? 'normal'}" data-tier="${GENERAL_TIER[general.grade] ?? 0}" style="--grade:${meta.color};${delay(index)}">${indexLabel(index)}<span class="gr-card__stars" aria-label="${stars}성">${'★'.repeat(stars)}<s>${'★'.repeat(5 - stars)}</s></span><div class="gr-card__art gr-card__art--portrait"><img src="${portrait(general)}" alt="" draggable="false" loading="eager" decoding="async"></div><b class="gr-card__name">${escapeHtml(general.name)}</b><small class="gr-card__stat">${general.grade}등급 · ${meta.label} · Lv.${general.level}</small><em class="gr-card__set"><i aria-hidden="true">${REALM_SEAL[realm]}</i><span>${escapeHtml(general.role)} · ${escapeHtml(general.epithet)}</span></em></article>`
 }
 
 /** 무장 모집 결과창 속 내용 */
@@ -114,4 +119,101 @@ export function recruitResultsMarkup(rewards: General[], options: RecruitResults
       { label: '10회 추가 모집', value: options.cost.ten, action: 'extra-recruit', count: 10 },
     ],
   })
+}
+
+/* ───── 결과 연출 ─────
+   카드가 뒷면으로 깔린 뒤 차례로 뒤집힌다. 높은 등급은 뒷면이 등급색으로 달아오르고(뒤집기 전 예고),
+   뒤집히는 순간 빛살 · 불꽃이 터진다. 최고 등급은 잠깐 숨을 고른 뒤 화면이 번쩍이고 흔들린다.
+   화면(버튼 밖)을 누르면 남은 카드가 한꺼번에 열린다. */
+
+export interface RevealOptions { reduced: boolean }
+
+const SPARKS = 14
+
+function burst(card: HTMLElement, tier: number): void {
+  if (tier < 1) return
+  const el = document.createElement('span')
+  el.className = `gr-burst gr-burst--t${tier}`
+  el.setAttribute('aria-hidden', 'true')
+  let sparks = ''
+  if (tier >= 2) for (let i = 0; i < SPARKS; i += 1) {
+    const angle = (360 / SPARKS) * i + Math.random() * 18
+    const dist = (tier >= 3 ? 190 : 130) + Math.random() * 70
+    sparks += `<b style="--a:${angle.toFixed(1)}deg;--d:${dist.toFixed(0)};--s:${(0.6 + Math.random() * 0.8).toFixed(2)};--t:${(Math.random() * 120).toFixed(0)}ms"></b>`
+  }
+  el.innerHTML = `<i class="gr-burst__rays"></i><i class="gr-burst__ring"></i>${sparks}`
+  card.appendChild(el)
+  window.setTimeout(() => el.remove(), tier >= 3 ? 2200 : 1300)
+}
+
+function openSound(tier: number): void {
+  if (tier >= 3) { sound.hallSfx('hall-star'); sound.hallSfx('hall-light', 0.6) }
+  else if (tier === 2) sound.hallSfx('hall-jade', 0.75)
+  else if (tier === 1) sound.play('coin')
+  else sound.play('tab')
+}
+
+/** 결과창을 붙인 뒤 부른다. 연출을 줄이는 설정이면 바로 다 보여 준다. */
+export function playResultReveal(overlay: HTMLElement, options: RevealOptions): void {
+  const stage = overlay.querySelector<HTMLElement>('.gr-stage')
+  const cards = [...overlay.querySelectorAll<HTMLElement>('.gr-card')]
+  if (!stage || !cards.length) return
+  const tierOf = (card: HTMLElement) => Number(card.dataset.tier ?? 0)
+  if (options.reduced) {
+    cards.forEach(card => card.classList.add('is-open'))
+    stage.classList.add('is-revealed')
+    return
+  }
+  const timers: number[] = []
+  const later = (ms: number, fn: () => void) => { timers.push(window.setTimeout(() => { if (overlay.isConnected) fn() }, ms)) }
+  stage.classList.add('is-revealing')
+  cards.forEach(card => card.classList.add('is-covered'))
+
+  const open = (card: HTMLElement, quiet = false) => {
+    if (!card.classList.contains('is-covered')) return
+    const tier = tierOf(card)
+    card.classList.remove('is-charging')
+    card.classList.add('is-flipping')
+    window.setTimeout(() => {
+      card.classList.remove('is-covered')
+      card.classList.add('is-open')
+      burst(card, tier)
+      if (!quiet) openSound(tier)
+      if (tier >= 3 && !quiet) {
+        stage.classList.add('is-flash')
+        window.setTimeout(() => stage.classList.remove('is-flash', 'is-dim'), 650)
+      }
+    }, 170)
+    window.setTimeout(() => card.classList.remove('is-flipping'), 420)
+  }
+  const finish = () => {
+    stage.classList.remove('is-revealing', 'is-dim')
+    stage.classList.add('is-revealed')
+    stage.removeEventListener('click', skip)
+  }
+  function skip(event: Event): void {
+    if ((event.target as HTMLElement).closest('button')) return
+    timers.forEach(id => window.clearTimeout(id))
+    timers.length = 0
+    const covered = cards.filter(card => card.classList.contains('is-covered'))
+    const top = Math.max(-1, ...covered.map(tierOf))
+    covered.forEach(card => open(card, true))
+    if (top >= 0) openSound(top)
+    window.setTimeout(finish, 450)
+  }
+  stage.addEventListener('click', skip)
+
+  // 뒷면이 다 깔린 뒤부터 차례로 뒤집기
+  let t = 380 + cards.length * 45
+  for (const card of cards) {
+    const tier = tierOf(card)
+    if (tier >= 2) later(Math.max(0, t - 350), () => card.classList.add('is-charging'))
+    if (tier >= 3) {
+      later(t, () => { stage.classList.add('is-dim'); card.classList.add('is-charging') })
+      t += 650
+    } else if (tier === 2) t += 200
+    later(t, () => open(card))
+    t += tier >= 3 ? 950 : tier === 2 ? 480 : 160
+  }
+  later(t + 150, finish)
 }
