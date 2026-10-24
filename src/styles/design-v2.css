@@ -1160,3 +1160,66 @@ html body .terr-search { display: none; }
 @keyframes mythic-glow-spin { to { transform: rotate(360deg); } }
 html[data-fx="reduced"] .mythic-glow::before, html[data-fx="reduced"] .mythic-glow::after { animation: none; }
 @media (prefers-reduced-motion: reduce) { .mythic-glow::before, .mythic-glow::after { animation: none; } }
+
+/* ════════════════ 접속(로그인) 화면 · 2026.10.24 도안 1844 × 853 (src/ui/login-gate.ts) ════════════════ */
+html body .access-gate.login-gate { position: fixed; inset: 0; z-index: 20; display: block; padding: 0; overflow: hidden; background: #120b07; color: #eaddc3; font-family: Pretendard, 'Noto Sans KR', sans-serif; }
+.login-gate__fill { position: absolute; inset: -20px; background: center / cover no-repeat; filter: blur(10px) brightness(.55); }
+.login-gate__stage { position: absolute; left: 0; top: 0; width: 1844px; height: 853px; transform-origin: 0 0; transform: translate(var(--lg-x, 0px), var(--lg-y, 0px)) scale(var(--lg-s, .45)); overflow: hidden; }
+.login-gate .lg-img, .login-gate .lg-ico { position: absolute; max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.login-gate .lg-vignette { opacity: .45; }
+.login-gate .lg-art { animation: lg-art-in .9s ease-out both; }
+.login-gate .lg-title { animation: lg-title-in 1s ease-out .15s both; }
+.login-gate .lg-text { position: absolute; margin: 0; display: flex; align-items: center; text-shadow: 0 2px 3px #000; }
+.login-gate .lg-subtitle { justify-content: center; text-align: center; font-size: 22px; line-height: 1.5; color: #eaddc3; }
+.login-gate .lg-head { justify-content: flex-start; font-size: 25px; font-weight: 700; color: #f4d68b; white-space: nowrap; }
+.login-gate .lg-head--guest { color: #e4cea2; }
+.login-gate .lg-label { justify-content: flex-start; font-size: 17px; color: #eaddc3; }
+.login-gate .lg-guest-desc { justify-content: center; text-align: center; font-size: 16px; line-height: 1.55; color: #eaddc3; }
+/* 패널 · 아래 단추 묶음: 휴대폰에서는 --lg-k 만큼 더 키운다 */
+.login-gate .lg-panel { position: absolute; transform-origin: 100% 100%; transform: scale(var(--lg-k, 1)); }
+.login-gate .lg-foot--left { position: absolute; transform-origin: 0 100%; transform: scale(var(--lg-k, 1)); }
+.login-gate .lg-foot--right { position: absolute; display: flex; align-items: center; justify-content: flex-end; gap: 14px; transform-origin: 100% 100%; transform: scale(var(--lg-k, 1)); }
+.login-gate.is-compact .lg-subtitle, .login-gate.is-compact .lg-divider { display: none; }
+.login-gate.is-compact .lg-title { transform-origin: 100% 0; transform: translateY(-36px) scale(.86); }
+/* 단추 */
+.login-gate .lg-btn { position: absolute; padding: 0; border: 0; background: none; color: #f4e5cc; font: inherit; cursor: pointer; transition: filter .12s, transform .12s; }
+.login-gate .lg-btn:hover { filter: brightness(1.15); }
+.login-gate .lg-btn:active { filter: brightness(.82); transform: translateY(1px); }
+.login-gate .lg-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: default; }
+.login-gate .lg-btn:focus-visible, .login-gate .lg-input:focus-visible, .login-gate .lg-link:focus-visible { outline: 2px solid #ffe0a2; outline-offset: 3px; }
+.login-gate .lg-btn > span { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; white-space: nowrap; text-shadow: 0 2px 3px #000; }
+.login-gate .lg-btn > .lg-ico { z-index: 1; }
+.login-gate .lg-btn--login > span { font-size: 32px; font-weight: 800; color: #fff4dc; letter-spacing: .04em; }
+.login-gate .lg-btn--guest > span { font-size: 26px; font-weight: 800; color: #fff3cf; text-shadow: 0 2px 2px #4a2a06, 0 0 8px rgba(0, 0, 0, .5); }
+.login-gate .lg-btn--social > span { padding-left: 24px; font-size: 18px; color: #efe3cb; }
+.login-gate .lg-pill > span { padding-left: 34px; padding-right: 16px; font-size: 17px; color: #efe3cb; }
+.login-gate .lg-eye { opacity: .85; }
+.login-gate .lg-eye.is-on { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 210, 120, .9)); }
+.login-gate .lg-check > span { left: 38px; justify-content: flex-start; font-size: 17px; color: #e9cb87; }
+.login-gate .lg-input { position: absolute; padding: 0; margin: 0; border: 0; background: none; color: #f4e5cc; font: 17px Pretendard, 'Noto Sans KR', sans-serif; outline: none; }
+.login-gate .lg-input::placeholder { color: #b7afa1; }
+.login-gate .lg-links { position: absolute; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.login-gate .lg-link { padding: 4px 2px; border: 0; background: none; color: #e7dcc6; font: 15px Pretendard, 'Noto Sans KR', sans-serif; cursor: pointer; text-shadow: 0 2px 3px #000; }
+.login-gate .lg-link:hover { color: #ffe0a2; }
+.login-gate .lg-links i, .login-gate .lg-foot--right i { font-style: normal; color: #8f8370; }
+.login-gate .lg-foot--right .lg-link { font-size: 16px; }
+.login-gate .lg-status { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; line-height: 1.3; color: #ffd195; text-shadow: 0 1px 2px #000; pointer-events: none; }
+/* 언어 · 환경 설정 창(무대 밖, 화면 크기 그대로) */
+.login-gate .lg-popup { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; }
+.login-gate .lg-popup__backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); }
+.login-gate .lg-popup__card { position: relative; width: min(420px, calc(100% - 32px)); max-height: calc(100% - 24px); overflow-y: auto; display: grid; gap: 10px; padding: 14px 16px; background: linear-gradient(180deg, rgba(36, 24, 15, .97), rgba(16, 11, 7, .98)); border: 1px solid rgba(212, 175, 55, .7); border-radius: 4px; box-shadow: 0 12px 40px rgba(0, 0, 0, .6); }
+.login-gate .lg-popup__head { display: flex; align-items: center; justify-content: space-between; color: #f4d68b; font-size: 16px; }
+.login-gate .lg-popup__x { width: 30px; height: 30px; border: 0; background: none; color: #eaddc3; font-size: 16px; cursor: pointer; }
+.login-gate .lg-popup__row { display: grid; gap: 5px; }
+.login-gate .lg-popup__row strong { font-size: 13px; color: #eaddc3; }
+@keyframes lg-art-in { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@keyframes lg-title-in { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+html[data-fx="reduced"] .login-gate .lg-art, html[data-fx="reduced"] .login-gate .lg-title { animation: none; }
+/* 휴대폰(작게 줄어든 화면): 패널 글자를 조금 더 키운다 */
+.login-gate.is-compact .lg-label, .login-gate.is-compact .lg-input, .login-gate.is-compact .lg-check > span { font-size: 19px; }
+.login-gate.is-compact .lg-guest-desc { font-size: 17.5px; }
+.login-gate.is-compact .lg-link { font-size: 17px; }
+.login-gate.is-compact .lg-foot--right .lg-link { font-size: 19px; }
+.login-gate.is-compact .lg-btn--social > span { font-size: 20px; }
+.login-gate.is-compact .lg-pill > span { font-size: 19px; }
+.login-gate.is-compact .lg-status { font-size: 16px; }

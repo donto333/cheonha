@@ -2126,6 +2126,8 @@ const ui = new StrategyUI(root, {
     if (authView.status === 'offline') { ui.notify('서버에 연결할 수 없습니다. 인터넷 연결을 확인하거나 게스트로 시작하십시오.', 'ember'); return }
     startAccountLogin()
   },
+  onMemberLogin: (name, password) => authView.status === 'offline' ? Promise.resolve('서버에 연결할 수 없습니다. 인터넷 연결을 확인하거나 게스트로 시작하십시오.') : accountAuth('login', name, password),
+  onSignup: () => startAccountLogin(true),
   onLogout: () => {
     void ManusAuth.logout().then(session => {
       gameAccess = null
@@ -2669,15 +2671,17 @@ function startGuestSignup(cancelable: boolean): void {
 }
 /** 아이디 · 비밀번호 로그인 창(성공하면 토큰을 보관하고 새로고침해 회원으로 들어간다) */
 const SESSION_TOKEN_KEY = 'cheonharo.sessionToken.v1'
-function startAccountLogin(): void {
-  ui.showAccountLogin(async (mode, name, password) => {
-    const result = await guestApi(mode === 'signup' ? '/api/account/signup' : '/api/account/login', { name, password })
-    if (!result.ok || !result.token) return result.reason ?? (mode === 'signup' ? '계정을 만들지 못했습니다.' : '로그인하지 못했습니다.')
-    writeStore(SESSION_TOKEN_KEY, result.token)
-    writeStore(GUEST_ACCESS_KEY, null)
-    window.location.reload()
-    return null
-  }, () => ui.showAccessGate())
+/** 회원 로그인 · 가입(성공하면 토큰을 보관하고 새로고침해 회원으로 들어간다). 실패하면 오류 문장 */
+async function accountAuth(mode: 'login' | 'signup', name: string, password: string): Promise<string | null> {
+  const result = await guestApi(mode === 'signup' ? '/api/account/signup' : '/api/account/login', { name, password })
+  if (!result.ok || !result.token) return result.reason ?? (mode === 'signup' ? '계정을 만들지 못했습니다.' : '로그인하지 못했습니다.')
+  writeStore(SESSION_TOKEN_KEY, result.token)
+  writeStore(GUEST_ACCESS_KEY, null)
+  window.location.reload()
+  return null
+}
+function startAccountLogin(signup = false): void {
+  ui.showAccountLogin(accountAuth, () => ui.showAccessGate(), signup)
 }
 // Manus 설정이 없는 서버에서 ManusAuth.login()을 부르면 이 창을 연다
 window.addEventListener('cheonha-login-request', () => startAccountLogin())

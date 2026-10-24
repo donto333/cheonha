@@ -1,4 +1,5 @@
 import { assetUrl } from '../asset-url'
+import { loginGateHtml } from './login-gate'
 import { OFFICIAL_LAUNCH, isLaunched } from '../../server/launch.mjs'
 import { BATTLE_DISTANCE_LABEL, BATTLE_DISTANCES, BATTLE_TIME_LABEL, BATTLE_TIMES, loadBattleDistance, loadBattleTime, saveBattleDistance, saveBattleTime, type BattleDistance, type BattleTime } from '../game/battle-view'
 import { BATTLE_VIEW_ARROW, BATTLE_VIEW_GRID, BATTLE_VIEW_HINT, BATTLE_VIEW_LABEL, BATTLE_VIEWS, loadBattleView, nextBattleView, saveBattleView, type BattleView } from '../game/battle-view'
@@ -117,6 +118,8 @@ const NAV_HUBS: NavHub[] = [
 ]
 /** 가로 휴대폰(모바일 게임형 화면) 조건: CSS의 mobile-landscape.css와 같다 */
 const PHONE_LANDSCAPE = '(orientation: landscape) and (max-height: 500px)'
+/** 접속 화면 '아이디 저장' */
+const LOGIN_SAVED_ID_KEY = 'cheonharo.savedId.v1'
 const isPhoneLandscape = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.(PHONE_LANDSCAPE).matches)
 const HUB_TAB_NAMES: Partial<Record<Section, [string, string]>> = { roster: ['보유', 'Owned'], codex: ['도감', 'Codex'], formation: ['진형', 'Lineup'], equipment: ['장비', 'Gear'], research: ['연구', 'Research'], office: ['관직', 'Offices'], guild: ['연맹', 'Guild'], board: ['게시판', 'Board'], battle: ['시나리오', 'Scenario'], updates: ['업데이트', 'Updates'] }
 const hubOf = (section: Section): NavHub => NAV_HUBS.find(hub => hub.sections.includes(section)) ?? NAV_HUBS[0]
@@ -371,6 +374,10 @@ export interface StrategyUiCallbacks {
   /** 서버 없이 이 기기에만 저장하는 게스트(서버에 연결할 수 없을 때) */
   onLocalGuestLogin: () => void
   onLogin: () => void
+  /** 접속 화면에서 바로 회원 로그인(오류 문장을 돌려주면 화면에 보여 준다) */
+  onMemberLogin: (name: string, password: string) => Promise<string | null>
+  /** 회원가입 창 열기 */
+  onSignup: () => void
   onLogout: () => void
   onAccountRefresh: () => void
   onAccountSave: (name: string) => void
@@ -900,14 +907,88 @@ export class StrategyUI {
    * 큰 화면에서는 그 배치를 통째로 키워 보여 준다(휴대폰에서는 크기 그대로).
    */
   private fitAccessGate = (): void => {
-    const gate = this.root.querySelector<HTMLElement>('.access-gate')
+    const gate = this.root.querySelector<HTMLElement>('.login-gate')
     if (!gate) return
     const w = gate.clientWidth || window.innerWidth
     const h = gate.clientHeight || window.innerHeight
-    const scale = Math.max(1, Math.min(h / 390, w / 844))
-    gate.style.setProperty('--gate-scale', String(scale))
-    gate.style.setProperty('--gate-w', `${w / scale}px`)
-    gate.style.setProperty('--gate-h', `${h / scale}px`)
+    // 도안(1844 × 853)을 화면에 다 들어오게 줄이고 가운데 둔다(남는 곳은 배경으로 채움)
+    const s = Math.min(w / 1844, h / 853)
+    // 휴대폰처럼 많이 줄어들면 로그인 패널 · 아래 단추만 더 키워 글자를 읽을 수 있게 한다
+    const k = Math.min(1.34, Math.max(1, 0.6 / s))
+    gate.style.setProperty('--lg-s', String(s))
+    gate.style.setProperty('--lg-k', String(k))
+    gate.style.setProperty('--lg-x', `${(w - 1844 * s) / 2}px`)
+    gate.style.setProperty('--lg-y', `${(h - 853 * s) / 2}px`)
+    gate.classList.toggle('is-compact', k > 1.08)
+  }
+
+
+  /** 접속 화면 단추(비밀번호 보기 · 아이디 저장 · 회원가입 · 언어 · 환경 설정 · 준비 중인 로그인 · 약관) */
+  private handleLoginGateAction(action: string, button: HTMLElement): void {
+    const gate = this.root.querySelector<HTMLElement>('.login-gate')
+    if (!gate) return
+    const status = (text: string) => { const el = gate.querySelector<HTMLElement>('.lg-status'); if (el) el.textContent = text }
+    if (action === 'login-eye') {
+      const pw = gate.querySelector<HTMLInputElement>('#lg-pw')
+      if (!pw) return
+      pw.type = pw.type === 'password' ? 'text' : 'password'
+      button.setAttribute('aria-pressed', String(pw.type === 'text'))
+      button.classList.toggle('is-on', pw.type === 'text')
+    } else if (action === 'login-remember') {
+      const on = button.getAttribute('aria-checked') !== 'true'
+      button.setAttribute('aria-checked', String(on))
+      const box = button.querySelector<HTMLImageElement>('.lg-check__box')
+      if (box) box.src = assetUrl(`/assets/login/v3/checkbox_${on ? 'on' : 'off'}.webp`)
+      if (!on) { try { window.localStorage.removeItem(LOGIN_SAVED_ID_KEY) } catch { /* 무시 */ } }
+    } else if (action === 'login-signup') {
+      if (this.auth.status === 'offline') { status('서버에 연결할 수 없어 회원가입을 할 수 없습니다.'); return }
+      this.callbacks.onSignup()
+    } else if (action === 'login-find') {
+      status('비밀번호는 암호화해 저장해 운영자도 볼 수 없습니다. 잊었다면 새 아이디로 가입해 주십시오.')
+    } else if (action === 'login-soon') {
+      status(`${button.dataset.label ?? '이 로그인'}은 준비 중입니다. 회원 로그인이나 게스트로 시작해 주십시오.`)
+    } else if (action === 'login-info') {
+      const info = button.dataset.info
+      status(info === 'support' ? '고객센터: 게임에 들어간 뒤 진영 게시판에 남겨 주시면 운영자가 답합니다.' : `${info === 'privacy' ? '개인정보처리방침' : '이용약관'} 페이지는 준비 중입니다.`)
+    } else if (action === 'login-lang') {
+      this.openLoginPopup('lang')
+    } else if (action === 'login-settings') {
+      this.openLoginPopup('settings')
+    } else if (action === 'login-popup-close') {
+      gate.querySelector('.lg-popup')?.remove()
+    }
+  }
+
+  /** 접속 화면 위 작은 창: 언어 고르기 · 환경 설정(소리 · 그래픽) */
+  private openLoginPopup(kind: 'lang' | 'settings'): void {
+    const gate = this.root.querySelector<HTMLElement>('.login-gate')
+    if (!gate) return
+    gate.querySelector('.lg-popup')?.remove()
+    const seg = (action: string, current: string, items: Array<[string, string]>) => `<div class="setting-seg">${items.map(([value, label]) => `<button class="setting-seg__btn ${current === value ? 'is-active' : ''}" data-action="${action}" data-value="${value}">${label}</button>`).join('')}</div>`
+    const lang = `<div class="lg-popup__row"><strong>언어 / Language</strong>${seg('set-lang', isEnglish() ? 'en' : 'ko', [['ko', '한국어'], ['en', 'English']])}</div>`
+    const body = kind === 'lang' ? lang : `${lang}<div class="lg-popup__row"><strong>배경음악</strong>${seg('setting-music', muteSetting() ? 'off' : musicSetting(), [['off', '끔'], ['low', '작게'], ['mid', '보통'], ['high', '크게']])}</div><div class="lg-popup__row"><strong>효과음</strong>${seg('setting-sfx', muteSetting() ? 'off' : sfxSetting(), [['off', '끔'], ['low', '작게'], ['mid', '보통'], ['high', '크게']])}</div><div class="lg-popup__row"><strong>그래픽 품질</strong>${seg('setting-quality', qualitySetting(), [['auto', '자동'], ['high', '높음'], ['low', '낮음']])}</div>`
+    const popup = document.createElement('div')
+    popup.className = `lg-popup lg-popup--${kind}`
+    popup.innerHTML = `<div class="lg-popup__backdrop" data-action="login-popup-close"></div><div class="lg-popup__card" role="dialog" aria-label="${kind === 'lang' ? '언어' : '환경 설정'}"><div class="lg-popup__head"><b>${kind === 'lang' ? '언어' : '환경 설정'}</b><button type="button" class="lg-popup__x" data-action="login-popup-close" aria-label="닫기">✕</button></div>${body}</div>`
+    gate.appendChild(popup)
+  }
+
+  /** 접속 화면 회원 로그인 폼 */
+  private submitLoginGate(form: HTMLFormElement): void {
+    const name = (form.querySelector<HTMLInputElement>('#lg-id')?.value ?? '').trim()
+    const password = form.querySelector<HTMLInputElement>('#lg-pw')?.value ?? ''
+    const status = form.querySelector<HTMLElement>('.lg-status')
+    const submit = form.querySelector<HTMLButtonElement>('.lg-btn--login')
+    if (!name || !password) { if (status) status.textContent = '아이디와 비밀번호를 입력하세요.'; return }
+    const remember = form.querySelector('.lg-check')?.getAttribute('aria-checked') === 'true'
+    try { if (remember) window.localStorage.setItem(LOGIN_SAVED_ID_KEY, name); else window.localStorage.removeItem(LOGIN_SAVED_ID_KEY) } catch { /* 무시 */ }
+    if (submit) submit.disabled = true
+    if (status) status.textContent = '로그인하는 중입니다…'
+    void this.callbacks.onMemberLogin(name, password).then(message => {
+      if (!message) return
+      if (status) status.textContent = message
+      if (submit) submit.disabled = false
+    })
   }
 
   /** 게스트: 처음 들어올 때 아이디(표시 이름)를 정한다. onSubmit이 오류 문구를 돌려주면 그대로 보여 준다 */
@@ -962,7 +1043,7 @@ export class StrategyUI {
   }
 
   /** 아이디 · 비밀번호 로그인 / 회원가입 창(자체 서버). onSubmit이 오류 문장을 돌려주면 창에 보여 준다. */
-  showAccountLogin(onSubmit: (mode: 'login' | 'signup', name: string, password: string) => Promise<string | null>, onCancel?: () => void): void {
+  showAccountLogin(onSubmit: (mode: 'login' | 'signup', name: string, password: string) => Promise<string | null>, onCancel?: () => void, signupFirst = false): void {
     document.querySelector('.guest-signup')?.remove()
     let mode: 'login' | 'signup' = 'login'
     const layer = document.createElement('div')
@@ -987,6 +1068,7 @@ export class StrategyUI {
       password.autocomplete = signup ? 'new-password' : 'current-password'
       error.textContent = ''
     }
+    if (signupFirst) setMode('signup')
     window.setTimeout(() => name.focus(), 50)
     layer.querySelector('[data-guest-cancel]')?.addEventListener('click', () => { layer.remove(); onCancel?.() })
     layer.querySelector('[data-account-switch]')!.addEventListener('click', () => setMode(mode === 'login' ? 'signup' : 'login'))
@@ -1604,9 +1686,11 @@ export class StrategyUI {
   }
 
   private accessGate(): string {
-    const offline = this.auth.status === 'offline'
-    return `<section class="access-gate"><div class="access-gate__backdrop"></div><div class="access-gate__stage"><div class="access-gate__panel"><div class="access-gate__art" aria-hidden="true"></div><div class="access-gate__seal"><span>✦</span></div><span class="eyebrow">천하 · 패왕의 시대</span><h1>천하: 패왕의 시대</h1><p class="access-gate__lead">무장을 모으고, 진형을 지휘하고,<br>당신의 이름을 전장에 새기십시오.</p><div class="access-gate__divider"><i></i><span>접속 방식 선택</span><i></i></div><div class="access-gate__actions"><button class="access-choice access-choice--member" data-action="login"><strong>회원 로그인</strong><span>계정·전적·랭킹을 안전하게 저장합니다.</span><b>아이디 · 비밀번호로 계속 <em>→</em></b></button><button class="access-choice access-choice--guest" data-action="guest-login"><strong>게스트 로그인</strong><span>아이디만 정하고 바로 시작합니다.</span><b>${offline ? '이 기기에서만 로컬 저장' : '서버에 저장 · 모든 콘텐츠 이용'} <em>→</em></b></button></div><p class="access-gate__note">${offline ? '현재 회원 인증 서버에 연결할 수 없습니다. 게스트 모드로 플레이할 수 있습니다.' : '회원 로그인 후에도 기존 게스트 진행 데이터는 이 기기에 보존됩니다.'}</p><div class="setting-seg access-gate__lang" data-no-tr><button class="setting-seg__btn ${isEnglish() ? '' : 'is-active'}" data-action="set-lang" data-value="ko">한국어</button><button class="setting-seg__btn ${isEnglish() ? 'is-active' : ''}" data-action="set-lang" data-value="en">English</button></div></div></div></section>`
+    let savedId = ''
+    try { savedId = window.localStorage.getItem(LOGIN_SAVED_ID_KEY) ?? '' } catch { /* 저장소를 못 쓰면 비워 둔다 */ }
+    return loginGateHtml({ offline: this.auth.status === 'offline', savedId })
   }
+
 
   private factionSelection(): string {
     // 삼국(위 · 촉 · 오)은 고르지 않고 서버가 가장 약한 진영에 넣는다(2026.10.22). 재야만 직접 고른다
@@ -3765,6 +3849,7 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action?.startsWith('login-')) { this.handleLoginGateAction(action!, button); return }
     if (action === 'mythic-detail' || action === 'mythic-detail-close') { this.mythicDetailId = action === 'mythic-detail' ? button.dataset.equipmentId ?? null : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'shop-log') { this.shopLogOpen = !this.shopLogOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'equipment-detail') { this.equipmentDetailId = button.dataset.id ?? null; if (this.renderedState) this.render(this.renderedState); return }
@@ -3977,9 +4062,9 @@ export class StrategyUI {
     }
     else if (action === 'guest-reset') { if (window.confirm(tr(this.account ? '이 게스트 아이디와 진행 기록을 서버에서 모두 지웁니다. 다시 들어오면 새 아이디를 정합니다. 되돌릴 수 없습니다. 계속하시겠습니까?' : '이 기기의 게스트 진행 기록을 모두 지웁니다(이 기기의 게스트 아이디가 있으면 그 아이디와 서버 기록 포함). 되돌릴 수 없습니다. 계속하시겠습니까?'))) this.callbacks.onGuestReset() }
     else if (action === 'set-lang') setLang(button.dataset.value === 'en' ? 'en' : 'ko')
-    else if (action === 'setting-quality') { setQualitySetting((button.dataset.value ?? 'auto') as QualitySetting); this.notify('그래픽 품질을 바꿨습니다. 새로고침하면 적용됩니다.', 'jade'); if (this.renderedState) this.render(this.renderedState) }
-    else if (action === 'setting-music') { setMusicSetting((button.dataset.value ?? 'mid') as SoundLevel); if (muteSetting()) setMuteSetting(false); sound.unlock(); sound.applyVolumes(); if (this.renderedState) this.render(this.renderedState) }
-    else if (action === 'setting-sfx') { setSfxSetting((button.dataset.value ?? 'mid') as SoundLevel); if (muteSetting()) setMuteSetting(false); sound.unlock(); sound.applyVolumes(); sound.play('success'); if (this.renderedState) this.render(this.renderedState) }
+    else if (action === 'setting-quality') { if (this.root.querySelector('.lg-popup--settings')) window.setTimeout(() => this.openLoginPopup('settings'), 0); setQualitySetting((button.dataset.value ?? 'auto') as QualitySetting); this.notify('그래픽 품질을 바꿨습니다. 새로고침하면 적용됩니다.', 'jade'); if (this.renderedState) this.render(this.renderedState) }
+    else if (action === 'setting-music') { if (this.root.querySelector('.lg-popup--settings')) window.setTimeout(() => this.openLoginPopup('settings'), 0); setMusicSetting((button.dataset.value ?? 'mid') as SoundLevel); if (muteSetting()) setMuteSetting(false); sound.unlock(); sound.applyVolumes(); if (this.renderedState) this.render(this.renderedState) }
+    else if (action === 'setting-sfx') { if (this.root.querySelector('.lg-popup--settings')) window.setTimeout(() => this.openLoginPopup('settings'), 0); setSfxSetting((button.dataset.value ?? 'mid') as SoundLevel); if (muteSetting()) setMuteSetting(false); sound.unlock(); sound.applyVolumes(); sound.play('success'); if (this.renderedState) this.render(this.renderedState) }
     else if (action === 'sound-toggle') { setMuteSetting(!muteSetting()); sound.unlock(); sound.applyVolumes(); if (!muteSetting()) sound.play('tab'); if (this.renderedState) this.render(this.renderedState) }
     else if (action === 'setting-effects') { setEffectsSetting((button.dataset.value ?? 'auto') as EffectsSetting); this.callbacks.onEffectsSetting?.(); if (this.renderedState) this.render(this.renderedState) }
     else if (action === 'mission-claim') this.callbacks.onMissionClaim(button.dataset.mission ?? '')
@@ -4208,6 +4293,7 @@ export class StrategyUI {
   }
   private handleSubmit = (event: SubmitEvent): void => {
     const form = event.target as HTMLFormElement
+    if (form.matches('[data-login-form]')) { event.preventDefault(); this.submitLoginGate(form); return }
     if (form.matches('[data-guild-form]')) {
       event.preventDefault()
       const data = Object.fromEntries([...new FormData(form).entries()].map(([key, value]) => [key, String(value)]))
