@@ -1144,3 +1144,8 @@ html body .terr-search { display: none; }
   html body .page-section--mshop[data-shop-tab="mythic"] .mythic-tile img { width: 24px; height: 24px; }
   html body .page-section--mshop[data-shop-tab="mythic"] .mythic-tile em { -webkit-line-clamp: 1; }
 }
+/* 신화 장비 칸: 누를 수 있는 칸임을 알 수 있게 황금색 테(2026.10.24) */
+.mythic-tile, html body .page-section--mshop[data-shop-tab="mythic"] .mythic-tile { border: 2px solid transparent; border-radius: 4px; background: linear-gradient(180deg, rgba(40, 24, 14, .94), rgba(14, 9, 6, .97)) padding-box, linear-gradient(160deg, #fff1b8 0%, #e7b64a 22%, #9c6a1c 48%, #f6d77a 70%, #b8862e 100%) border-box; box-shadow: inset 0 0 0 1px rgba(255, 226, 150, .28), inset 0 0 10px rgba(0, 0, 0, .6), 0 0 4px rgba(212, 160, 55, .35); }
+.mythic-tile:hover, .mythic-tile:focus-visible { box-shadow: inset 0 0 0 1px rgba(255, 236, 170, .5), inset 0 0 10px rgba(0, 0, 0, .55), 0 0 10px rgba(246, 200, 90, .7); }
+.mythic-tile:active { box-shadow: inset 0 0 0 1px rgba(255, 244, 200, .7), inset 0 0 8px rgba(0, 0, 0, .5), 0 0 14px rgba(255, 210, 100, .9); }
+.mythic-tile::before { left: 2px; right: 2px; top: 2px; }
