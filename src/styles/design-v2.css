@@ -1488,3 +1488,11 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div i { display: none; }
   html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* 운영자 계정 안내: 작은 단추만 두고 누르면 설명이 펼쳐진다(화면을 가리지 않게) */
+html body .operator-chip { position: relative; display: inline-flex; vertical-align: middle; margin: 0 0 0 6px; z-index: 30; }
+html body .operator-chip__btn { display: inline-flex; align-items: center; gap: 3px; height: 20px; padding: 0 7px; font-size: 11px; font-weight: 800; line-height: 1; color: #ffb39e; background: rgba(120, 30, 20, .55); border: 1px solid rgba(255, 128, 102, .55); border-radius: 10px; cursor: pointer; }
+html body .operator-chip__btn b { font-weight: 900; color: #ffd2c4; }
+html body .operator-chip__btn[aria-expanded="true"] { background: rgba(160, 40, 25, .85); color: #fff; }
+html body .operator-chip__pop { position: absolute; left: 0; top: calc(100% + 5px); width: max-content; max-width: min(300px, 70vw); padding: 7px 10px; font-size: 11.5px; font-weight: 600; line-height: 1.45; color: #ffe3d8; white-space: normal; background: rgba(40, 14, 10, .97); border: 1px solid rgba(255, 128, 102, .6); border-radius: 4px; box-shadow: 0 6px 18px rgba(0, 0, 0, .7); }
+html body .operator-chip__pop[hidden] { display: none; }

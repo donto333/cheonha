@@ -633,6 +633,11 @@ export class StrategyUI {
     probeArt('/assets/ui/v2/screen-bg.webp', 'has-screen-bg')
     for (const type of ['pointerup', 'pointercancel', 'pointerleave']) root.addEventListener(type, this.cancelUnitPress)
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
+    // 운영자 안내 펼침: 다른 곳을 누르면 닫는다
+    document.addEventListener('click', event => {
+      if ((event.target as HTMLElement | null)?.closest?.('.operator-chip')) return
+      this.root.querySelectorAll<HTMLElement>('.operator-chip__pop:not([hidden])').forEach(el => { el.hidden = true; el.parentElement?.querySelector('.operator-chip__btn')?.setAttribute('aria-expanded', 'false') })
+    }, true)
     // 지도 전체 화면을 열 때는 도시 정보 창을 닫아 지도를 다 보여 준다(도시를 누르면 지도 위 오른쪽에 뜬다)
     document.addEventListener('territory-fullscreen', event => {
       if (!(event as CustomEvent<boolean>).detail) return
@@ -1112,9 +1117,11 @@ export class StrategyUI {
   }
 
   /** 운영자 계정이면 랭킹 · 영토전에 반영되지 않는다는 안내 */
-  private operatorNote(_where: string): string {
-    // 화면마다 붙던 운영자 안내는 게임을 가려서 뺐다. 접속할 때 아래쪽 알림으로 한 번만 알린다(main.ts).
-    return ''
+  private operatorNote(where: string): string {
+    // 화면을 가리지 않게 작은 '운영자 ⓘ' 단추만 두고, 누르면 설명이 펼쳐진다(다시 누르거나 다른 곳을 누르면 닫힘)
+    const account = this.account
+    if (!account || !(account.operator || account.role === 'admin')) return ''
+    return `<span class="operator-chip"><button type="button" class="operator-chip__btn" data-action="operator-note" aria-expanded="false" title="운영자 계정 안내">운영자 <b>ⓘ</b></button><span class="operator-chip__pop" role="note" hidden>운영자 계정 · ${escapeHtml(where)}</span></span>`
   }
 
   setAccount(account: AccountView | null): void {
@@ -3969,6 +3976,11 @@ export class StrategyUI {
       return
     }
     if (action?.startsWith('login-')) { this.handleLoginGateAction(action!, button); return }
+    if (action === 'operator-note') {
+      const pop = button.parentElement?.querySelector<HTMLElement>('.operator-chip__pop')
+      if (pop) { const open = pop.hidden; this.root.querySelectorAll<HTMLElement>('.operator-chip__pop').forEach(el => { el.hidden = true }); this.root.querySelectorAll('.operator-chip__btn').forEach(el => el.setAttribute('aria-expanded', 'false')); pop.hidden = !open; button.setAttribute('aria-expanded', String(open)) }
+      return
+    }
     if (action === 'mythic-detail' || action === 'mythic-detail-close') { this.mythicDetailId = action === 'mythic-detail' ? button.dataset.equipmentId ?? null : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'shop-log') { this.shopLogOpen = !this.shopLogOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'equipment-detail') { this.equipmentDetailId = button.dataset.id ?? null; if (this.renderedState) this.render(this.renderedState); return }
