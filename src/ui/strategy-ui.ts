@@ -26,6 +26,7 @@ import { matchup, type BattleResult } from '../game/battle-core'
 import { BATTLE_EFFECTS, type BattleEffectId } from '../game/battle-effects'
 import { fxGlyph, fxSeal } from './fx-icons'
 import { gearResultsMarkup, playResultReveal, recruitResultsMarkup } from './gear-results'
+import { portraitVideo, watchPortraitVideos } from './portrait-video'
 import { BONDS, GENERAL_SKILLS, bondActive, skillDefFor, type SkillFx } from '../game/skills'
 import { SEASON_COPIES, SEASON_WANDERER, SEASON_WANDERER_PLUNDER, seasonEndsAt, seasonGeneral, seasonKey, nextSeasonKey, seasonNumber, seasonStandings, type SeasonStanding } from '../../server/season.mjs'
 import { emptyGuildUi, guildEmblem, royalBadge, guildRankingCard, guildSection, type GuildTab, type GuildUiState } from './guild-ui'
@@ -609,6 +610,7 @@ export class StrategyUI {
 
   constructor(root: HTMLElement, callbacks: StrategyUiCallbacks) {
     this.root = root
+    watchPortraitVideos(root)
     this.callbacks = callbacks
     root.addEventListener('click', this.handleClick)
     root.addEventListener('change', this.handleChange)
@@ -1470,7 +1472,7 @@ export class StrategyUI {
     const state = this.renderedState
     const freeRecruits = state?.missions?.freeRecruits ?? 0
     const cost = (count: number) => freeRecruits >= count ? '무료권' : this.honorCost(state ? recruitCost(state, count) : count === 10 ? 900 : 100)
-    overlay.innerHTML = recruitResultsMarkup(rewards, { honor: state?.honor ?? 0, freeRecruits, cost: { one: cost(1), ten: cost(10) }, portrait: general => this.portraitAsset(general), honorIcon: icon('honor') })
+    overlay.innerHTML = recruitResultsMarkup(rewards, { honor: state?.honor ?? 0, freeRecruits, cost: { one: cost(1), ten: cost(10) }, portrait: general => this.portraitAsset(general), video: general => portraitVideo(general.id, this.portraitAsset(general), 'gr-card__video'), honorIcon: icon('honor') })
     this.root.appendChild(overlay)
     playResultReveal(overlay, { reduced: effectsSetting() === 'reduced' || window.matchMedia('(prefers-reduced-motion: reduce)').matches })
     requestAnimationFrame(() => overlay.classList.add('is-visible'))
@@ -1958,7 +1960,7 @@ export class StrategyUI {
     }
     // 본영 배경 · 대표 무장 그림은 대표 무장의 진영을 따른다(무장이 없으면 내 진영)
     const realm = leaderRealm ?? ({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' } as Record<string, string>)[state.faction] ?? 'none'
-    return `<section class="page-section page-section--mlobby page-section--v2" data-realm="${realm}"><div class="ml-bg" aria-hidden="true"></div>${leader && !state.profileHeroHidden ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
+    return `<section class="page-section page-section--mlobby page-section--v2" data-realm="${realm}"><div class="ml-bg" aria-hidden="true"></div>${leader && !state.profileHeroHidden ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true">${portraitVideo(leader.id, this.portraitAsset(leader), 'ml-hero__video')}</div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
   }
 
   private overviewSection(state: StrategyState): string {
@@ -2126,7 +2128,8 @@ export class StrategyUI {
     const shown = state.generals.find(item => item.id === detail.id) ?? allGenerals().find(item => item.id === detail.id)
     const grade = shown?.grade ?? 1
     const embers = grade >= 4 ? `<span class="gfx-embers">${Array.from({ length: grade >= 5 ? 12 : 7 }, (_, i) => `<i style="--i:${i};--x:${(i * 37) % 100}%;--d:${(3.2 + ((i * 7) % 5) * 0.45).toFixed(2)}s"></i>`).join('')}</span>` : ''
-    const fx = `<span class="gfx-art" aria-hidden="true"></span><span class="gfx-shine" aria-hidden="true"></span>${embers}`
+    const video = shown ? portraitVideo(shown.id, this.portraitAsset(shown), 'gfx-video') : ''
+    const fx = `<span class="gfx-art" aria-hidden="true"></span>${video}<span class="gfx-shine" aria-hidden="true"></span>${embers}`
     body = body.replace(/(<div class="(?:gcard-portrait|codex-card-art)"[^>]*>)/, `$1${fx}`)
     return `<div class="gdetail gdetail--profile${enter ? ' gdetail--enter' : ''}" data-grade="${grade}" role="dialog"><div class="gdetail__backdrop" data-action="general-detail-close"></div><div class="gdetail__body"><button class="gdetail__close" data-action="general-detail-close" aria-label="닫기">✕</button>${body}</div></div>`
   }

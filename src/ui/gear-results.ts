@@ -91,15 +91,17 @@ export interface RecruitResultsOptions {
   /** 1회 · 10회 추가 모집 버튼 오른쪽 값(옥패 비용 또는 무료권) */
   cost: { one: string; ten: string }
   portrait: (general: General) => string
+  /** 영상 초상(있는 무장만, 사진 위에 겹침) */
+  video?: (general: General) => string
   honorIcon: string
 }
 
-function generalCard(general: General, index: number, portrait: (general: General) => string): string {
+function generalCard(general: General, index: number, portrait: (general: General) => string, video?: (general: General) => string): string {
   const meta = GRADE_META[general.grade]
   const realm = generalRealm(general.id)
   const stars = Math.max(0, Math.min(5, general.stars ?? 1))
   const role = ROLE_KEY[general.role] ?? 'infantry'
-  return `<article class="gr-card gr-card--general gr-card--g${general.grade}" data-tier="${GENERAL_TIER[general.grade] ?? 0}" style="--grade:${meta.color};${delay(index)}">${cardBack}<span class="gr-card__art gr-card__art--portrait" style="background-image:url('${portrait(general)}')"></span><span class="gr-card__role" style="background-image:url('${assetUrl(`/assets/ui/v2/kit/role-${role}.webp`)}')" title="${escapeHtml(general.role)}"></span><span class="gr-card__realm" style="background-image:url('${assetUrl(`/assets/ui/v2/kit/logo-${realm}.webp`)}')"></span><span class="gr-card__foot"><span class="gr-card__line"><b>Lv.${general.level}</b><span class="gr-card__stars" aria-label="${stars}성">${'★'.repeat(stars)}<s>${'★'.repeat(5 - stars)}</s></span></span><strong>${escapeHtml(general.name)}</strong></span></article>`
+  return `<article class="gr-card gr-card--general gr-card--g${general.grade}" data-tier="${GENERAL_TIER[general.grade] ?? 0}" style="--grade:${meta.color};${delay(index)}">${cardBack}<span class="gr-card__art gr-card__art--portrait" style="background-image:url('${portrait(general)}')">${video?.(general) ?? ''}</span><span class="gr-card__role" style="background-image:url('${assetUrl(`/assets/ui/v2/kit/role-${role}.webp`)}')" title="${escapeHtml(general.role)}"></span><span class="gr-card__realm" style="background-image:url('${assetUrl(`/assets/ui/v2/kit/logo-${realm}.webp`)}')"></span><span class="gr-card__foot"><span class="gr-card__line"><b>Lv.${general.level}</b><span class="gr-card__stars" aria-label="${stars}성">${'★'.repeat(stars)}<s>${'★'.repeat(5 - stars)}</s></span></span><strong>${escapeHtml(general.name)}</strong></span></article>`
 }
 
 /** 무장 모집 결과창 속 내용 */
@@ -107,7 +109,7 @@ export function recruitResultsMarkup(rewards: General[], options: RecruitResults
   return shell({
     label: '무장 모집 결과',
     title: rewards.length === 10 ? '열 명의 무장이 응답했습니다' : `${rewards.length}명의 무장이 응답했습니다`,
-    cards: rewards.map((general, index) => generalCard(general, index, options.portrait)).join(''),
+    cards: rewards.map((general, index) => generalCard(general, index, options.portrait, options.video)).join(''),
     count: rewards.length,
     honor: options.honor,
     honorIcon: options.honorIcon,
