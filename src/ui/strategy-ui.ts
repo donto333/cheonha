@@ -592,6 +592,8 @@ export class StrategyUI {
   private readonly territoryMap = new TerritoryMapController(id => {
     this.citySheetOpen = true
     this.callbacks.onCitySelect(id)
+    // 전체 화면: 누른 도시로 다가간다(오른쪽 정보 창 너비만큼 비켜서). 창을 닫으면 전체 지도로 돌아간다
+    if (this.territoryMap.fullscreen) this.territoryMap.closeUp(id, (Math.min(330, window.innerWidth * 0.4) + 16) / Math.max(1, window.innerWidth))
   })
   private citySheetOpen = false
   private battleAutoAvailable = false
@@ -4120,6 +4122,7 @@ export class StrategyUI {
     else if (action === 'city-sheet-close') {
       this.citySheetOpen = false
       this.root.querySelector('.page-section--territory')?.classList.remove('is-sheet-open')
+      if (this.territoryMap.fullscreen) this.territoryMap.restoreView()
     }
     else if (action === 'territory-refresh') this.callbacks.onTerritoryRefresh()
     else if (action === 'conquer') this.callbacks.onConquest(button.dataset.city ?? '')
