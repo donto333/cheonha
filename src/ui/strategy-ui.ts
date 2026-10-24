@@ -3991,7 +3991,9 @@ export class StrategyUI {
       const r = button.getBoundingClientRect()
       const w = pop.offsetWidth
       pop.style.left = `${Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`
-      pop.style.top = `${r.bottom + 6}px`
+      // 화면 아래쪽 단추면 위로 띄운다
+      if (r.top > window.innerHeight / 2) pop.style.top = `${Math.max(8, r.top - pop.offsetHeight - 6)}px`
+      else pop.style.top = `${r.bottom + 6}px`
       button.setAttribute('aria-expanded', 'true')
       return
     }
