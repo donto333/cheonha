@@ -322,6 +322,8 @@ export interface StrategyUiCallbacks {
   onEquipmentSelectGeneral: (id: string) => void
   /** 본영 프로필 사진(대표 무장) 고르기 */
   onProfileGeneral: (id: string) => void
+  /** 본영 대표 무장 그림 켜기 · 끄기 */
+  onProfileHeroToggle: () => void
   onCitySelect: (id: string) => void
   onCityDamageRankingRefresh: (cityId: string) => void
   onTerritoryRefresh: () => void
@@ -1951,11 +1953,11 @@ export class StrategyUI {
       const order: Record<string, number> = { shu: 0, wei: 1, wu: 2, qun: 3 }
       const list = [...state.generals].sort((a, b) => (order[generalRealm(a.id)] - order[generalRealm(b.id)]) || (b.grade - a.grade) || a.name.localeCompare(b.name, 'ko'))
       const picks = list.map(general => { const realmKey = generalRealm(general.id); return `<button class="v2-pick${general.id === leader?.id ? ' is-current' : ''}" data-action="profile-general" data-id="${general.id}" data-realm="${realmKey}" style="--grade:${GRADE_META[general.grade]?.color ?? '#a9b1b8'}"><span class="v2-pick__art" style="background-image:url('${this.portraitAsset(general)}')"></span><span class="v2-pick__realm" title="${REALM_LABEL[realmKey]}"></span><strong>${escapeHtml(general.name)}</strong></button>` }).join('')
-      panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="프로필 무장"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-menu__body--wide v2-frame"><div class="v2-menu__head"><strong>${en ? 'Profile' : '대표 무장'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><p class="v2-pick__hint">${en ? 'The general shown on your profile and home screen. The background follows their realm.' : '프로필과 본영에 나오는 무장입니다. 본영 배경은 그 무장의 진영으로 바뀝니다.'}</p><div class="v2-picks">${picks}</div></div></div>`
+      panel = `<div class="ml-panel v2-menu" role="dialog" aria-label="프로필 무장"><div class="ml-panel__backdrop" data-action="lobby-panel-close"></div><div class="v2-menu__body v2-menu__body--wide v2-frame"><div class="v2-menu__head"><strong>${en ? 'Profile' : '대표 무장'}</strong><button class="v2-close" data-action="lobby-panel-close" aria-label="닫기">✕</button></div><div class="v2-pick__bar"><p class="v2-pick__hint">${en ? 'The general shown on your profile and home screen. The background follows their realm.' : '프로필과 본영에 나오는 무장입니다. 본영 배경은 그 무장의 진영으로 바뀝니다.'}</p><button class="v2-switch${state.profileHeroHidden ? '' : ' is-on'}" data-action="profile-hero-toggle" role="switch" aria-checked="${state.profileHeroHidden ? 'false' : 'true'}"><span>${en ? 'Show on home' : '본영에 무장 그림'}</span><i aria-hidden="true"></i><b>${state.profileHeroHidden ? (en ? 'Off' : '끔') : (en ? 'On' : '켬')}</b></button></div><div class="v2-picks">${picks}</div></div></div>`
     }
     // 본영 배경 · 대표 무장 그림은 대표 무장의 진영을 따른다(무장이 없으면 내 진영)
     const realm = leaderRealm ?? ({ '위나라': 'wei', '촉한': 'shu', '오나라': 'wu' } as Record<string, string>)[state.faction] ?? 'none'
-    return `<section class="page-section page-section--mlobby page-section--v2" data-realm="${realm}"><div class="ml-bg" aria-hidden="true"></div>${leader ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
+    return `<section class="page-section page-section--mlobby page-section--v2" data-realm="${realm}"><div class="ml-bg" aria-hidden="true"></div>${leader && !state.profileHeroHidden ? `<div class="ml-hero" style="--portrait:url('${this.portraitAsset(leader)}')" aria-hidden="true"></div>` : ''}<div class="v2-topbar">${profile}${resources}${topIcons}</div>${sideIcons}<div class="v2-right">${deckInfo}${missionInfo}${scenarioInfo}</div>${dock}${panel}</section>`
   }
 
   private overviewSection(state: StrategyState): string {
@@ -3950,6 +3952,7 @@ export class StrategyUI {
     if (action === 'general-detail-close') { this.generalDetail = null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-squad') { this.formationSquad = Math.max(0, Math.min(2, Number(button.dataset.squad ?? 0))); this.lobbyPanel = null; this.callbacks.onSection('formation'); return }
     if (action === 'open-chat') { (document.querySelector('[data-social="toggle"]') as HTMLElement | null)?.click(); return }
+    if (action === 'profile-hero-toggle') { this.callbacks.onProfileHeroToggle(); return }
     if (action === 'profile-general') { const id = button.dataset.id; this.lobbyPanel = null; if (id) this.callbacks.onProfileGeneral(id); return }
     if (action === 'lobby-panel') { this.lobbyPanel = button.dataset.panel === 'missions' ? 'missions' : button.dataset.panel === 'events' ? 'events' : button.dataset.panel === 'profile' ? 'profile' : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'lobby-panel-close') { this.lobbyPanel = null; if (this.renderedState) this.render(this.renderedState); return }

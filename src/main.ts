@@ -223,6 +223,7 @@ function persistLocalGame(): void {
       equipmentPresets: state.equipmentPresets,
       reserveSquads: state.reserveSquads,
       profileGeneralId: state.profileGeneralId,
+      profileHeroHidden: state.profileHeroHidden,
       raidLocal: state.raidLocal,
       selectedEquipmentGeneralId: state.selectedEquipmentGeneralId,
       mythicFragments: state.mythicFragments,
@@ -270,6 +271,7 @@ function restoreLocalGame(saveKey = LOCAL_GAME_SAVE_KEY): void {
       equipmentPresets: saved.equipmentPresets,
       reserveSquads: saved.reserveSquads,
       profileGeneralId: typeof saved.profileGeneralId === 'string' ? saved.profileGeneralId : undefined,
+      profileHeroHidden: saved.profileHeroHidden === true,
       raidLocal: saved.raidLocal,
       selectedEquipmentGeneralId: saved.selectedEquipmentGeneralId,
       mythicFragments: saved.mythicFragments,
@@ -1768,6 +1770,11 @@ const ui = new StrategyUI(root, {
     ui.notify(result.message, result.ok ? 'jade' : 'ember')
     if (result.ok) playSfx('unequip')
   },
+  onProfileHeroToggle: () => {
+    state.profileHeroHidden = !state.profileHeroHidden
+    queueAccountSave()
+    ui.render(state)
+  },
   onProfileGeneral: id => {
     if (!state.generals.some(general => general.id === id)) return
     state.profileGeneralId = id
@@ -2770,6 +2777,7 @@ async function refreshAccount(): Promise<void> {
         // 2·3군: 서버 squadData 칸이 없으면(옛 서버) 장착 정보 JSON에 함께 저장된 것을 쓴다
         if (!Array.isArray(game.reserveSquads) && unpacked.squads) state.reserveSquads = unpacked.squads
         if (unpacked.profile) state.profileGeneralId = unpacked.profile
+        state.profileHeroHidden = unpacked.profileHide
       }
       if (typeof game.selectedEquipmentGeneralId === 'string') state.selectedEquipmentGeneralId = game.selectedEquipmentGeneralId
       state.mythicFragments = Math.max(0, Math.trunc(game.mythicFragments ?? 0))

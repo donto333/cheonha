@@ -104,7 +104,15 @@ html.has-title-video .access-gate__panel { background-color: rgba(28, 16, 9, .72
   html body .page-section--v2 .ml-hero { z-index: 1; top: auto; bottom: 0; left: 46%; height: 92%; transform: translateX(-50%); pointer-events: none; -webkit-mask-image: radial-gradient(ellipse 50% 62% at 50% 42%, #000 58%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 26%); -webkit-mask-composite: source-in; mask-image: radial-gradient(ellipse 50% 62% at 50% 42%, #000 58%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 26%); mask-composite: intersect; }
   /* 프로필 무장 고르기 창 */
   html body .v2-menu .v2-menu__body.v2-menu__body--wide { width: min(820px, 94vw); }
-  html body .v2-pick__hint { margin: 0 0 8px; font-size: 12px; text-align: center; color: #d9c49a; }
+  html body .v2-pick__bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; }
+  html body .v2-pick__hint { margin: 0; font-size: 12px; text-align: left; color: #d9c49a; }
+  html body .v2-switch { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px; font-size: 12.5px; font-weight: 800; color: #eee2c6; background: rgba(10, 7, 5, .85); border: 1px solid rgba(212, 175, 55, .55); border-radius: 15px; }
+  html body .v2-switch i { position: relative; width: 34px; height: 18px; border-radius: 9px; background: #3a302a; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7); transition: background .15s; }
+  html body .v2-switch i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #b9ab92; transition: transform .15s, background .15s; }
+  html body .v2-switch.is-on i { background: #8a6a1f; }
+  html body .v2-switch.is-on i::after { transform: translateX(16px); background: #ffd36b; }
+  html body .v2-switch b { min-width: 16px; font-weight: 900; color: #b9ab92; }
+  html body .v2-switch.is-on b { color: #ffd36b; }
   html body .v2-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px 5px; }
   html body .v2-pick { position: relative; display: grid; gap: 2px; padding: 0; background: none; border: 0; text-align: center; }
   html body .v2-pick__art { display: block; aspect-ratio: 3 / 4; background: #120c0a center 14% / cover no-repeat; border: 2px solid color-mix(in srgb, var(--grade), #c9a24a 55%); border-radius: 3px; box-shadow: 0 2px 4px rgba(0, 0, 0, .6); }

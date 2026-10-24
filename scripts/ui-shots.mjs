@@ -135,6 +135,10 @@ try {
       const btn = page.locator(`[data-action="lobby-panel"][data-panel="${panel}"]`)
       if (await btn.count()) { await btn.first().evaluate(b => b.click()); await shot(label); await page.locator('[data-action="lobby-panel-close"]').first().evaluate(b => b.click()) }
     }
+    // 대표 무장 그림을 끈 본영
+    await page.evaluate(() => { const g = window.__strategy; g.state.profileHeroHidden = true; g.state.section = 'overview'; g.ui.render(g.state) })
+    await clearOverlays(); await shot('10-overview-nohero')
+    await page.evaluate(() => { const g = window.__strategy; g.state.profileHeroHidden = false; g.ui.render(g.state) })
     // 모집 결과 · 장비 결과 창
     await page.evaluate(() => { const g = window.__strategy; g.ui.showRecruitResults(g.catalog.generals().slice(10, 20)) })
     await shot('95-recruit-results'); await page.evaluate(() => document.querySelectorAll('.recruit-results').forEach(el => el.remove()))
