@@ -344,6 +344,12 @@ async function createPasswordUser(openId, name, passwordHash) {
   await db.execute(sql`UPDATE users SET passwordHash = ${passwordHash} WHERE openId = ${openId}`);
   return getUserByOpenId(openId);
 }
+/** 비밀번호 재설정(server/password-reset.mjs): 회원 계정의 비밀번호 해시만 바꾼다 */
+async function setPasswordHash(openId, passwordHash) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.execute(sql`UPDATE users SET passwordHash = ${passwordHash} WHERE openId = ${openId} AND passwordHash IS NOT NULL`);
+}
 /** 로그인용: 아이디(대소문자 무시)로 비밀번호 해시를 찾는다 */
 async function findPasswordLogin(name) {
   const db = await getDb();
@@ -2396,6 +2402,7 @@ export {
   createGuestUser,
   createPasswordUser,
   findPasswordLogin,
+  setPasswordHash,
   grantAdminByName,
   getUserByOpenId,
   setSessionCookie,

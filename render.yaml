@@ -16,3 +16,6 @@ services:
         generateValue: true
       - key: ADMIN_NAMES
         sync: false
+      # 비밀번호를 잊었을 때만: "아이디:새비밀번호" 를 넣고 저장(서버가 다시 켜지며 바뀜) → 로그인 확인 뒤 지우기
+      - key: PASSWORD_RESET
+        sync: false
