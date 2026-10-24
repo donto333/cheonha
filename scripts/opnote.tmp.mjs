@@ -36,7 +36,7 @@ try {
       const vis = n ? await frame.locator('.operator-chip__btn').first().isVisible() : false
       log.push(`[${v.name}] ${sec} chip=${n} visible=${vis}`)
       await tab.screenshot({ path: `${out}/${v.name}-${sec}-1.png` })
-      if (vis) { const b = await frame.locator('.operator-chip__btn').first().boundingBox(); await tab.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); await sleep(400); log.push(`[${v.name}] ${sec} open=${await frame.locator('.operator-chip__pop:not([hidden])').count()}`); await tab.screenshot({ path: `${out}/${v.name}-${sec}-2.png` }); await tab.touchscreen.tap(400, 300); await sleep(300); log.push(`[${v.name}] ${sec} closed=${await frame.locator('.operator-chip__pop:not([hidden])').count() === 0}`) }
+      if (vis) { const b = await frame.locator('.operator-chip__btn').first().boundingBox(); await tab.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); await sleep(400); log.push(`[${v.name}] ${sec} open=${await frame.locator('.operator-pop').count()}`); await tab.screenshot({ path: `${out}/${v.name}-${sec}-2.png` }); await tab.touchscreen.tap(400, 300); await sleep(300); log.push(`[${v.name}] ${sec} closed=${await frame.locator('.operator-pop').count() === 0}`) }
     }
     await ctx.close()
   }
