@@ -1488,3 +1488,17 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div i { display: none; }
   html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* 내정 건물(2026.10.24): 이름 · 레벨이 한 줄로 가로로 보이게 — 강화 단추는 아래 줄 전체로(좁은 칸에서 이름이 세로로 쪼개지던 문제) */
+html body .building-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); grid-template-areas: "glyph copy" "act act"; align-items: center; column-gap: 10px; row-gap: 6px; padding: 10px 0; }
+html body .building-row > .building-glyph { grid-area: glyph; width: 34px; height: 34px; }
+html body .building-row > .building-copy { grid-area: copy; min-width: 0; }
+html body .building-row > .mini-action, html body .building-row > .building-actions { grid-area: act; width: 100%; min-width: 0; }
+html body .building-row > .building-actions { flex-direction: row; flex-wrap: wrap; }
+html body .building-row > .building-actions > * { flex: 1 1 auto; }
+html body .building-copy > strong { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; writing-mode: horizontal-tb; white-space: normal; word-break: keep-all; font-size: 14px; line-height: 1.3; }
+html body .building-copy > small { display: block; margin-top: 2px; font-size: 11.5px; line-height: 1.35; color: #cdbf9f; word-break: keep-all; }
+html body .building-lv { display: inline-flex; align-items: baseline; padding: 1px 7px; border: 1px solid rgba(224, 177, 82, .55); border-radius: 3px; background: rgba(224, 177, 82, .12); color: #f3cf72; font-size: 12px; font-weight: 800; letter-spacing: 0; white-space: nowrap; }
+html body .building-lv small { margin-left: 2px; color: #b9a582; font-size: 10.5px; font-weight: 600; }
+html body .building-lv.is-max { border-color: rgba(120, 220, 170, .6); background: rgba(80, 200, 150, .12); color: #8fe0b4; }
+html body .building-row .building-next { margin-left: 0; }
