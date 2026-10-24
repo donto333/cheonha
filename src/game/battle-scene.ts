@@ -627,7 +627,7 @@ export interface Environment {
   setTime: (time: BattleTime) => void
 }
 
-export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality, initialTime: BattleTime = 'dusk'): Environment {
+export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality, initialTime: BattleTime = 'morning'): Environment {
   const updaters: Array<(t: number, delta: number) => void> = []
   // 배경: 사용자 제공 전장 그림 한 장(화면에 꽉 차게). 하늘 · 산 · 성채 · 풀 · 나무 · 깃발 모델은 쓰지 않고, 전장(섬) 모델만 얹는다.
   scene.fog = null
