@@ -40,3 +40,17 @@ export function nextBattleView(view: BattleView): BattleView {
 export const DIAGONAL_VIEWS: Partial<Record<BattleView, { x: number; z: number }>> = {
   rearLeft: { x: -1, z: 1 }, rearRight: { x: 1, z: 1 }, frontLeft: { x: -1, z: -1 }, frontRight: { x: 1, z: -1 },
 }
+
+// ── 카메라 거리(시점 판 아래 ‘거리’): 가깝게 · 보통 · 멀게 · 아주 멀게. 고른 값은 이 기기에 기억한다 ──
+export type BattleDistance = 'near' | 'mid' | 'far' | 'farthest'
+export const BATTLE_DISTANCES: BattleDistance[] = ['near', 'mid', 'far', 'farthest']
+export const BATTLE_DISTANCE_LABEL: Record<BattleDistance, string> = { near: '가깝게', mid: '보통', far: '멀게', farthest: '아주 멀게' }
+/** 카메라를 보는 곳에서 얼마나 물릴지(배율) */
+export const BATTLE_DISTANCE_SCALE: Record<BattleDistance, number> = { near: 1, mid: 1.25, far: 1.5, farthest: 1.85 }
+const DIST_KEY = 'cheonharo.battleDistance.v1'
+export function loadBattleDistance(): BattleDistance {
+  try { const v = window.localStorage.getItem(DIST_KEY) as BattleDistance | null; return v && BATTLE_DISTANCES.includes(v) ? v : 'far' } catch { return 'far' }
+}
+export function saveBattleDistance(value: BattleDistance): void {
+  try { window.localStorage.setItem(DIST_KEY, value) } catch { /* 저장 불가: 이번 접속에만 */ }
+}

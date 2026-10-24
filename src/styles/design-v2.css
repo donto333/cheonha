@@ -1041,3 +1041,17 @@ html body .terr-search { display: none; }
 @media (orientation: landscape) and (max-height: 500px) {
   html body .app-shell .main-content .page-section--mshop .mshop-body > .shop-grid { flex: 0 0 auto; min-height: auto; height: auto; overflow: visible; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: max-content; align-content: start; }
 }
+
+/* ════════ 전투 시점: 거리 고르기 · 휴대폰 가로에서 적 전술 예고를 작게(전장을 덜 가리게) ════════ */
+.bt-view-dist { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); align-items: center; gap: 4px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(240, 194, 106, .3); }
+.bt-view-dist > span { font-size: 11px; color: #e8d6ae; padding-right: 2px; }
+.bt-view-dist__btn { min-height: 30px; padding: 0 2px; font-size: 11px; font-weight: 800; color: #f3e3bd; background: rgba(60, 28, 10, .7); border: 1px solid rgba(240, 194, 106, .45); border-radius: 8px; }
+.bt-view-dist__btn.is-on { color: #3a1d08; background: #f0c26a; border-color: #f0c26a; }
+@media (orientation: landscape) and (max-height: 500px) {
+  html body .app-shell--battle .bt-callout { width: min(300px, 42vw); padding: 3px 10px 4px; background: rgba(14, 8, 4, .62); }
+  html body .app-shell--battle .bt-callout .eyebrow { font-size: 10px; }
+  html body .app-shell--battle .bt-callout strong { font-size: 14px; margin: 0 0 2px; }
+  html body .app-shell--battle .bt-callout .bt-lanes span { padding: 1px 6px; font-size: 11px; }
+  html body .app-shell--battle .bt-callout .bt-bar { height: 3px; }
+  html body .bt-view-picker { width: 260px; }
+}

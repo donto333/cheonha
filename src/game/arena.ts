@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { BATTLE_VIEWS, DIAGONAL_VIEWS, type BattleView } from './battle-view'
+import { BATTLE_DISTANCE_SCALE, BATTLE_VIEWS, DIAGONAL_VIEWS, loadBattleDistance, type BattleDistance, type BattleView } from './battle-view'
 import { disposeOwned, markShared } from './gpu-shared'
 import { recruitableGenerals, frontLineOrder, scaleGeneral, type General } from './strategy'
 import { sound, type WeaponSound } from '../engine/sound'
@@ -556,6 +556,40 @@ export class Arena {
     this.view = view
   }
   getView(): BattleView { return this.view }
+
+  /** 카메라 거리(가깝게 ~ 아주 멀게): 바꾸면 0.7초 동안 부드럽게 옮긴다 */
+  private distance: BattleDistance = loadBattleDistance()
+  setDistance(value: BattleDistance): void {
+    if (value === this.distance) return
+    this.viewFromPos.copy(this.camera.position)
+    this.viewFromLook.copy(this.lastLook)
+    this.viewBlend = 0
+    this.viewStartedAt = performance.now()
+    this.distance = value
+  }
+
+  /**
+   * 휴대폰 가로: 왼쪽 조작판 · 위쪽 상황판이 화면을 가리므로, 전장의 가운데를 ‘가려지지 않은 곳’의 가운데로 옮긴다.
+   * (카메라 투영 중심을 옮기는 것이라 시점 · 거리와 상관없이 늘 맞는다)
+   */
+  private viewOffsetCheckedAt = 0
+  private updateViewOffset(): void {
+    const now = performance.now()
+    if (now - this.viewOffsetCheckedAt < 400) return
+    this.viewOffsetCheckedAt = now
+    if (typeof document === 'undefined') return
+    const w = window.innerWidth, h = window.innerHeight
+    const phone = w > h && h <= 500
+    const panel = phone && this.battleActive ? document.querySelector<HTMLElement>('.app-shell--battle .bt-controls') : null
+    const hud = phone && this.battleActive ? document.querySelector<HTMLElement>('.app-shell--battle .bt-hud') : null
+    let dx = 0, dy = 0
+    if (panel) { const r = panel.getBoundingClientRect(); if (r.left < w * 0.2 && r.width < w * 0.45) dx = Math.round(r.right / 2) }
+    if (hud) { const r = hud.getBoundingClientRect(); if (r.bottom < h * 0.5) dy = Math.round(r.bottom * 0.35) }
+    const view = this.camera.view
+    if (!dx && !dy) { if (view?.enabled) this.camera.clearViewOffset(); return }
+    if (view?.enabled && view.offsetX === -dx && view.offsetY === -dy && view.fullWidth === w) return
+    this.camera.setViewOffset(w, h, -dx, -dy, w, h)
+  }
 
   setSpeed(speed: number): void {
     this.speed = Math.max(1, Math.min(this.maxSpeed, Math.round(speed)))
@@ -1891,6 +1925,10 @@ export class Arena {
       this.camera.position.copy(alt.pos).add(new THREE.Vector3(nx * shake, ny * shake * 0.55, 0))
       look.copy(alt.look)
     }
+    // 거리: 보는 곳에서 카메라까지를 배율만큼 늘린다(높이도 같이 올라가 앞 부대가 뒤를 가리지 않는다)
+    const scale = BATTLE_DISTANCE_SCALE[this.distance] ?? 1
+    if (scale !== 1 && this.view !== 'general') this.camera.position.sub(look).multiplyScalar(scale).add(look)
+    this.updateViewOffset()
     if (this.viewBlend < 1) {
       // 화면이 버벅여도 0.7초 안에 끝나게 실제 시간으로 잰다
       this.viewBlend = Math.min(1, (performance.now() - this.viewStartedAt) / 700)
