@@ -2107,10 +2107,12 @@ export class StrategyUI {
       const scale = Math.max(this.level60Scale(), ...state.generals.flatMap(g => [g.leadership, g.martial, g.stratagem, g.speed]))
       body = this.generalCard(state, general, scale)
     } else {
+      // 도감에서 열어도 보유 무장과 같은 창: 영입했으면 보유 무장 창 그대로, 아니면 같은 틀에 Lv.60 기준 능력치
       const owned = state.generals.find(item => item.id === detail.id)
       const general = owned ?? allGenerals().find(item => item.id === detail.id)
       if (!general) return ''
-      body = this.codexCard(general, Boolean(owned))
+      const scale = Math.max(this.level60Scale(), ...state.generals.flatMap(g => [g.leadership, g.martial, g.stratagem, g.speed]))
+      body = owned ? this.generalCard(state, owned, scale) : this.lockedGeneralCard(general)
     }
     // 연출: 처음 열 때만 등장 연출(gdetail--enter), 그림 위 빛 · 불씨는 늘
     const enter = this.generalDetailEnter
@@ -3160,6 +3162,25 @@ export class StrategyUI {
   private level60Scale(): number {
     if (!this.lv60StatMax) this.lv60StatMax = Math.max(100, ...allGenerals().flatMap(item => { const g = this.atLevel60(item); return [g.leadership, g.martial, g.stratagem, g.speed] })) * 1.04
     return this.lv60StatMax
+  }
+
+  /** 미영입 무장 상세(보유 무장 창과 같은 틀): Lv.60 기준 능력치 · 스킬, 아래 줄은 모집 안내 */
+  private lockedGeneralCard(general: General): string {
+    const meta = GRADE_META[general.grade]
+    const g60 = this.atLevel60(general)
+    const detail = skillDetail(g60)
+    const event = isEventGeneral(general.id)
+    const how = event ? '정식 모집에는 나오지 않고 이벤트로만 얻을 수 있습니다.' : `무장 모집에서 획득할 수 있습니다. (${meta.label} 등급 확률 ${meta.rate})`
+    return `<article class="gcard gcard--locked ${general.grade >= 4 ? `gcard--aura gcard--g${general.grade}` : ''}" style="--accent:${gradeColor(general)};--grade:${meta.color}">
+      <div class="gcard-portrait" style="--portrait:url('${this.portraitAsset(general)}')"><span class="gcard-grade">${general.grade} · ${meta.label}</span><span class="gcard-lane gcard-lane--locked">${event ? '이벤트 한정 · 미영입' : '미영입'}</span></div>
+      <div class="gcard-body">
+        <div class="gcard-head"><div><h3>${escapeHtml(general.name)}<span class="star-row">${'☆'.repeat(5)}</span></h3><p>${escapeHtml(general.epithet)}</p></div><span class="role-tag">${general.role}</span></div>
+        <div class="level-line"><span>Lv.60 기준</span><span>전투력 <b>${formatNumber(combatPower(g60))}</b></span></div>
+        <div class="stat-bars stat-bars--attributes">${this.attributeRows(g60, this.level60Scale())}</div>
+        <details class="gcard-skill"><summary><span>◈ ${escapeHtml(g60.skillName)}</span><em>${detail.type}</em><span class="gcard-skill-state">미영입</span></summary><p>${escapeHtml(g60.skillDescription)}</p>${this.skillDetailPanel(g60)}</details>
+        <div class="gcard-gear gcard-gear--note"><span>${how}</span></div>
+        <div class="gcard-actions">${event ? '' : '<button class="mini-action gcard-up" data-action="section" data-section="recruit">무장 모집으로</button>'}</div>
+      </div></article>`
   }
 
   private codexCard(general: General, owned: boolean): string {

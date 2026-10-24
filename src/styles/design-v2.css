@@ -1276,3 +1276,11 @@ html[data-fx="reduced"] .login-gate .lg-art, html[data-fx="reduced"] .login-gate
 html[data-fx="reduced"] .gdetail--profile *, html[data-fx="reduced"] .gdetail--profile { animation: none !important; }
 html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .gdetail--profile .gfx-shine { display: none; }
 @media (prefers-reduced-motion: reduce) { .gdetail--profile *, .gdetail--profile { animation: none !important; } .gdetail--profile .gfx-embers, .gdetail--profile .gfx-shine { display: none; } }
+
+/* 도감의 미영입 무장 상세: 보유 무장 창과 같은 틀, 초상은 조금 흐리게 */
+.gcard--locked .gfx-art, .gcard--locked .gcard-portrait { filter: saturate(.45) brightness(.82); }
+.gcard--locked .gcard-lane--locked { color: #f3e6c4; background: rgba(40, 32, 28, .88); border: 1px solid rgba(212, 175, 55, .45); }
+.gcard--locked .gcard-skill-state { color: #b9ab8c; }
+.gcard--locked .gcard-gear--note { cursor: default; justify-content: flex-start; }
+.gcard--locked .gcard-gear--note span { color: #d9cba8; white-space: normal; text-align: left; }
+.gcard--locked .gcard-actions .gcard-up { flex: 1; }
