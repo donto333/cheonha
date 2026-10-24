@@ -1453,3 +1453,27 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
 @media (orientation: landscape) and (max-height: 500px) {
   html body .app-shell .main-content .page-section--account { height: var(--frame-h); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding-bottom: 12px; }
 }
+
+/* 영토 지도 전체 화면에서 도시를 누르면: 도시 정보(수비 · 공성 출정 · 내정 · 기록)를 지도 위 오른쪽에 띄운다 */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management {
+    position: fixed; z-index: 86; top: calc(8px + var(--safe-t, 0px)); right: calc(8px + var(--safe-r, 0px)); bottom: calc(8px + var(--safe-b, 0px)); left: auto;
+    width: min(330px, 40vw); max-height: none; margin: 0; overflow-y: auto; overscroll-behavior: contain; visibility: visible; transform: none; display: block;
+    background: linear-gradient(180deg, rgba(22, 15, 10, .97), rgba(10, 7, 5, .97)); border: 1px solid rgba(212, 175, 55, .7); box-shadow: 0 6px 24px rgba(0, 0, 0, .8);
+  }
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-sheet-bar { display: flex; justify-content: flex-end; position: sticky; top: 0; z-index: 2; height: 0; overflow: visible; }
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-sheet-close { display: grid; place-items: center; width: 28px; height: 28px; margin: -2px -4px 0 0; padding: 0; font-size: 14px; color: #fff; background: #8e1d14; border: 1px solid #f0c35a; border-radius: 50%; box-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-sheet-grip { display: none; }
+  /* 도시 정보가 열려 있으면 오른쪽 아래 지도 단추는 정보 창 왼쪽으로 비킨다 */
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .territory-map.is-fullscreen .map-controls { right: calc(min(330px, 40vw) + 20px); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-management-head { padding-right: 30px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 좁은 정보 창: 민심 · 성벽 · 도시 등급은 막대 없이 이름 · 값만 */
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics { gap: 4px; }
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; min-width: 0; padding: 2px 5px; background: rgba(0, 0, 0, .35); border-radius: 2px; }
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div i { display: none; }
+  html body.map-fullscreen-open .page-section--territory.is-sheet-open .city-management .city-metrics > div span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

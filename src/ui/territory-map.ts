@@ -183,6 +183,8 @@ export class TerritoryMapController {
     const button = this.viewport?.querySelector<HTMLElement>('[data-map-action="fullscreen"]')
     if (button) { button.textContent = on ? '✕' : '□'; button.setAttribute('aria-label', on ? '전체 화면 닫기' : '지도 전체 화면') }
     requestAnimationFrame(() => this.apply())
+    // 화면(StrategyUI)이 도시 정보 창을 맞추도록 알린다
+    document.dispatchEvent(new CustomEvent('territory-fullscreen', { detail: on }))
   }
 
   getView(): MapViewState { return { ...this.view } }

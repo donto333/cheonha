@@ -629,6 +629,12 @@ export class StrategyUI {
     probeArt('/assets/ui/v2/screen-bg.webp', 'has-screen-bg')
     for (const type of ['pointerup', 'pointercancel', 'pointerleave']) root.addEventListener(type, this.cancelUnitPress)
     root.addEventListener('contextmenu', event => { if ((event.target as HTMLElement).closest('[data-bt-unit]')) event.preventDefault() })
+    // 지도 전체 화면을 열 때는 도시 정보 창을 닫아 지도를 다 보여 준다(도시를 누르면 지도 위 오른쪽에 뜬다)
+    document.addEventListener('territory-fullscreen', event => {
+      if (!(event as CustomEvent<boolean>).detail) return
+      this.citySheetOpen = false
+      this.root.querySelector('.page-section--territory')?.classList.remove('is-sheet-open')
+    })
     window.addEventListener('keydown', event => {
       if (event.key === 'Escape' && this.territoryMap.fullscreen) this.territoryMap.setFullscreen(false)
       // 영토 도시 검색: Enter로 첫 결과 고르기
