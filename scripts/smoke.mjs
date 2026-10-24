@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process'
 import { chromium } from 'playwright'
 
 const port = 4300 + Math.floor(Math.random() * 500)
-const url = `http://127.0.0.1:${port}/`
+const url = `http://127.0.0.1:${port}/?pc` // 데스크톱 크기 점검: 예전 PC 화면으로
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], { stdio: 'ignore' })
 let browser
 let finished = false

@@ -33,7 +33,8 @@ async function openGame(query = '') {
   page.on('requestfailed', r => { if (!/\/api\//.test(r.url()) && r.failure()?.errorText !== 'net::ERR_ABORTED') report.failedRequests.push({ url: r.url(), why: r.failure()?.errorText }) })
   page.on('response', r => { if (r.status() >= 400 && !/\/api\//.test(r.url())) report.failedRequests.push({ url: r.url(), status: r.status() }) })
   const t0 = Date.now()
-  await page.goto(baseUrl + query, { waitUntil: 'load', timeout: 60_000 })
+  // 데스크톱 크기 점검은 예전 PC 화면(?pc)으로 연다(휴대폰 화면 틀 없이 바로 게임에 닿게)
+  await page.goto(baseUrl + (query ? `${query}&pc` : '?pc'), { waitUntil: 'load', timeout: 60_000 })
   await page.waitForFunction(() => Boolean(window.__strategy), null, { timeout: 60_000 })
   report.loadMs ??= Date.now() - t0
   // 게스트 입장 → 진영 선택 → 안내 창 닫기(실제 콜백)
