@@ -1551,6 +1551,8 @@ html body .operator-pop { position: fixed; z-index: 2147482000; width: max-conte
   html body .app-shell .operator-chip .operator-chip__btn { width: 30px !important; height: 30px !important; min-width: 0 !important; padding: 0 !important; justify-content: center; border: 1px solid rgba(255, 128, 102, .7) !important; border-image: none !important; background: rgba(90, 22, 14, .88) !important; border-radius: 50% !important; box-shadow: 0 2px 6px rgba(0, 0, 0, .7) !important; }
   html body .app-shell .operator-chip .operator-chip__label { display: none; }
   html body .app-shell .operator-chip .operator-chip__btn b { width: 18px; height: 18px; font-size: 12px; }
+}
+
 /* 내정 · 연구(휴대폰 가로): 배경이 너무 어두워 보이던 것 — 배경 그림을 덜 가리고, 판 · 카드도 조금 밝게(2026.10.24) */
 @media (orientation: landscape) and (max-height: 500px) {
   html[data-realm] body .app-shell:not(.app-shell--battle):has(.page-section--mres) { background-image: linear-gradient(180deg, rgba(10, 6, 3, .15) 0%, rgba(10, 6, 3, .42) 35%, rgba(8, 5, 3, .62) 100%), var(--screen-bg, url('/assets/battlefield/huanghun-gate.webp')) !important; }
