@@ -16,7 +16,7 @@ const SET_SEAL: Record<EquipmentSet, string> = { command: '軍', martial: '霸',
 /** 무장 병과 → 병과 아이콘 이름 */
 const ROLE_KEY: Record<string, string> = { 기병: 'cavalry', 보병: 'infantry', 궁병: 'archer', 책사: 'strategist' }
 
-/** 연출 등급: 0 보통 · 1 좋음(테 반짝) · 2 높음(빛살) · 3 최고(화면 섬광) */
+/** 연출 등급: 0 보통 · 1 좋음(테 반짝) · 2 높음(카드 빛남 강하게) · 3 최고(화면 섬광) */
 const GEAR_TIER: Record<Equipment['grade'], number> = { normal: 0, rare: 1, unique: 2, legendary: 3, mythic: 3 }
 const GENERAL_TIER: Record<number, number> = { 1: 0, 2: 1, 3: 1, 4: 2, 5: 3 }
 
@@ -121,28 +121,21 @@ export function recruitResultsMarkup(rewards: General[], options: RecruitResults
 
 /* ───── 결과 연출 ─────
    앞의 전당 연출에서 이미 결과를 봤으므로 짧게(약 1초): 뒷면이 깔리자마자 차례로 빠르게 걷히고(돌리지 않음),
-   높은 등급은 열리는 순간 빛살 · 불꽃, 최고 등급은 화면이 잠깐 번쩍인다(흔들림 없음). 효과음은 가장 높은 등급 하나만.
+   높은 등급은 열리는 순간 카드 전체가 등급색으로 환하게 빛나고, 최고 등급은 화면이 잠깐 번쩍인다(흔들림 없음). 효과음은 가장 높은 등급 하나만.
    화면(버튼 밖)을 누르면 남은 카드가 한꺼번에 열린다. */
 
 export interface RevealOptions { reduced: boolean }
 
-const SPARKS = 12
 /** 뒷면이 걷히기까지 · 카드 사이 간격(ms). 돌리지 않고 뒷면이 사라지며 앞면이 드러난다 */
 const FLIP_MS = 0
 const STEP_MS = 55
 
+/** 열리는 카드 전체가 등급색으로 환하게 빛났다가 가라앉는다(사방으로 뻗는 빛살 없음) */
 function burst(card: HTMLElement, tier: number): void {
   if (tier < 1) return
   const el = document.createElement('span')
   el.className = `gr-burst gr-burst--t${tier}`
   el.setAttribute('aria-hidden', 'true')
-  let sparks = ''
-  if (tier >= 2) for (let i = 0; i < SPARKS; i += 1) {
-    const angle = (360 / SPARKS) * i + Math.random() * 18
-    const dist = (tier >= 3 ? 190 : 130) + Math.random() * 70
-    sparks += `<b style="--a:${angle.toFixed(1)}deg;--d:${dist.toFixed(0)};--s:${(0.6 + Math.random() * 0.8).toFixed(2)};--t:${(Math.random() * 120).toFixed(0)}ms"></b>`
-  }
-  el.innerHTML = `<i class="gr-burst__rays"></i><i class="gr-burst__ring"></i>${sparks}`
   card.appendChild(el)
   window.setTimeout(() => el.remove(), tier >= 3 ? 1300 : 900)
 }
