@@ -25,7 +25,7 @@ import { HARD_LEVEL_BONUS, HARD_RULE_INFO, SCENARIOS, hardClearReward, hardClear
 import { matchup, type BattleResult } from '../game/battle-core'
 import { BATTLE_EFFECTS, type BattleEffectId } from '../game/battle-effects'
 import { fxGlyph, fxSeal } from './fx-icons'
-import { gearResultsMarkup, recruitResultsMarkup } from './gear-results'
+import { gearResultsMarkup, playResultReveal, recruitResultsMarkup } from './gear-results'
 import { BONDS, GENERAL_SKILLS, bondActive, skillDefFor, type SkillFx } from '../game/skills'
 import { SEASON_COPIES, SEASON_WANDERER, SEASON_WANDERER_PLUNDER, seasonEndsAt, seasonGeneral, seasonKey, nextSeasonKey, seasonNumber, seasonStandings, type SeasonStanding } from '../../server/season.mjs'
 import { emptyGuildUi, guildEmblem, royalBadge, guildRankingCard, guildSection, type GuildTab, type GuildUiState } from './guild-ui'
@@ -1468,6 +1468,7 @@ export class StrategyUI {
     const cost = (count: number) => freeRecruits >= count ? '무료권' : this.honorCost(state ? recruitCost(state, count) : count === 10 ? 900 : 100)
     overlay.innerHTML = recruitResultsMarkup(rewards, { honor: state?.honor ?? 0, freeRecruits, cost: { one: cost(1), ten: cost(10) }, portrait: general => this.portraitAsset(general), honorIcon: icon('honor') })
     this.root.appendChild(overlay)
+    playResultReveal(overlay, { reduced: effectsSetting() === 'reduced' || window.matchMedia('(prefers-reduced-motion: reduce)').matches })
     requestAnimationFrame(() => overlay.classList.add('is-visible'))
   }
 
@@ -1480,6 +1481,7 @@ export class StrategyUI {
     const cost = (count: number) => freeDraws >= count ? '무료권' : this.honorCost(equipmentDrawCost(count))
     overlay.innerHTML = gearResultsMarkup(rewards, { honor: state?.honor ?? 0, freeDraws, cost: { one: cost(1), ten: cost(10) }, image: item => equipmentImage(item.type), honorIcon: icon('honor') })
     this.root.appendChild(overlay)
+    playResultReveal(overlay, { reduced: effectsSetting() === 'reduced' || window.matchMedia('(prefers-reduced-motion: reduce)').matches })
     requestAnimationFrame(() => overlay.classList.add('is-visible'))
   }
 
