@@ -5,6 +5,7 @@ import { markShared } from './gpu-shared'
 import { easeIn2, easeInOut, track } from './motion-math'
 import { strikeInfluences } from './battle-rig'
 import type { General } from './strategy'
+import { loadModel } from './battle-models'
 
 export type Team = 'player' | 'enemy'
 export type SceneQuality = 'low' | 'high'
@@ -625,7 +626,7 @@ export interface Environment {
 
 export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Environment {
   const updaters: Array<(t: number, delta: number) => void> = []
-  // 배경: 사용자 제공 전장 그림 한 장(화면에 꽉 차게). 하늘 · 산 · 성채 · 지형 · 풀 · 나무 · 깃발 모델은 쓰지 않는다.
+  // 배경: 사용자 제공 전장 그림 한 장(화면에 꽉 차게). 하늘 · 산 · 성채 · 풀 · 나무 · 깃발 모델은 쓰지 않고, 전장(섬) 모델만 얹는다.
   scene.fog = null
   scene.background = new THREE.Color(0x2a1a0e)
   let bgAspect = 16 / 9
@@ -667,6 +668,15 @@ export function buildEnvironment(scene: THREE.Scene, quality: SceneQuality): Env
   shadowGround.position.y = 0.001
   shadowGround.receiveShadow = true
   scene.add(shadowGround)
+  // 사용자 제공 실사 전장(2:1 섬 지형): 긴 쪽을 앞뒤로, 땅 높이가 0이 되게 얹는다
+  const ISLAND_SCALE = 3.6
+  void loadModel('battlefield').then(gltf => {
+    const island = gltf.scene
+    island.scale.setScalar(ISLAND_SCALE)
+    island.rotation.y = Math.PI / 2
+    island.position.set(0, 0.867 * ISLAND_SCALE + 0.02, -4)
+    scene.add(island)
+  }).catch(() => { /* 모델이 없으면 배경 그림만 */ })
   const tr = rng(9)
 
   // 불티 · 먼지(가벼운 입자)
