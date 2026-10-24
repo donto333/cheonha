@@ -1066,3 +1066,9 @@ html body .terr-search { display: none; }
   html body .page-section--mroster .gtile-grid > .gtile { aspect-ratio: auto; height: var(--tile-h); width: auto; }
   html body .page-section--mroster .gtile-grid > .gtile .gtile__frame { background-size: 100% 100%; }
 }
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 2줄 카드: 높이 기준은 장수 화면 전체(위 거르기 줄 · 아래 줄 · 쪽 넘기기 빼고) */
+  html body .app-shell .main-content .page-section--mroster { container-type: size; }
+  html body .page-section--mroster .gtile-grid { container-type: normal; --tile-h: calc((100cqh - 38px - 44px - 12px - 30px - 14px) / 2); grid-template-columns: repeat(auto-fill, calc(var(--tile-h) * 300 / 406)); grid-auto-rows: var(--tile-h); justify-content: space-between; }
+  html body .page-section--mroster .gtile-grid > .gtile { height: var(--tile-h); width: calc(var(--tile-h) * 300 / 406); }
+}
