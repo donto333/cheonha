@@ -25,7 +25,7 @@ import { HARD_LEVEL_BONUS, HARD_RULE_INFO, SCENARIOS, hardClearReward, hardClear
 import { matchup, type BattleResult } from '../game/battle-core'
 import { BATTLE_EFFECTS, type BattleEffectId } from '../game/battle-effects'
 import { fxGlyph, fxSeal } from './fx-icons'
-import { gearResultsMarkup } from './gear-results'
+import { gearResultsMarkup, recruitResultsMarkup } from './gear-results'
 import { BONDS, GENERAL_SKILLS, bondActive, skillDefFor, type SkillFx } from '../game/skills'
 import { SEASON_COPIES, SEASON_WANDERER, SEASON_WANDERER_PLUNDER, seasonEndsAt, seasonGeneral, seasonKey, nextSeasonKey, seasonNumber, seasonStandings, type SeasonStanding } from '../../server/season.mjs'
 import { emptyGuildUi, guildEmblem, royalBadge, guildRankingCard, guildSection, type GuildTab, type GuildUiState } from './guild-ui'
@@ -1462,9 +1462,11 @@ export class StrategyUI {
   showRecruitResults(rewards: General[]): void {
     this.root.querySelector('.recruit-results')?.remove()
     const overlay = document.createElement('div')
-    overlay.className = 'recruit-results'
-    const cards = rewards.map((general, index) => `<div class="recruit-result-card ${general.grade === 5 ? 'recruit-result-card--five-star' : ''}" style="--grade:${GRADE_META[general.grade].color};--accent:${gradeColor(general)};--reveal-delay:${Math.min(index, 9) * 70}ms"><span class="recruit-result-index">${String(index + 1).padStart(2, '0')}</span>${this.ritualPortrait(general)}<div><b>${escapeHtml(general.name)}</b><small>${general.grade}등급 · ${GRADE_META[general.grade].label} · Lv.${general.level}</small></div></div>`).join('')
-    overlay.innerHTML = `<div class="recruit-results-backdrop"></div><div class="recruit-results-panel"><div class="recruit-results-heading"><div><span class="eyebrow">10회 모집 결과</span><h2>열 명의 무장이 응답했습니다</h2><p>획득한 무장은 도감에 기록되고, 중복 인장은 성급 성장에 사용됩니다.</p></div><button class="mini-action" data-action="close-recruit-results">닫기</button></div><div class="recruit-results-grid">${cards}</div>${this.drawBalance('recruit')}<div class="recruit-results-actions"><button class="action-button action-button--outline" data-action="reroll-recruit"><span>10명 다시 뽑기</span><b class="cost">${this.renderedState ? this.honorCost(recruitCost(this.renderedState, 10)) : this.honorCost(900)}</b></button><button class="action-button action-button--primary" data-action="close-recruit-results">결과 확인 완료 <span>→</span></button></div></div>`
+    overlay.className = 'recruit-results gear-results gear-results--recruit'
+    const state = this.renderedState
+    const freeRecruits = state?.missions?.freeRecruits ?? 0
+    const cost = (count: number) => freeRecruits >= count ? '무료권' : this.honorCost(state ? recruitCost(state, count) : count === 10 ? 900 : 100)
+    overlay.innerHTML = recruitResultsMarkup(rewards, { honor: state?.honor ?? 0, freeRecruits, cost: { one: cost(1), ten: cost(10) }, portrait: general => this.portraitAsset(general), honorIcon: icon('honor') })
     this.root.appendChild(overlay)
     requestAnimationFrame(() => overlay.classList.add('is-visible'))
   }
@@ -3832,7 +3834,7 @@ export class StrategyUI {
   /** 누를 때 소리: 메뉴·탭은 현 한 번, 그 밖은 나무 딱. 뽑기는 연출이 따로 소리를 낸다 */
   private clickSound(action: string | undefined, button: HTMLElement): void {
     if (!action || button.hasAttribute('disabled')) return
-    if (['recruit', 'equipment-draw', 'extra-equipment-draw', 'reroll-recruit', 'sound-toggle'].includes(action)) return
+    if (['recruit', 'equipment-draw', 'extra-equipment-draw', 'reroll-recruit', 'extra-recruit', 'sound-toggle'].includes(action)) return
     const tab = action === 'section' || action === 'nav-more' || action === 'roster-jump' || action === 'scenario-select' || /-(tab|filter)$/.test(action)
     sound.play(tab ? 'tab' : 'click')
   }
@@ -4222,6 +4224,10 @@ export class StrategyUI {
     else if (action === 'reroll-recruit') {
       button.closest('.recruit-results')?.remove()
       this.callbacks.onRecruit(10)
+    }
+    else if (action === 'extra-recruit') {
+      button.closest('.recruit-results')?.remove()
+      this.callbacks.onRecruit(Number(button.dataset.count ?? 1) === 10 ? 10 : 1)
     }
     else if (action === 'extra-equipment-draw') {
       button.closest('.recruit-results')?.remove()
