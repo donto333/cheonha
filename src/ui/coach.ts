@@ -115,9 +115,15 @@ export class Coach {
       // 말풍선: 아래 → 위 → 안쪽 아래 순으로 자리를 찾는다
       const floor = vh - this.bottomCover() - 8
       let by = top + height + 12
+      let bx = Math.min(vw - bw - 12, Math.max(12, left + width / 2 - bw / 2))
       if (by + bh > floor) by = top - bh - 12
-      if (by < 8) by = Math.min(vh - bh - 12, Math.max(8, top + height - bh - 12))
-      const bx = Math.min(vw - bw - 12, Math.max(12, left + width / 2 - bw / 2))
+      if (by < 8) {
+        // 위아래 모두 자리가 없으면(가로 휴대폰의 큰 카드) 옆에 둔다: 오른쪽 → 왼쪽
+        const side = Math.min(floor - bh, Math.max(8, top + height / 2 - bh / 2))
+        if (left + width + 12 + bw <= vw - 8) { bx = left + width + 12; by = side }
+        else if (left - 12 - bw >= 8) { bx = left - 12 - bw; by = side }
+        else by = Math.min(vh - bh - 12, Math.max(8, top + height - bh - 12))
+      }
       bubble.style.left = `${bx}px`
       bubble.style.top = `${by}px`
     }

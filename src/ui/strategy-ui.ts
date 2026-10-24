@@ -2215,7 +2215,7 @@ export class StrategyUI {
       const grade = EQUIPMENT_GRADE_META[item.grade]
       const owner = this.equipmentOwnerNames.get(item.id)
       const qty = (item.quantity ?? 1) > 1 ? `<span class="eqtile__qty">×${item.quantity}</span>` : ''
-      return `<button class="eqtile${equipped.has(item.id) ? ' is-equipped' : ''}${item.id === this.equipmentDetailId ? ' is-open' : ''}" style="--grade:${grade.color}" data-action="equipment-detail" data-id="${item.id}"><img src="${equipmentImage(item.type)}" alt="" loading="lazy" decoding="async" width="40" height="40"><span class="eqtile__lv">+${item.level}</span>${qty}${item.locked ? '<span class="eqtile__lock">🔒</span>' : ''}<small>${escapeHtml(item.name)}</small>${owner ? `<em>${escapeHtml(owner)}</em>` : ''}</button>`
+      return `<button class="eqtile${equipped.has(item.id) ? ' is-equipped' : ''}${item.id === this.equipmentDetailId ? ' is-open' : ''}" data-grade="${item.grade}" style="--grade:${grade.color}" data-action="equipment-detail" data-id="${item.id}"><img src="${equipmentImage(item.type)}" alt="" loading="lazy" decoding="async" width="40" height="40"><span class="eqtile__lv">+${item.level}</span>${qty}${item.locked ? '<span class="eqtile__lock">🔒</span>' : ''}<small>${escapeHtml(item.name)}</small>${owner ? `<em>${escapeHtml(owner)}</em>` : ''}</button>`
     }).join('')
     return `<div class="eqtile-grid">${tiles}</div>`
   }

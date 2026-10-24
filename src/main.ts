@@ -2505,8 +2505,8 @@ const onboarding = new Onboarding({
     ui.setOnboarding({ freeRecruit: step.id === 'recruit', ...(step.id === 'recruit' ? { summonTab: 'generals' } : step.id === 'gear' ? { summonTab: 'equipment' } : step.id === 'shop' ? { shopTab: 'resources' } : {}) })
     // 다음 행동에 필요한 재료가 모자라면 채워 준다(튜토리얼이 막히지 않게)
     if (step.id === 'upgrade') {
-      const target = state.generals.find(general => general.id === deployedIds(state.formation)[0]) ?? state.generals[0]
-      if (target) { const cost = upgradeCost(state, target); state.silver = Math.max(state.silver, cost.silver); state.resources.silver = state.silver; state.manuals = Math.max(state.manuals, cost.manuals) }
+      // 어느 무장을 눌러도 강화할 수 있게 가장 비싼 1회 강화 비용만큼 채운다
+      for (const target of state.generals) { const cost = upgradeCost(state, target); state.silver = Math.max(state.silver, cost.silver); state.resources.silver = state.silver; state.manuals = Math.max(state.manuals, cost.manuals) }
     }
     if (step.id === 'enhance') { state.silver = Math.max(state.silver, 2000); state.resources.silver = state.silver; state.resources.iron = Math.max(state.resources.iron, 600) }
     if (step.id === 'shop' && state.gold < 10 && !onboardingGoldWait) {
