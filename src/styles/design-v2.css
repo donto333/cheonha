@@ -1374,6 +1374,7 @@ html[data-fx="reduced"] .gdetail--profile .gfx-embers, html[data-fx="reduced"] .
   .mduel-card__pt { overflow: hidden; background: #111; }
   .mduel-card__pt img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 22%; }
   .mduel-card__pt i { position: absolute; inset: -1px; background: url('/assets/ui/v2/duel/portrait-frame.webp') 0 0 / 100% 100% no-repeat; }
+  .mduel-card__ptname { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 4cqw 1cqw 1.2cqw; font-style: normal; font-size: 3.6cqw; font-weight: 800; line-height: 1; text-align: center; color: #f6e7c2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .85) 65%); text-shadow: 0 1px 2px #000; }
   .mduel-card__go { left: 8.41%; top: 85.31%; width: 83.55%; height: 11.68%; display: grid; place-items: center; padding: 0; font-size: 5.42cqw; font-weight: 800; color: #17150d; letter-spacing: .06em; background: url('/assets/ui/v2/duel/gold-button.webp') 0 0 / 100% 100% no-repeat; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; }
   .mduel-card__go:active { filter: brightness(.85); }
   .mduel-card__go:disabled { filter: grayscale(.8) brightness(.6); cursor: default; }

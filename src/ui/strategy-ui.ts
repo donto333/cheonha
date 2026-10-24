@@ -3868,7 +3868,7 @@ export class StrategyUI {
       const [fx, fy, fw, fh] = meta.flag
       const portraits = [0, 1, 2].map(j => {
         const general = deck[j]
-        return `<span class="mduel-card__pt" style="${cardBox(44 + j * 157, 351, 142, 118)}">${general ? `<img src="${this.portraitAsset(general)}" alt="${escapeHtml(general.name)}" loading="lazy">` : ''}<i></i></span>`
+        return `<span class="mduel-card__pt" style="${cardBox(44 + j * 157, 351, 142, 118)}">${general ? `<img src="${this.portraitAsset(general)}" alt="${escapeHtml(general.name)}" loading="lazy">` : ''}<i></i>${general ? `<em class="mduel-card__ptname">${escapeHtml(general.name)}</em>` : ''}</span>`
       }).join('')
       return `<article class="mduel-card mduel-card--${tier}" style="left:${pct(78 + index * 550, 1790)}">
         <span class="mduel-card__castle"></span><b class="mduel-card__glyph" style="${cardBox(fx, fy, fw, fh)}" data-no-tr>${meta.glyph}</b>
