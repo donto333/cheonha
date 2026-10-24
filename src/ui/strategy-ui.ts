@@ -558,6 +558,8 @@ export class StrategyUI {
   private shopResource: ShopResource = 'honor'
   /** 상점 최근 구매 창 */
   private shopLogOpen = false
+  /** 상점 신화 장비: 자세히 보는 장비(누르면 뜨는 설명 창) */
+  private mythicDetailId: string | null = null
   /** 튜토리얼: 10회 모집을 무료로 보여 준다 */
   private freeRecruit = false
   private territorySyncText = '영토 정보 확인 전'
@@ -3413,6 +3415,7 @@ export class StrategyUI {
     const balances = `<div class="shop-balances shop-balances--strip glass-card"><span>${icon('gold', 'gi--inline')} 금화 <b>${formatNumber(state.gold)}</b></span><span>${icon('honor', 'gi--inline')} 옥패 <b>${formatNumber(state.honor)}</b></span><span>${icon('mythic', 'gi--inline')} 신화 조각 <b>${state.mythicFragments}</b></span><span>낙양 강화석 <b>${state.mythicStones}</b></span>${readPurchaseLog().length ? '<button class="shop-log-open mini-action" data-action="shop-log">최근 구매</button>' : ''}</div>`
     const tabs = `<div class="shop-tabs shop-tabs--row" role="tablist"><button class="shop-tab ${this.shopTab === 'gold' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="gold">금화 충전</button><button class="shop-tab ${this.shopTab === 'packages' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="packages">패키지${STARTER_PACKS.some(pack => !starterPackBought(state, pack.id)) ? '<i class="shop-tab__dot"></i>' : ''}</button><button class="shop-tab ${this.shopTab === 'passes' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="passes">정액권</button><button class="shop-tab ${this.shopTab === 'resources' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="resources">자원·옥패</button><button class="shop-tab ${this.shopTab === 'mythic' ? 'is-active' : ''}" data-action="shop-tab" data-shop-tab="mythic">신화 장비</button></div>`
     let body = ''
+    let mythicDetail = ''
     if (this.shopTab === 'packages') body = this.starterPackSection(state)
     else if (this.shopTab === 'passes') body = this.passSection(state)
     else if (this.shopTab === 'gold') {
@@ -3455,8 +3458,16 @@ export class StrategyUI {
         const best = options[0]
         return best ? `<p class="shop-preview">${escapeHtml(best.general.name)}에게 장착 시 ${statLabels[item.mainStat]} <b>+${best.gain}</b> <small>(지금 ${EQUIPMENT_TYPE_META[item.type].label}: ${best.current ? escapeHtml(best.current.name) : '비어 있음'})</small></p>` : ''
       }
-      const cards = MYTHIC_SHOP_EQUIPMENT.map(item => { const specialty = equipmentSpecialty(item); return `<article class="shop-item shop-item--${item.set} glass-card"><div class="shop-item-icon"><img class="equipment-image--mythic" src="${equipmentImage(item.type)}" alt="${EQUIPMENT_TYPE_META[item.type].label}" /></div><div class="shop-item-copy"><span class="pill pill--mythic">신화 · ${EQUIPMENT_TYPE_META[item.type].label}</span><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.skillDescription)}</p><small>${escapeHtml(EQUIPMENT_SET_META[item.set].label)} · ${statLabels[item.mainStat]} +${item.baseValue} · ${escapeHtml(item.skillName)}</small>${specialty ? `<strong class="shop-specialty">특기 · ${escapeHtml(specialty.label)} · ${escapeHtml(specialty.description)}</strong>` : ''}${preview(item)}<span class="shop-progress"><i style="width:${progress * 100}%"></i><em>조각 ${Math.min(fragments, MYTHIC_FRAGMENT_COST)}/${MYTHIC_FRAGMENT_COST}</em></span></div><button class="action-button action-button--primary" data-action="shop-purchase" data-equipment-id="${item.id}" data-cost-fragments="${MYTHIC_FRAGMENT_COST}" data-label="${escapeHtml(item.name)}" ${fragments < MYTHIC_FRAGMENT_COST ? 'disabled' : ''}>${fragments < MYTHIC_FRAGMENT_COST ? `조각 ${MYTHIC_FRAGMENT_COST - fragments}개 더 필요` : `조각 ${MYTHIC_FRAGMENT_COST}개로 교환`}</button></article>` }).join('')
-      body = `<div class="glass-card shop-mythic-guide"><div class="shop-mythic-guide__bar"><span>신화 조각 <b>${fragments}</b> / ${MYTHIC_FRAGMENT_COST}</span><i><b style="width:${progress * 100}%"></b></i></div><p>유저 대련 승리 = 조각 쉬움 1 · 보통 2 · 어려움 3개 · 하루 5회 · 오늘 남은 대련 <b>${duelsLeft}회</b></p><p class="shop-mythic-guide__stone">신화장비는 낙양 강화석으로만 강화합니다(낙양 점령 1회당 1개 · 보유 ${state.mythicStones}개).</p><button class="action-button action-button--outline" data-action="section" data-section="duel">유저 대련 하러 가기 →</button></div><div class="shop-grid">${cards}</div>${isPhoneLandscape() ? '' : this.purchaseLogCard()}`
+      // 신화 장비: 한눈에 볼 수 있게 짧은 칸으로 늘어놓고, 누르면 자세한 설명 창을 띄운다
+      const shortName = (name: string) => name.replace(/^신화·/, '')
+      const cards = MYTHIC_SHOP_EQUIPMENT.map(item => `<button type="button" class="mythic-tile mythic-tile--${item.set}" data-action="mythic-detail" data-equipment-id="${item.id}" aria-label="${escapeHtml(item.name)} 자세히"><img class="equipment-image--mythic" src="${equipmentImage(item.type)}" alt="" loading="lazy" decoding="async" draggable="false"><span class="mythic-tile__type">${EQUIPMENT_TYPE_META[item.type].label}</span><strong>${escapeHtml(shortName(item.name))}</strong><small>${escapeHtml(EQUIPMENT_SET_META[item.set].label.replace(/ 세트$/, ''))} · ${statLabels[item.mainStat]} +${item.baseValue}</small><em>${escapeHtml(item.skillDescription.replace(/^고유 효과\s*·\s*/, ''))}</em></button>`).join('')
+      const detailItem = this.mythicDetailId ? MYTHIC_SHOP_EQUIPMENT.find(item => item.id === this.mythicDetailId) : undefined
+      if (detailItem) {
+        const item = detailItem
+        const specialty = equipmentSpecialty(item)
+        mythicDetail = `<div class="recruit-results is-visible mythic-detail-modal"><div class="recruit-results-backdrop" data-action="mythic-detail-close"></div><div class="recruit-results-panel mythic-detail"><button class="mythic-detail__x" data-action="mythic-detail-close" aria-label="닫기">✕</button><div class="mythic-detail__art"><img class="equipment-image--mythic" src="${equipmentImage(item.type)}" alt="${EQUIPMENT_TYPE_META[item.type].label}"></div><div class="mythic-detail__copy"><span class="pill pill--mythic">신화 · ${EQUIPMENT_TYPE_META[item.type].label}</span><h2>${escapeHtml(item.name)}</h2><dl><div><dt>고유 효과</dt><dd>${escapeHtml(item.skillDescription.replace(/^고유 효과\s*·\s*/, ''))}</dd></div><div><dt>세트 · 능력치</dt><dd>${escapeHtml(EQUIPMENT_SET_META[item.set].label)} · ${statLabels[item.mainStat]} +${item.baseValue} · ${escapeHtml(item.skillName)}</dd></div>${specialty ? `<div><dt>특기</dt><dd>${escapeHtml(specialty.label)} · ${escapeHtml(specialty.description)}</dd></div>` : ''}</dl>${preview(item)}<span class="shop-progress"><i style="width:${progress * 100}%"></i><em>조각 ${Math.min(fragments, MYTHIC_FRAGMENT_COST)}/${MYTHIC_FRAGMENT_COST}</em></span><button class="action-button action-button--primary" data-action="shop-purchase" data-equipment-id="${item.id}" data-cost-fragments="${MYTHIC_FRAGMENT_COST}" data-label="${escapeHtml(item.name)}" ${fragments < MYTHIC_FRAGMENT_COST ? 'disabled' : ''}>${fragments < MYTHIC_FRAGMENT_COST ? `조각 ${MYTHIC_FRAGMENT_COST - fragments}개 더 필요` : `조각 ${MYTHIC_FRAGMENT_COST}개로 교환`}</button></div></div></div>`
+      }
+      body = `<div class="glass-card shop-mythic-guide"><div class="shop-mythic-guide__bar"><span>신화 조각 <b>${fragments}</b> / ${MYTHIC_FRAGMENT_COST}</span><i><b style="width:${progress * 100}%"></b></i></div><p>유저 대련 승리 = 조각 쉬움 1 · 보통 2 · 어려움 3개 · 하루 5회 · 오늘 남은 대련 <b>${duelsLeft}회</b></p><p class="shop-mythic-guide__stone">신화장비는 낙양 강화석으로만 강화합니다(낙양 점령 1회당 1개 · 보유 ${state.mythicStones}개).</p><button class="action-button action-button--outline" data-action="section" data-section="duel">유저 대련 하러 가기 →</button></div><div class="mythic-grid">${cards}</div>${isPhoneLandscape() ? '' : this.purchaseLogCard()}`
     }
     const description = this.shopTab === 'packages' ? '계정마다 한 번만 살 수 있는 신규유저 패키지입니다.' : this.shopTab === 'gold' ? '금화 충전 안내' : this.shopTab === 'resources' ? '금화로 자원과 옥패를 바꿉니다. 지금 모자란 것을 먼저 추천합니다.' : '유저 대련에서 모은 신화 조각으로 신화장비를 교환합니다.'
     const logModal = this.shopLogOpen ? `<div class="recruit-results is-visible shop-log-modal"><div class="recruit-results-backdrop" data-action="shop-log"></div><div class="recruit-results-panel"><div class="recruit-results-heading"><div><span class="eyebrow">상점</span><h2>최근 구매</h2></div><button class="mini-action" data-action="shop-log">닫기</button></div>${this.purchaseLogCard() || '<p class="rank-empty">아직 구매 기록이 없습니다.</p>'}</div></div>` : ''
@@ -3467,9 +3478,9 @@ export class StrategyUI {
       const banners: Record<string, [string, string, string]> = { packages: ['banner-b', '패키지 상점', '빠른 성장을 위한 신규 지휘관 패키지 · 계정당 한 번'], passes: ['banner-a', '정액권', '매일 받는 보상으로 꾸준히 강해지십시오'], resources: ['banner-c', '자원 · 옥패 상점', '강한 나라의 근간, 풍요로운 자원을 확보하십시오'], mythic: ['banner-d', '신화 장비 상점', `대련에서 모은 신화 조각 ${state.mythicFragments} / ${MYTHIC_FRAGMENT_COST} · 낙양 강화석 ${state.mythicStones}`], gold: ['banner-a', '금화 충전', '금화로 옥패 · 자원 · 패키지를 삽니다'] }
       const [bannerArt, bannerTitle, bannerSub] = banners[this.shopTab]
       const banner = `<div class="mshop-banner" style="background-image:url('${assetUrl(`/assets/ui/v2/shop/${bannerArt}.webp`)}')"><h2>${bannerTitle}</h2><p>${escapeHtml(bannerSub)}</p></div>`
-      return `<section class="page-section page-section--shop page-section--mshop" data-shop-tab="${this.shopTab}">${nav}<div class="mshop-main">${banner}<div class="mshop-body">${body}</div></div></section>${logModal}`
+      return `<section class="page-section page-section--shop page-section--mshop" data-shop-tab="${this.shopTab}">${nav}<div class="mshop-main">${banner}<div class="mshop-body">${body}</div></div></section>${logModal}${mythicDetail}`
     }
-    return `<section class="page-section page-section--shop"><div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>상점</h1><p class="heading-copy">${description}</p></div></div>${balances}${tabs}${body}</section>${logModal}`
+    return `<section class="page-section page-section--shop"><div class="section-heading section-heading--compact"><div><span class="eyebrow">소통</span><h1>상점</h1><p class="heading-copy">${description}</p></div></div>${balances}${tabs}${body}</section>${logModal}${mythicDetail}`
   }
 
   /** 상점 > 패키지: 신규유저 패키지 4종(계정당 1회). 정식 출시 전에는 무료 */
@@ -3736,6 +3747,7 @@ export class StrategyUI {
       this.callbacks.onDuelStart(button.dataset.opponentId)
       return
     }
+    if (action === 'mythic-detail' || action === 'mythic-detail-close') { this.mythicDetailId = action === 'mythic-detail' ? button.dataset.equipmentId ?? null : null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'shop-log') { this.shopLogOpen = !this.shopLogOpen; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'equipment-detail') { this.equipmentDetailId = button.dataset.id ?? null; if (this.renderedState) this.render(this.renderedState); return }
     if (action === 'equipment-detail-close') { this.equipmentDetailId = null; if (this.renderedState) this.render(this.renderedState); return }
@@ -3997,6 +4009,7 @@ export class StrategyUI {
     else if (action === 'board-tab') this.callbacks.onBoardRefresh((button.dataset.board ?? '전체') as BoardPost['board'])
     else if (action === 'store') this.callbacks.onStore()
     else if (action === 'shop-purchase') {
+      this.mythicDetailId = null
       const id = button.dataset.equipmentId ?? 'shop-mythic-martial-weapon'
       const remain = (this.renderedState?.mythicFragments ?? 0) - MYTHIC_FRAGMENT_COST
       this.confirmPurchase(`${button.dataset.label ?? '신화장비'} 교환`, `신화 조각 ${MYTHIC_FRAGMENT_COST}개를 씁니다 · 교환 후 ${Math.max(0, remain)}개 남음`, () => this.callbacks.onShopPurchase(id))
